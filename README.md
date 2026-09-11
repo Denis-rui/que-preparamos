@@ -1,6 +1,6 @@
-# ¿Qué Cocinamos?
+# ¿Qué Preparamos?
 
-**¿Qué Cocinamos?** es una aplicación móvil en desarrollo que ayudará a estudiantes, amas de casa y jóvenes independientes a decidir qué preparar con los ingredientes que tienen disponibles.
+**¿Qué Preparamos?** es una aplicación móvil en desarrollo que ayudará a estudiantes, amas de casa y jóvenes independientes a decidir qué preparar con los ingredientes que tienen disponibles.
 
 La aplicación permitirá consultar recetas de comidas, bebidas, cócteles y postres, buscar por nombre o seleccionar ingredientes para encontrar preparaciones compatibles e identificar cuáles hacen falta. Cada receta incluirá sus ingredientes, porciones, tiempo de preparación e instrucciones paso a paso, con la opción de escucharlas mediante audio.
 

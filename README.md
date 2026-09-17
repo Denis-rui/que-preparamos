@@ -22,5 +22,3 @@ La aplicación móvil utiliza **React Native, Expo y TypeScript**. Se conecta a 
 ## 🎓 Sobre el proyecto
 
 Desarrollamos esta aplicación como parte del curso de **Programación de Aplicaciones Móviles**, con el propósito de facilitar la consulta de recetas y ayudar a aprovechar los ingredientes disponibles.
-
-> 🚧 Proyecto en desarrollo. Las funcionalidades descritas representan el alcance previsto y se incorporarán de forma progresiva.

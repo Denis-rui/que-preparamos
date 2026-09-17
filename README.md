@@ -1,56 +1,26 @@
-# Welcome to your Expo app 👋
+# 🍳 ¿Qué Preparamos?
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Encuentra ideas para cocinar con los ingredientes que tienes en casa.**
 
-## Get started
+¿Qué Preparamos? es una aplicación móvil en desarrollo, pensada para estudiantes, jóvenes independientes y personas que buscan decidir qué preparar en su día a día. El proyecto reúne recetas de **comidas, bebidas, cócteles y postres**, con información organizada e instrucciones fáciles de seguir.
 
-1. Install dependencies
+Su propuesta principal es ayudarte a encontrar recetas a partir de los ingredientes que tienes disponibles, mostrando cuáles puedes utilizar y cuáles te faltan. Así podrás comparar opciones sin revisar cada receta por separado.
 
-   ```bash
-   npm install
-   ```
+## 📱 Funcionalidades previstas
 
-2. Start the app
+- **Explorar recetas:** consultar el catálogo, buscar por nombre y filtrar por categoría.
+- **Buscar por ingredientes:** seleccionar lo que tienes y encontrar recetas, priorizando las que requieren menos ingredientes adicionales.
+- **Seguir cada preparación:** consultar ingredientes, porciones, tiempo de preparación y pasos ordenados, con opción de escuchar las instrucciones.
+- **Guardar favoritos:** conservar recetas en el dispositivo como invitado o vincularlas a tu cuenta.
+- **Crear tus propias recetas:** guardarlas como privadas y enviarlas a revisión cuando quieras compartirlas con la comunidad.
+- **Valorar y compartir:** calificar las recetas y compartir enlaces a las preparaciones publicadas.
 
-   ```bash
-   npx expo start
-   ```
+## 🛠️ Tecnologías
 
-In the output, you'll find options to open the app in a
+La aplicación móvil utiliza **React Native, Expo y TypeScript**. Se conecta a una API desarrollada con **Laravel**, encargada de gestionar la información y el acceso a la base de datos **MariaDB**.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 🎓 Sobre el proyecto
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Desarrollamos esta aplicación como parte del curso de **Programación de Aplicaciones Móviles**, con el propósito de facilitar la consulta de recetas y ayudar a aprovechar los ingredientes disponibles.
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+> 🚧 Proyecto en desarrollo. Las funcionalidades descritas representan el alcance previsto y se incorporarán de forma progresiva.

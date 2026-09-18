@@ -182,6 +182,7 @@ export default function Login() {
                   styles.signupButton,
                   pressed && styles.pressed,
                 ]}
+                onPress={() => router.push("/register")}
               >
                 <Text style={styles.signupButtonText}>Crear cuenta →</Text>
               </Pressable>

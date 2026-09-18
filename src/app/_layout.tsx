@@ -28,6 +28,8 @@ export default function RootLayout() {
       {fontsLoaded && (
         <Stack initialRouteName="welcome" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="welcome" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="register" />
           <Stack.Screen name="(tabs)" />
         </Stack>
       )}

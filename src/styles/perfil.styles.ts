@@ -21,6 +21,7 @@ export const styles = StyleSheet.create({
   avatarWrapper: { width: 72, height: 76 },
   avatarCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
   avatar: { width: 52, height: 52 },
+  profilePhoto: { width: 72, height: 72, borderRadius: 36 },
   editButton: { position: 'absolute', bottom: -6, right: -5, width: 28, height: 28, borderRadius: 14, backgroundColor: '#FFFCF2', alignItems: 'center', justifyContent: 'center', boxShadow: '0px 2px 5px rgba(64, 38, 16, 0.14)' },
   editIcon: { width: 16, height: 16 },
   profileCopy: { flex: 1 },

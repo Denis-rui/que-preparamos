@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { styles } from "@/styles/perfil.styles";
+import EditarPerfilModal, { type EditableProfile } from "@/components/editar-perfil-modal";
 
 const demoProfile = {
   name: "Liliana Bustamante Tauma",
@@ -14,6 +15,8 @@ const demoProfile = {
 
 export default function MiPerfil() {
   const [notice, setNotice] = useState("");
+  const [profile, setProfile] = useState<EditableProfile>(demoProfile);
+  const [editing, setEditing] = useState(false);
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
@@ -87,14 +90,15 @@ export default function MiPerfil() {
             <View style={styles.avatarWrapper}>
               <View style={styles.avatarCircle}>
                 <Image
-                  source={require("../../assets/SVG/iconos/avatar_perfil.svg")}
-                  style={styles.avatar}
-                  contentFit="contain"
+                  source={profile.photoUri ? { uri: profile.photoUri } : require("../../assets/SVG/iconos/avatar_perfil.svg")}
+                  style={profile.photoUri ? styles.profilePhoto : styles.avatar}
+                  contentFit={profile.photoUri ? "cover" : "contain"}
                 />
               </View>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Editar mi perfil"
+                onPress={() => setEditing(true)}
                 hitSlop={10}
                 style={({ pressed }) => [
                   styles.editButton,
@@ -110,8 +114,8 @@ export default function MiPerfil() {
             </View>
             <View style={styles.profileCopy}>
               <Text style={styles.profileTitle}>Mi espacio</Text>
-              <Text style={styles.profileDetail}>{demoProfile.name}</Text>
-              <Text style={styles.profileDetail}>{demoProfile.email}</Text>
+              <Text style={styles.profileDetail}>{profile.name}</Text>
+              <Text style={styles.profileDetail}>{profile.email}</Text>
               <Text style={styles.profileDetail}>
                 {demoProfile.savedRecipes} recetas guardadas
               </Text>
@@ -210,6 +214,17 @@ export default function MiPerfil() {
           ) : null}
         </View>
       </ScrollView>
+      {editing && (
+        <EditarPerfilModal
+          profile={profile}
+          onClose={() => setEditing(false)}
+          onSave={(updatedProfile) => {
+            setProfile(updatedProfile);
+            setEditing(false);
+            setNotice("");
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }

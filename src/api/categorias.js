@@ -1,5 +1,5 @@
 export async function getCategorias() {
-  const API_CATEGORIAS = "https://quepreparamos.duckdns.org/api/v1/categorias";
+  const API_CATEGORIAS = `${process.env.URL_API}/categorias`;
 
   const respuesta = await fetch(API_CATEGORIAS, {
     headers: {

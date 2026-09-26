@@ -1,4 +1,4 @@
-import { CategoriasInicio } from "@/components/CategoriasInicio";
+import { CategoriasInicio } from "@/components/categoriasInicio";
 import { LogoQuePreparamos } from "@/components/LogoQuePreparamos";
 import { RecetasAleatorias } from "@/components/RecetasAleatorias";
 

@@ -2,7 +2,6 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -19,6 +18,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
+import { AppButton } from "@/components/ui/appButton";
 import { getRegisterStyles } from "@/styles/register.styles";
 
 type FormData = {
@@ -120,238 +120,224 @@ export default function Register() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-        <View style={styles.page}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.backButton,
-              pressed && styles.pressed,
-            ]}
-            onPress={() =>
-              router.canGoBack() ? router.back() : router.replace("/login")
-            }
-            accessibilityRole="button"
-            accessibilityLabel="Volver al login"
-          >
-            <Image
-              source={require("../assets/SVG/iconos/volver.svg")}
-              style={styles.backIcon}
-              contentFit="contain"
-            />
-          </Pressable>
-
-          <View style={styles.brand}>
-            <View
-              style={styles.logoRow}
-              accessible
-              accessibilityLabel="¿Qué preparamos?"
-            >
-              <Image
-                source={require("../assets/imagenes/icono_sombrero_chef.png")}
-                style={styles.chefHat}
-                contentFit="contain"
-              />
-              <Image
-                source={require("../assets/imagenes/titulo.png")}
-                style={styles.titleLogo}
-                contentFit="contain"
-              />
-            </View>
-            <View style={styles.taglineRow}>
-              <View style={styles.taglineText}>
-                <Text
-                  style={styles.taglineFirstLine}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                >
-                  Buenas comidas,
-                </Text>
-                <Text
-                  style={styles.taglineSecondLine}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                >
-                  mejores momentos
-                </Text>
-              </View>
-              <Image
-                source={require("../assets/SVG/iconos/corazon_contorno.svg")}
-                style={styles.taglineHeart}
-                contentFit="contain"
-              />
-            </View>
-            <Image
-              source={require("../assets/SVG/ilustraciones/chef_elegir_cuenta_con_adornos.svg")}
-              style={styles.chef}
-              contentFit="contain"
-            />
-            <View style={styles.headingRow}>
-              <Image
-                source={require("../assets/SVG/adornos/hojas_izquierda.svg")}
-                style={styles.headingLeaves}
-                contentFit="contain"
-              />
-              <Text accessibilityRole="header" style={styles.heading}>
-                Crear cuenta
-              </Text>
-              <Image
-                source={require("../assets/SVG/adornos/hojas_derecha.svg")}
-                style={styles.headingLeaves}
-                contentFit="contain"
-              />
-            </View>
-          </View>
-
-          <View style={styles.formCard}>
-            <View style={styles.form}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Nombre completo</Text>
-              <TextInput
-                style={getInputStyle("nombre", !!errors.nombre)}
-                placeholder="Tu nombre"
-                placeholderTextColor="#9D9DA7"
-                value={formData.nombre}
-                onChangeText={(value) => handleInputChange("nombre", value)}
-                onFocus={() => setFocusedField("nombre")}
-                onBlur={() => setFocusedField(null)}
-                autoCapitalize="words"
-                autoComplete="name"
-                textContentType="name"
-                returnKeyType="next"
-                onSubmitEditing={() => emailRef.current?.focus()}
-              />
-              {errors.nombre ? (
-                <Text style={styles.errorText}>{errors.nombre}</Text>
-              ) : null}
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Email</Text>
-              <TextInput
-                ref={emailRef}
-                style={getInputStyle("email", !!errors.email)}
-                placeholder="tu@email.com"
-                placeholderTextColor="#9D9DA7"
-                value={formData.email}
-                onChangeText={(value) => handleInputChange("email", value)}
-                onFocus={() => setFocusedField("email")}
-                onBlur={() => setFocusedField(null)}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                textContentType="emailAddress"
-                returnKeyType="next"
-                onSubmitEditing={() => passwordRef.current?.focus()}
-              />
-              {errors.email ? (
-                <Text style={styles.errorText}>{errors.email}</Text>
-              ) : null}
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Contraseña</Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  ref={passwordRef}
-                  style={getInputStyle("password", !!errors.password)}
-                  placeholder="Mínimo 12 caracteres"
-                  placeholderTextColor="#9D9DA7"
-                  value={formData.password}
-                  onChangeText={(value) => handleInputChange("password", value)}
-                  onFocus={() => setFocusedField("password")}
-                  onBlur={() => setFocusedField(null)}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  autoComplete="new-password"
-                  textContentType="newPassword"
-                  returnKeyType="next"
-                  onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+            <View style={styles.page}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.backButton,
+                  pressed && styles.pressed,
+                ]}
+                onPress={() =>
+                  router.canGoBack() ? router.back() : router.replace("/login")
+                }
+                accessibilityRole="button"
+                accessibilityLabel="Volver al login"
+              >
+                <Image
+                  source={require("../assets/SVG/iconos/volver.svg")}
+                  style={styles.backIcon}
+                  contentFit="contain"
                 />
-                <Pressable
-                  style={styles.passwordToggle}
-                  onPress={() => setShowPassword(!showPassword)}
-                  accessibilityRole="button"
-                  accessibilityLabel={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              </Pressable>
+
+              <View style={styles.brand}>
+                <View
+                  style={styles.logoRow}
+                  accessible
+                  accessibilityLabel="¿Qué preparamos?"
                 >
                   <Image
-                    source={
-                      showPassword
-                        ? require("../assets/SVG/iconos/ojo.svg")
-                        : require("../assets/SVG/iconos/ojo_cerrado.svg")
-                    }
-                    style={styles.passwordToggleIcon}
+                    source={require("../assets/imagenes/icono_sombrero_chef.png")}
+                    style={styles.chefHat}
                     contentFit="contain"
                   />
-                </Pressable>
-              </View>
-              {errors.password ? (
-                <Text style={styles.errorText}>{errors.password}</Text>
-              ) : null}
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Confirmar contraseña</Text>
-              <TextInput
-                ref={confirmPasswordRef}
-                style={getInputStyle("confirmPassword", !!errors.confirmPassword)}
-                placeholder="Repite tu contraseña"
-                placeholderTextColor="#9D9DA7"
-                value={formData.confirmPassword}
-                onChangeText={(value) =>
-                  handleInputChange("confirmPassword", value)
-                }
-                onFocus={() => setFocusedField("confirmPassword")}
-                onBlur={() => setFocusedField(null)}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                autoComplete="new-password"
-                textContentType="newPassword"
-                returnKeyType="done"
-                onSubmitEditing={Keyboard.dismiss}
-              />
-              {errors.confirmPassword ? (
-                <Text style={styles.errorText}>{errors.confirmPassword}</Text>
-              ) : null}
-            </View>
-
-            <Pressable
-              style={({ pressed }) => [
-                styles.submitButton,
-                pressed && styles.pressed,
-                isLoading && styles.submitButtonDisabled,
-              ]}
-              onPress={handleSubmit}
-              disabled={isLoading}
-              accessibilityRole="button"
-              accessibilityLabel="Crear cuenta"
-            >
-              {isLoading ? (
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                  <ActivityIndicator color="#FFFFFF" size="small" />
-                  <Text style={styles.submitButtonText}>Creando cuenta...</Text>
+                  <Image
+                    source={require("../assets/imagenes/titulo.png")}
+                    style={styles.titleLogo}
+                    contentFit="contain"
+                  />
                 </View>
-              ) : (
-                <Text style={styles.submitButtonText}>Crear cuenta →</Text>
-              )}
-            </Pressable>
+                <View style={styles.taglineRow}>
+                  <View style={styles.taglineText}>
+                    <Text
+                      style={styles.taglineFirstLine}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                    >
+                      Buenas comidas,
+                    </Text>
+                    <Text
+                      style={styles.taglineSecondLine}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                    >
+                      mejores momentos
+                    </Text>
+                  </View>
+                  <Image
+                    source={require("../assets/SVG/iconos/corazon_contorno.svg")}
+                    style={styles.taglineHeart}
+                    contentFit="contain"
+                  />
+                </View>
+                <Image
+                  source={require("../assets/SVG/ilustraciones/chef_elegir_cuenta_con_adornos.svg")}
+                  style={styles.chef}
+                  contentFit="contain"
+                />
+                <View style={styles.headingRow}>
+                  <Image
+                    source={require("../assets/SVG/adornos/hojas_izquierda.svg")}
+                    style={styles.headingLeaves}
+                    contentFit="contain"
+                  />
+                  <Text accessibilityRole="header" style={styles.heading}>
+                    Crear cuenta
+                  </Text>
+                  <Image
+                    source={require("../assets/SVG/adornos/hojas_derecha.svg")}
+                    style={styles.headingLeaves}
+                    contentFit="contain"
+                  />
+                </View>
+              </View>
 
-            <Pressable
-              style={({ pressed }) => [
-                styles.loginLink,
-                pressed && styles.pressed,
-              ]}
-              onPress={() => router.back()}
-              accessibilityRole="button"
-              accessibilityLabel="Ya tengo cuenta, ir a iniciar sesión"
-            >
-              <Text style={styles.loginLinkText}>¿Ya tienes cuenta?</Text>
-              <Text style={styles.loginLinkButton}>Inicia sesión</Text>
-            </Pressable>
-          </View>
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  </TouchableWithoutFeedback>
-</KeyboardAvoidingView>
+              <View style={styles.formCard}>
+                <View style={styles.form}>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Nombre completo</Text>
+                    <TextInput
+                      style={getInputStyle("nombre", !!errors.nombre)}
+                      placeholder="Tu nombre"
+                      placeholderTextColor="#9D9DA7"
+                      value={formData.nombre}
+                      onChangeText={(value) => handleInputChange("nombre", value)}
+                      onFocus={() => setFocusedField("nombre")}
+                      onBlur={() => setFocusedField(null)}
+                      autoCapitalize="words"
+                      autoComplete="name"
+                      textContentType="name"
+                      returnKeyType="next"
+                      onSubmitEditing={() => emailRef.current?.focus()}
+                    />
+                    {errors.nombre ? (
+                      <Text style={styles.errorText}>{errors.nombre}</Text>
+                    ) : null}
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Email</Text>
+                    <TextInput
+                      ref={emailRef}
+                      style={getInputStyle("email", !!errors.email)}
+                      placeholder="tu@email.com"
+                      placeholderTextColor="#9D9DA7"
+                      value={formData.email}
+                      onChangeText={(value) => handleInputChange("email", value)}
+                      onFocus={() => setFocusedField("email")}
+                      onBlur={() => setFocusedField(null)}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                      textContentType="emailAddress"
+                      returnKeyType="next"
+                      onSubmitEditing={() => passwordRef.current?.focus()}
+                    />
+                    {errors.email ? (
+                      <Text style={styles.errorText}>{errors.email}</Text>
+                    ) : null}
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Contraseña</Text>
+                    <View style={styles.passwordContainer}>
+                      <TextInput
+                        ref={passwordRef}
+                        style={getInputStyle("password", !!errors.password)}
+                        placeholder="Mínimo 12 caracteres"
+                        placeholderTextColor="#9D9DA7"
+                        value={formData.password}
+                        onChangeText={(value) => handleInputChange("password", value)}
+                        onFocus={() => setFocusedField("password")}
+                        onBlur={() => setFocusedField(null)}
+                        secureTextEntry={!showPassword}
+                        autoCapitalize="none"
+                        autoComplete="new-password"
+                        textContentType="newPassword"
+                        returnKeyType="next"
+                        onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+                      />
+                      <Pressable
+                        style={styles.passwordToggle}
+                        onPress={() => setShowPassword(!showPassword)}
+                        accessibilityRole="button"
+                        accessibilityLabel={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      >
+                        <Image
+                          source={
+                            showPassword
+                              ? require("../assets/SVG/iconos/ojo.svg")
+                              : require("../assets/SVG/iconos/ojo_cerrado.svg")
+                          }
+                          style={styles.passwordToggleIcon}
+                          contentFit="contain"
+                        />
+                      </Pressable>
+                    </View>
+                    {errors.password ? (
+                      <Text style={styles.errorText}>{errors.password}</Text>
+                    ) : null}
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Confirmar contraseña</Text>
+                    <TextInput
+                      ref={confirmPasswordRef}
+                      style={getInputStyle("confirmPassword", !!errors.confirmPassword)}
+                      placeholder="Repite tu contraseña"
+                      placeholderTextColor="#9D9DA7"
+                      value={formData.confirmPassword}
+                      onChangeText={(value) =>
+                        handleInputChange("confirmPassword", value)
+                      }
+                      onFocus={() => setFocusedField("confirmPassword")}
+                      onBlur={() => setFocusedField(null)}
+                      secureTextEntry={!showPassword}
+                      autoCapitalize="none"
+                      autoComplete="new-password"
+                      textContentType="newPassword"
+                      returnKeyType="done"
+                      onSubmitEditing={Keyboard.dismiss}
+                    />
+                    {errors.confirmPassword ? (
+                      <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+                    ) : null}
+                  </View>
+
+                  <AppButton
+                    label="Crear cuenta →"
+                    onPress={handleSubmit}
+                    loading={isLoading}
+                    loadingLabel="Creando cuenta..."
+                  />
+
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.loginLink,
+                      pressed && styles.pressed,
+                    ]}
+                    onPress={() => router.back()}
+                    accessibilityRole="button"
+                    accessibilityLabel="Ya tengo cuenta, ir a iniciar sesión"
+                  >
+                    <Text style={styles.loginLinkText}>¿Ya tienes cuenta?</Text>
+                    <Text style={styles.loginLinkButton}>Inicia sesión</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }

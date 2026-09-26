@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   // Estilos de la tarjeta individual
   tarjetaContenedor: {
     width: "48%", // Al darle 48%, entran dos en el 100% dejando un 4% de margen al medio
-    backgroundColor: "white",
+    backgroundColor: "#FFFFFF",
     borderRadius: 15,
     marginBottom: 15,
     paddingBottom: 15, // Espacio abajo del texto
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 10,
     paddingHorizontal: 10,
-    color: "#4A2B12",
+    color: "#48170E",
   },
   descripcion: {
     fontSize: 12,

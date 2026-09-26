@@ -33,6 +33,7 @@ type FormErrors = {
   email?: string;
   password?: string;
   confirmPassword?: string;
+  terms?: string;
 };
 
 export default function Register() {
@@ -49,6 +50,7 @@ export default function Register() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -79,6 +81,10 @@ export default function Register() {
       newErrors.confirmPassword = "Las contraseñas no coinciden";
     }
 
+    if (!acceptedTerms) {
+      newErrors.terms = "Debes aceptar los términos y condiciones";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -87,6 +93,13 @@ export default function Register() {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const handleToggleTerms = () => {
+    setAcceptedTerms((prev) => !prev);
+    if (errors.terms) {
+      setErrors((prev) => ({ ...prev, terms: undefined }));
     }
   };
 
@@ -102,9 +115,9 @@ export default function Register() {
   };
 
   const getInputStyle = (field: string, hasError: boolean) => [
-    styles.input,
-    focusedField === field && styles.inputFocused,
-    hasError && styles.inputError,
+    styles.inputRow,
+    focusedField === field && styles.inputRowFocused,
+    hasError && styles.inputRowError,
   ];
 
   return (
@@ -115,6 +128,19 @@ export default function Register() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <SafeAreaView style={styles.container}>
+          <Image
+            source={require("../assets/SVG/adornos/hojas_inferiores.svg")}
+            style={styles.bottomLeafLeft}
+            contentFit="contain"
+            pointerEvents="none"
+          />
+          <Image
+            source={require("../assets/SVG/adornos/hojas_inferiores.svg")}
+            style={styles.bottomLeafRight}
+            contentFit="contain"
+            pointerEvents="none"
+          />
+
           <ScrollView
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
@@ -179,35 +205,45 @@ export default function Register() {
                     contentFit="contain"
                   />
                 </View>
-                <Image
-                  source={require("../assets/SVG/ilustraciones/chef_elegir_cuenta_con_adornos.svg")}
-                  style={styles.chef}
-                  contentFit="contain"
-                />
-                <View style={styles.headingRow}>
+
+                <View style={styles.illustration}>
                   <Image
-                    source={require("../assets/SVG/adornos/hojas_izquierda.svg")}
-                    style={styles.headingLeaves}
+                    source={require("../assets/SVG/ilustraciones/chef_elegir_cuenta_con_adornos.svg")}
+                    style={styles.chef}
                     contentFit="contain"
                   />
-                  <Text accessibilityRole="header" style={styles.heading}>
-                    Crear cuenta
-                  </Text>
-                  <Image
-                    source={require("../assets/SVG/adornos/hojas_derecha.svg")}
-                    style={styles.headingLeaves}
-                    contentFit="contain"
-                  />
+                  <View style={styles.community}>
+                    <Text style={styles.communityText}>
+                      {"¡Únete\na nuestra\ncomunidad!"}
+                    </Text>
+                    <Image
+                      source={require("../assets/SVG/iconos/corazon_contorno.svg")}
+                      style={styles.communityHeart}
+                      contentFit="contain"
+                    />
+                  </View>
                 </View>
+
+                <Text accessibilityRole="header" style={styles.heading}>
+                  Crear cuenta
+                </Text>
+                <Text style={styles.subtitle}>
+                  Regístrate para guardar tus recetas y personalizar tu
+                  experiencia
+                </Text>
               </View>
 
-              <View style={styles.formCard}>
-                <View style={styles.form}>
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Nombre completo</Text>
+              <View style={styles.form}>
+                <View style={styles.inputGroup}>
+                  <View style={getInputStyle("nombre", !!errors.nombre)}>
+                    <Image
+                      source={require("../assets/SVG/iconos/usuario_blanco.svg")}
+                      style={styles.inputIcon}
+                      contentFit="contain"
+                    />
                     <TextInput
-                      style={getInputStyle("nombre", !!errors.nombre)}
-                      placeholder="Tu nombre"
+                      style={styles.inputField}
+                      placeholder="Nombre completo"
                       placeholderTextColor="#9D9DA7"
                       value={formData.nombre}
                       onChangeText={(value) => handleInputChange("nombre", value)}
@@ -216,20 +252,27 @@ export default function Register() {
                       autoCapitalize="words"
                       autoComplete="name"
                       textContentType="name"
+                      accessibilityLabel="Nombre completo"
                       returnKeyType="next"
                       onSubmitEditing={() => emailRef.current?.focus()}
                     />
-                    {errors.nombre ? (
-                      <Text style={styles.errorText}>{errors.nombre}</Text>
-                    ) : null}
                   </View>
+                  {errors.nombre ? (
+                    <Text style={styles.errorText}>{errors.nombre}</Text>
+                  ) : null}
+                </View>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Email</Text>
+                <View style={styles.inputGroup}>
+                  <View style={getInputStyle("email", !!errors.email)}>
+                    <Image
+                      source={require("../assets/SVG/iconos/correo_blanco.svg")}
+                      style={styles.inputIcon}
+                      contentFit="contain"
+                    />
                     <TextInput
                       ref={emailRef}
-                      style={getInputStyle("email", !!errors.email)}
-                      placeholder="tu@email.com"
+                      style={styles.inputField}
+                      placeholder="Correo electrónico"
                       placeholderTextColor="#9D9DA7"
                       value={formData.email}
                       onChangeText={(value) => handleInputChange("email", value)}
@@ -239,61 +282,77 @@ export default function Register() {
                       autoCapitalize="none"
                       autoComplete="email"
                       textContentType="emailAddress"
+                      accessibilityLabel="Correo electrónico"
                       returnKeyType="next"
                       onSubmitEditing={() => passwordRef.current?.focus()}
                     />
-                    {errors.email ? (
-                      <Text style={styles.errorText}>{errors.email}</Text>
-                    ) : null}
                   </View>
+                  {errors.email ? (
+                    <Text style={styles.errorText}>{errors.email}</Text>
+                  ) : null}
+                </View>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Contraseña</Text>
-                    <View style={styles.passwordContainer}>
-                      <TextInput
-                        ref={passwordRef}
-                        style={getInputStyle("password", !!errors.password)}
-                        placeholder="Mínimo 12 caracteres"
-                        placeholderTextColor="#9D9DA7"
-                        value={formData.password}
-                        onChangeText={(value) => handleInputChange("password", value)}
-                        onFocus={() => setFocusedField("password")}
-                        onBlur={() => setFocusedField(null)}
-                        secureTextEntry={!showPassword}
-                        autoCapitalize="none"
-                        autoComplete="new-password"
-                        textContentType="newPassword"
-                        returnKeyType="next"
-                        onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+                <View style={styles.inputGroup}>
+                  <View style={getInputStyle("password", !!errors.password)}>
+                    <Image
+                      source={require("../assets/SVG/iconos/candado_blanco.svg")}
+                      style={styles.inputIcon}
+                      contentFit="contain"
+                    />
+                    <TextInput
+                      ref={passwordRef}
+                      style={styles.inputField}
+                      placeholder="Contraseña"
+                      placeholderTextColor="#9D9DA7"
+                      value={formData.password}
+                      onChangeText={(value) => handleInputChange("password", value)}
+                      onFocus={() => setFocusedField("password")}
+                      onBlur={() => setFocusedField(null)}
+                      secureTextEntry={!showPassword}
+                      autoCapitalize="none"
+                      autoComplete="new-password"
+                      textContentType="newPassword"
+                      accessibilityLabel="Contraseña"
+                      returnKeyType="next"
+                      onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+                    />
+                    <Pressable
+                      style={styles.passwordToggle}
+                      onPress={() => setShowPassword(!showPassword)}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                      }
+                    >
+                      <Image
+                        source={
+                          showPassword
+                            ? require("../assets/SVG/iconos/ojo.svg")
+                            : require("../assets/SVG/iconos/ojo_cerrado.svg")
+                        }
+                        style={styles.passwordToggleIcon}
+                        contentFit="contain"
                       />
-                      <Pressable
-                        style={styles.passwordToggle}
-                        onPress={() => setShowPassword(!showPassword)}
-                        accessibilityRole="button"
-                        accessibilityLabel={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                      >
-                        <Image
-                          source={
-                            showPassword
-                              ? require("../assets/SVG/iconos/ojo.svg")
-                              : require("../assets/SVG/iconos/ojo_cerrado.svg")
-                          }
-                          style={styles.passwordToggleIcon}
-                          contentFit="contain"
-                        />
-                      </Pressable>
-                    </View>
-                    {errors.password ? (
-                      <Text style={styles.errorText}>{errors.password}</Text>
-                    ) : null}
+                    </Pressable>
                   </View>
+                  {errors.password ? (
+                    <Text style={styles.errorText}>{errors.password}</Text>
+                  ) : null}
+                </View>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Confirmar contraseña</Text>
+                <View style={styles.inputGroup}>
+                  <View
+                    style={getInputStyle("confirmPassword", !!errors.confirmPassword)}
+                  >
+                    <Image
+                      source={require("../assets/SVG/iconos/candado_blanco.svg")}
+                      style={styles.inputIcon}
+                      contentFit="contain"
+                    />
                     <TextInput
                       ref={confirmPasswordRef}
-                      style={getInputStyle("confirmPassword", !!errors.confirmPassword)}
-                      placeholder="Repite tu contraseña"
+                      style={styles.inputField}
+                      placeholder="Confirmar contraseña"
                       placeholderTextColor="#9D9DA7"
                       value={formData.confirmPassword}
                       onChangeText={(value) =>
@@ -305,34 +364,88 @@ export default function Register() {
                       autoCapitalize="none"
                       autoComplete="new-password"
                       textContentType="newPassword"
+                      accessibilityLabel="Confirmar contraseña"
                       returnKeyType="done"
                       onSubmitEditing={Keyboard.dismiss}
                     />
-                    {errors.confirmPassword ? (
-                      <Text style={styles.errorText}>{errors.confirmPassword}</Text>
-                    ) : null}
+                    <Pressable
+                      style={styles.passwordToggle}
+                      onPress={() => setShowPassword(!showPassword)}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                      }
+                    >
+                      <Image
+                        source={
+                          showPassword
+                            ? require("../assets/SVG/iconos/ojo.svg")
+                            : require("../assets/SVG/iconos/ojo_cerrado.svg")
+                        }
+                        style={styles.passwordToggleIcon}
+                        contentFit="contain"
+                      />
+                    </Pressable>
                   </View>
-
-                  <AppButton
-                    label="Crear cuenta →"
-                    onPress={handleSubmit}
-                    loading={isLoading}
-                    loadingLabel="Creando cuenta..."
-                  />
-
-                  <Pressable
-                    style={({ pressed }) => [
-                      styles.loginLink,
-                      pressed && styles.pressed,
-                    ]}
-                    onPress={() => router.back()}
-                    accessibilityRole="button"
-                    accessibilityLabel="Ya tengo cuenta, ir a iniciar sesión"
-                  >
-                    <Text style={styles.loginLinkText}>¿Ya tienes cuenta?</Text>
-                    <Text style={styles.loginLinkButton}>Inicia sesión</Text>
-                  </Pressable>
+                  {errors.confirmPassword ? (
+                    <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+                  ) : null}
                 </View>
+
+                <View style={styles.termsGroup}>
+                  <Pressable
+                    style={styles.termsRow}
+                    onPress={handleToggleTerms}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: acceptedTerms }}
+                    accessibilityLabel="Acepto los términos y condiciones"
+                  >
+                    <View
+                      style={[
+                        styles.checkbox,
+                        acceptedTerms && styles.checkboxChecked,
+                      ]}
+                    >
+                      {acceptedTerms ? (
+                        <Text style={styles.checkmark}>✓</Text>
+                      ) : null}
+                    </View>
+                    <Text style={styles.termsText}>
+                      Acepto los{" "}
+                      <Text style={styles.termsLink}>términos y condiciones</Text>
+                    </Text>
+                  </Pressable>
+                  {errors.terms ? (
+                    <Text style={styles.errorText}>{errors.terms}</Text>
+                  ) : null}
+                </View>
+
+                <AppButton
+                  label="Registrarme"
+                  onPress={handleSubmit}
+                  loading={isLoading}
+                  loadingLabel="Creando cuenta..."
+                  icon={
+                    <Image
+                      source={require("../assets/SVG/iconos/flecha_ingresar.svg")}
+                      style={styles.buttonArrow}
+                      contentFit="contain"
+                    />
+                  }
+                />
+
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.footer,
+                    pressed && styles.pressed,
+                  ]}
+                  onPress={() => router.back()}
+                  accessibilityRole="button"
+                  accessibilityLabel="Ya tengo cuenta, ir a iniciar sesión"
+                >
+                  <Text style={styles.footerText}>¿Ya tienes una cuenta?</Text>
+                  <Text style={styles.footerLink}>Iniciar sesión</Text>
+                </Pressable>
               </View>
             </View>
           </ScrollView>

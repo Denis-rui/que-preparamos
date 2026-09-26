@@ -1,16 +1,21 @@
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   return (
-    <View style={styles.container}>
-      {/* Aquí irá el contenido de tu pantalla de Inicio */}
-    </View>
+    <SafeAreaView>
+      <View>
+        <Text style={styles.tituloCategoria}>Categorías</Text>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFCF2", // Mantengo tu color de fondo
+  tituloCategoria: {
+    fontWeight: "700",
+    fontSize: 17,
+    color: "#552414",
+    marginLeft: -4,
   },
 });

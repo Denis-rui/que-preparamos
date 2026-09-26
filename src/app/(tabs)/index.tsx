@@ -25,7 +25,7 @@ export default function HomeScreen() {
   );
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.container}>
       <RecetasAleatorias ComponenteCabecera={cabeceraCategorias} />
     </SafeAreaView>
   );
@@ -34,7 +34,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1, // Para que la vista ocupe toda la pantalla
-    backgroundColor: "#fff", // O el color de fondo general de tu app
+    backgroundColor: "#FFFCF2",
   },
   errorText: {
     color: "red",

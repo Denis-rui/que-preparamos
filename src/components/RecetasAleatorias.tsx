@@ -48,33 +48,10 @@ export const RecetasAleatorias = ({ ComponenteCabecera }: Props) => {
     );
   };
 
-  if (loading) {
-    return (
-      <View style={styles.centro}>
-        <ActivityIndicator size="large" color="#FF5722" />
-        <Text>Cargando recomendaciones...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centro}>
-        <Text style={styles.textoError}>{error}</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.contenedorSeccion}>
       {/* cabecera de la sección de recomendaciones */}
-      <View style={styles.cabeceraSeccion}>
-        <Text style={styles.tituloSeccion}>Recomendados para ti</Text>
-        <TouchableOpacity>
-          {/* aqui falta la funcionalidad del ver todo que me lleve a la pantalla de todas las recetas */}
-          <Text style={styles.verTodo}>Ver todo</Text>
-        </TouchableOpacity>
-      </View>
+
       {/* lista de recetas en formato de cuadrícula */}
       <FlatList
         data={recetas}
@@ -82,7 +59,30 @@ export const RecetasAleatorias = ({ ComponenteCabecera }: Props) => {
         numColumns={2}
         columnWrapperStyle={styles.filaCuadricula}
         showsVerticalScrollIndicator={false}
-        ListHeaderComponent={ComponenteCabecera}
+        ListHeaderComponent={
+          <>
+            {ComponenteCabecera}
+            <View style={styles.cabeceraSeccion}>
+              <Text style={styles.tituloSeccion}>Recomendados para ti</Text>
+              <TouchableOpacity>
+                {/* aqui falta la funcionalidad del ver todo que me lleve a la pantalla de todas las recetas */}
+                <Text style={styles.verTodo}>Ver todo</Text>
+              </TouchableOpacity>
+            </View>
+            {loading && (
+              <View style={styles.centro}>
+                <ActivityIndicator size="large" color="#FF5722" />
+                <Text>Cargando recomendaciones...</Text>
+              </View>
+            )}
+            {/* 4. Si hay error en recetas, lo mostramos aquí */}
+            {error && (
+              <View style={styles.centro}>
+                <Text style={styles.textoError}>{error}</Text>
+              </View>
+            )}
+          </>
+        }
         renderItem={({ item }) => tarjetaReceta({ receta: item })}
       />
     </View>

@@ -1,5 +1,5 @@
 export async function getCategorias() {
-  const API_CATEGORIAS = `${process.env.URL_API}/categorias`;
+  const API_CATEGORIAS = `${process.env.EXPO_PUBLIC_URL_API}/categorias`;
 
   const respuesta = await fetch(API_CATEGORIAS, {
     headers: {

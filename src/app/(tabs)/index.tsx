@@ -1,4 +1,5 @@
 import { CategoriasInicio } from "@/components/CategoriasInicio";
+import { LogoQuePreparamos } from "@/components/LogoQuePreparamos";
 import { RecetasAleatorias } from "@/components/RecetasAleatorias";
 
 import { useCategorias } from "@/hooks/useCategorias";
@@ -10,6 +11,7 @@ export default function HomeScreen() {
 
   const cabeceraCategorias = (
     <View>
+      <LogoQuePreparamos />
       {loading ? (
         <ActivityIndicator
           size="large"

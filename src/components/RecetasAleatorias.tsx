@@ -161,6 +161,7 @@ const styles = StyleSheet.create({
   textoTiempo: {
     fontSize: 12,
     fontWeight: "bold",
+    color: "#48170E", // Color marrón del Figma
   },
   titulo: {
     fontSize: 16,

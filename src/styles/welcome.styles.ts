@@ -122,27 +122,4 @@ export const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: 8,
   },
-  primaryButton: {
-    backgroundColor: '#FF4F0A',
-    paddingVertical: 16,
-    borderRadius: 30,
-    alignItems: 'center',
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 16,
-  },
-  secondaryButton: {
-    paddingVertical: 16,
-    borderRadius: 30,
-    borderWidth: 1.5,
-    borderColor: '#1A1A1A',
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    color: '#1A1A1A',
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 16,
-  },
 });

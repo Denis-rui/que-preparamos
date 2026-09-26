@@ -1,7 +1,8 @@
+import { AppButton } from '@/components/ui/appButton';
 import { styles } from '@/styles/welcome.styles';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
 
@@ -62,13 +63,16 @@ export default function Welcome() {
         </View>
 
         <View style={styles.buttonsWrapper}>
-            <Pressable style={styles.primaryButton} onPress={() => router.push('/login')}>
-             <Text style={styles.primaryButtonText}>Iniciar sesión</Text>
-            </Pressable>
+            <AppButton
+              label = 'Iniciar sesión'
+              onPress={()=> router.push('/login')}
+            />
 
-            <Pressable style={styles.secondaryButton} onPress={() => router.replace('/(tabs)')}>
-             <Text style={styles.secondaryButtonText}>Continuar sin cuenta</Text>
-            </Pressable>
+            <AppButton
+              label= 'Continuar sin cuenta'
+              onPress={() => router.replace('/(tabs)')}
+              variant='secundario'
+            />
         </View>
 
         <Image

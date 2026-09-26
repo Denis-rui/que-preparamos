@@ -1,11 +1,14 @@
-﻿import { Image } from "expo-image";
+﻿import { LogoQuePreparamos } from "@/components/LogoQuePreparamos";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import EditarPerfilModal, {
+  type EditableProfile,
+} from "@/components/editar-perfil-modal";
 import { styles } from "@/styles/perfil.styles";
-import EditarPerfilModal, { type EditableProfile } from "@/components/editar-perfil-modal";
 
 const demoProfile = {
   name: "Liliana Bustamante Tauma",
@@ -24,51 +27,8 @@ export default function MiPerfil() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        <LogoQuePreparamos />
         <View style={styles.page}>
-          <View style={styles.brandRow}>
-            <View
-              style={styles.logo}
-              accessible
-              accessibilityLabel="¿Qué preparamos?"
-            >
-              <Image
-                source={require("../../assets/imagenes/icono_sombrero_chef.png")}
-                style={styles.hat}
-                contentFit="contain"
-              />
-              <Image
-                source={require("../../assets/imagenes/titulo.png")}
-                style={styles.brandTitle}
-                contentFit="contain"
-                allowDownscaling={false}
-              />
-            </View>
-            <View
-              style={styles.tagline}
-              accessible
-              accessibilityLabel="Buenas comidas, mejores momentos"
-            >
-              <Image
-                source={require("../../assets/SVG/adornos/hojas_derecha.svg")}
-                style={styles.taglineTopLeaves}
-                contentFit="contain"
-              />
-              <Text style={styles.taglineText}>
-                Buenas{"\n"}comidas,{"\n"}mejores{"\n"}momentos
-              </Text>
-              <Image
-                source={require("../../assets/SVG/iconos/corazon_contorno.svg")}
-                style={styles.taglineHeart}
-                contentFit="contain"
-              />
-              <Image
-                source={require("../../assets/SVG/adornos/hojas_izquierda.svg")}
-                style={styles.taglineBottomLeaves}
-                contentFit="contain"
-              />
-            </View>
-          </View>
-
           <View style={styles.headingRow}>
             <Image
               source={require("../../assets/SVG/adornos/hojas_izquierda.svg")}
@@ -90,7 +50,11 @@ export default function MiPerfil() {
             <View style={styles.avatarWrapper}>
               <View style={styles.avatarCircle}>
                 <Image
-                  source={profile.photoUri ? { uri: profile.photoUri } : require("../../assets/SVG/iconos/avatar_perfil.svg")}
+                  source={
+                    profile.photoUri
+                      ? { uri: profile.photoUri }
+                      : require("../../assets/SVG/iconos/avatar_perfil.svg")
+                  }
                   style={profile.photoUri ? styles.profilePhoto : styles.avatar}
                   contentFit={profile.photoUri ? "cover" : "contain"}
                 />

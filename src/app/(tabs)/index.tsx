@@ -1,70 +1,46 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { CategoriasInicio } from "@/components/CategoriasInicio";
+import { LogoQuePreparamos } from "@/components/LogoQuePreparamos";
+import { RecetasAleatorias } from "@/components/RecetasAleatorias";
 
-import { ThemedText } from '@/components/themed-text';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { View } from 'react-native';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+import { useCategorias } from "@/hooks/useCategorias";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
-  return (
-    <View style={styles.container}>
+  const { categorias, loading, error } = useCategorias();
 
+  const cabeceraCategorias = (
+    <View>
+      <LogoQuePreparamos />
+      {loading ? (
+        <ActivityIndicator
+          size="large"
+          color="#3E2723"
+          style={{ marginTop: 30 }}
+        />
+      ) : error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : (
+        <CategoriasInicio categorias={categorias}></CategoriasInicio>
+      )}
     </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <RecetasAleatorias ComponenteCabecera={cabeceraCategorias} />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-    backgroundColor: '#FFFCF2',
+    flex: 1, // Para que la vista ocupe toda la pantalla
+    backgroundColor: "#FFFCF2",
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  errorText: {
+    color: "red",
+    textAlign: "center",
+    marginTop: 20,
   },
 });

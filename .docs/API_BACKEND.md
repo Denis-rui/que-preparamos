@@ -34,12 +34,12 @@ Todas las rutas de esta guía parten de **`/api/v1`**, excepto la ruta anterior 
 
 La dirección del servidor debe configurarse según el entorno. Este documento no fija ni verifica un dominio, una IP o un puerto. En un teléfono físico, `localhost` apunta al propio teléfono: debe utilizarse una dirección del backend accesible desde ese dispositivo.
 
-| Método | Uso habitual en esta API |
-| --- | --- |
-| `GET` | Consultar listas, detalles o imágenes. |
-| `POST` | Crear registros, iniciar sesión, subir archivos o enviar una solicitud. |
-| `PUT` / `PATCH` | Actualizar información, según las reglas de cada endpoint. |
-| `DELETE` | Quitar un favorito o eliminar una receta propia. |
+| Método          | Uso habitual en esta API                                                |
+| --------------- | ----------------------------------------------------------------------- |
+| `GET`           | Consultar listas, detalles o imágenes.                                  |
+| `POST`          | Crear registros, iniciar sesión, subir archivos o enviar una solicitud. |
+| `PUT` / `PATCH` | Actualizar información, según las reglas de cada endpoint.              |
+| `DELETE`        | Quitar un favorito o eliminar una receta propia.                        |
 
 ### Acceso público y acceso con cuenta
 
@@ -63,10 +63,10 @@ Las consultas normalmente devuelven `data`. Algunas operaciones devuelven `mensa
 
 Ingredientes, recetas públicas, recetas propias, solicitudes y favoritos tienen paginación:
 
-| Parámetro | Regla |
-| --- | --- |
-| `page` | Página desde 1. Existe además un límite técnico para evitar desbordamientos. |
-| `per_page` | Entre 1 y 50; por defecto 15. No admite `-1` para traer todo. |
+| Parámetro  | Regla                                                                        |
+| ---------- | ---------------------------------------------------------------------------- |
+| `page`     | Página desde 1. Existe además un límite técnico para evitar desbordamientos. |
+| `per_page` | Entre 1 y 50; por defecto 15. No admite `-1` para traer todo.                |
 
 Sus respuestas contienen `data`, `links` y `meta`. En `meta` aparecen, entre otros, `current_page`, `last_page`, `per_page`, `from`, `to` y `total`. Una consulta sin resultados devuelve `data: []`. Categorías devuelve la lista completa, sin paginación.
 
@@ -76,43 +76,45 @@ Los identificadores deben ser enteros positivos o cadenas decimales sin adornos,
 
 Esta tabla propone dónde consumir los endpoints; no afirma que las pantallas ya estén conectadas.
 
-| Pantalla o acción móvil | Endpoints principales | Para qué se utilizarán |
-| --- | --- | --- |
-| Inicio y explorar | `GET /recetas`, `GET /categorias` | Mostrar publicaciones y filtros por categoría. |
-| Ingredientes disponibles | `GET /ingredientes`, `GET /recetas` con `ingredientes[]` | Seleccionar ingredientes y encontrar recetas con menos faltantes. |
-| Detalle de receta | `GET /recetas/{receta}` y su imagen | Mostrar preparación, cantidades, pasos, tips y promedio de valoraciones. |
-| Crear cuenta e ingresar | `/auth/registro`, `/auth/login` | Registrar al usuario y obtener acceso autenticado. |
-| Olvidé mi contraseña | Las tres rutas de `/auth/recuperacion` | Solicitar código, comprobarlo y establecer una nueva contraseña. |
-| Mi perfil | `/perfil`, `/perfil/foto`, `/perfil/password` | Consultar y cambiar datos de la cuenta. |
-| Mis recetas | `/mis-recetas` y sus operaciones por ID | Guardar recetas privadas, consultarlas, editarlas y eliminarlas. |
-| Publicar o corregir | `/mis-recetas/{receta}/publicar` y `/corregir` | Publicar según el rol o proponer cambios para revisión. |
-| Estado de mis envíos | `/mis-solicitudes` | Consultar decisiones, motivos de rechazo y cancelar pendientes. |
-| Favoritos con cuenta | `/favoritos` | Recuperar y administrar favoritos vinculados a la cuenta. |
-| Revisar recetas guardadas | `/recetas/verificar-disponibilidad` | Confirmar disponibilidad al recuperar la conexión, incluso como invitado. |
-| Valorar una receta | `/recetas/{receta}/valoracion` | Consultar, asignar o modificar la puntuación personal. |
+| Pantalla o acción móvil   | Endpoints principales                                    | Para qué se utilizarán                                                    |
+| ------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Inicio y explorar         | `GET /recetas`, `GET /categorias`                        | Mostrar publicaciones y filtros por categoría.                            |
+| Ingredientes disponibles  | `GET /ingredientes`, `GET /recetas` con `ingredientes[]` | Seleccionar ingredientes y encontrar recetas con menos faltantes.         |
+| Detalle de receta         | `GET /recetas/{receta}` y su imagen                      | Mostrar preparación, cantidades, pasos, tips y promedio de valoraciones.  |
+| Crear cuenta e ingresar   | `/auth/registro`, `/auth/login`                          | Registrar al usuario y obtener acceso autenticado.                        |
+| Olvidé mi contraseña      | Las tres rutas de `/auth/recuperacion`                   | Solicitar código, comprobarlo y establecer una nueva contraseña.          |
+| Mi perfil                 | `/perfil`, `/perfil/foto`, `/perfil/password`            | Consultar y cambiar datos de la cuenta.                                   |
+| Mis recetas               | `/mis-recetas` y sus operaciones por ID                  | Guardar recetas privadas, consultarlas, editarlas y eliminarlas.          |
+| Publicar o corregir       | `/mis-recetas/{receta}/publicar` y `/corregir`           | Publicar según el rol o proponer cambios para revisión.                   |
+| Estado de mis envíos      | `/mis-solicitudes`                                       | Consultar decisiones, motivos de rechazo y cancelar pendientes.           |
+| Favoritos con cuenta      | `/favoritos`                                             | Recuperar y administrar favoritos vinculados a la cuenta.                 |
+| Revisar recetas guardadas | `/recetas/verificar-disponibilidad`                      | Confirmar disponibilidad al recuperar la conexión, incluso como invitado. |
+| Valorar una receta        | `/recetas/{receta}/valoracion`                           | Consultar, asignar o modificar la puntuación personal.                    |
 
 ## 3. Catálogo público y búsqueda
 
 Estos endpoints se pueden utilizar como invitado.
 
-| Método y ruta | Para qué sirve | Entrada y respuesta de éxito |
-| --- | --- | --- |
-| `GET /categorias` | Construir los filtros y el selector del formulario de recetas. | Sin cuerpo. `200`, `data` con objetos `{id, nombre}`, ordenados por nombre e ID. |
-| `GET /ingredientes` | Buscar ingredientes existentes para seleccionarlos. | `buscar`, `page`, `per_page` opcionales. `200`, lista paginada de `{id, nombre}`. |
-| `GET /recetas` | Alimentar el inicio y los resultados de búsqueda. | Filtros descritos abajo. `200`, catálogo paginado. |
-| `GET /recetas/{receta}` | Abrir la ficha completa de una publicación. | ID en la ruta. `200`, detalle en `data`. |
-| `GET /recetas/{receta}/imagen` | Mostrar la fotografía pública. | ID en la ruta. `200`, archivo de imagen. |
+Ademas se a agregado esta api recetas/aleatorias para las recetas aleatoriaas de inicio
+
+| Método y ruta                  | Para qué sirve                                                 | Entrada y respuesta de éxito                                                      |
+| ------------------------------ | -------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `GET /categorias`              | Construir los filtros y el selector del formulario de recetas. | Sin cuerpo. `200`, `data` con objetos `{id, nombre}`, ordenados por nombre e ID.  |
+| `GET /ingredientes`            | Buscar ingredientes existentes para seleccionarlos.            | `buscar`, `page`, `per_page` opcionales. `200`, lista paginada de `{id, nombre}`. |
+| `GET /recetas`                 | Alimentar el inicio y los resultados de búsqueda.              | Filtros descritos abajo. `200`, catálogo paginado.                                |
+| `GET /recetas/{receta}`        | Abrir la ficha completa de una publicación.                    | ID en la ruta. `200`, detalle en `data`.                                          |
+| `GET /recetas/{receta}/imagen` | Mostrar la fotografía pública.                                 | ID en la ruta. `200`, archivo de imagen.                                          |
 
 El catálogo solo incluye recetas publicadas y no eliminadas. Deshabilitar la cuenta autora no retira automáticamente sus recetas públicas. Una receta privada, eliminada o inexistente no se puede abrir mediante el detalle público y devuelve `404`. La imagen también puede devolver `404` si falta el archivo.
 
 ### Buscar por nombre, categoría o ingredientes
 
-| Filtro de `GET /recetas` | Significado |
-| --- | --- |
-| `buscar` | Texto contenido en el nombre, hasta 100 caracteres. También se utiliza en ingredientes. |
-| `categoria_id` | ID de una categoría existente. |
-| `ingredientes[]` | Lista de hasta 50 IDs de ingredientes existentes, sin repetir. Vacía equivale a no filtrar por ingredientes. |
-| `page`, `per_page` | Controles de paginación. |
+| Filtro de `GET /recetas` | Significado                                                                                                  |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `buscar`                 | Texto contenido en el nombre, hasta 100 caracteres. También se utiliza en ingredientes.                      |
+| `categoria_id`           | ID de una categoría existente.                                                                               |
+| `ingredientes[]`         | Lista de hasta 50 IDs de ingredientes existentes, sin repetir. Vacía equivale a no filtrar por ingredientes. |
+| `page`, `per_page`       | Controles de paginación.                                                                                     |
 
 Ejemplos:
 
@@ -139,14 +141,14 @@ La tarjeta del catálogo incluye `id`, `nombre`, `descripcion`, `imagen_url`, `p
 
 `ingredientes_resumen` contiene como máximo tres ingredientes. Para cocinar o preparar una copia local completa hay que consultar el detalle, que añade `tips`, `ingredientes` y `pasos`.
 
-| Campo del detalle | Estructura o significado |
-| --- | --- |
-| `categorias` | Lista de `{id, nombre}`. El contrato actual admite varias categorías. |
-| `ingredientes` | Lista ordenada con `ingrediente_id`, `nombre`, `cantidad`, `unidad`, `notas` y `orden`. |
-| `pasos` | Lista ordenada con `orden` e `instruccion`. |
-| `tips` | Texto de consejos o `null`. |
-| `valoracion_promedio` | Promedio redondeado a dos decimales; `null` si no hay valoraciones. |
-| `cantidad_valoraciones` | Número de valoraciones registradas. |
+| Campo del detalle       | Estructura o significado                                                                |
+| ----------------------- | --------------------------------------------------------------------------------------- |
+| `categorias`            | Lista de `{id, nombre}`. El contrato actual admite varias categorías.                   |
+| `ingredientes`          | Lista ordenada con `ingrediente_id`, `nombre`, `cantidad`, `unidad`, `notas` y `orden`. |
+| `pasos`                 | Lista ordenada con `orden` e `instruccion`.                                             |
+| `tips`                  | Texto de consejos o `null`.                                                             |
+| `valoracion_promedio`   | Promedio redondeado a dos decimales; `null` si no hay valoraciones.                     |
+| `cantidad_valoraciones` | Número de valoraciones registradas.                                                     |
 
 En un ingrediente, `cantidad`, `unidad` y `notas` pueden ser `null`. El detalle público no incluye la valoración personal, el estado de favorito ni la versión de edición; esos datos se consultan por sus rutas correspondientes.
 
@@ -154,11 +156,11 @@ En un ingrediente, `cantidad`, `unidad` y `notas` pueden ser `null`. El detalle 
 
 ### Registro e inicio de sesión
 
-| Método y ruta | Acceso | Entrada | Resultado |
-| --- | --- | --- | --- |
-| `POST /auth/registro` | Público | `name`, `email`, `password`, `password_confirmation`. | `201`: `mensaje` y `usuario`. Crea una cuenta activa con rol `usuario`. |
-| `POST /auth/login` | Público | `email`, `password`; `dispositivo` opcional. | `200`: `mensaje`, `token`, `token_type` y `usuario`. |
-| `POST /auth/logout` | Protegido | Sin cuerpo obligatorio. | `200`: `mensaje`. Revoca el token utilizado en esa petición. |
+| Método y ruta         | Acceso    | Entrada                                               | Resultado                                                               |
+| --------------------- | --------- | ----------------------------------------------------- | ----------------------------------------------------------------------- |
+| `POST /auth/registro` | Público   | `name`, `email`, `password`, `password_confirmation`. | `201`: `mensaje` y `usuario`. Crea una cuenta activa con rol `usuario`. |
+| `POST /auth/login`    | Público   | `email`, `password`; `dispositivo` opcional.          | `200`: `mensaje`, `token`, `token_type` y `usuario`.                    |
+| `POST /auth/logout`   | Protegido | Sin cuerpo obligatorio.                               | `200`: `mensaje`. Revoca el token utilizado en esa petición.            |
 
 El nombre y el correo de registro admiten hasta 255 caracteres; el correo debe ser único. La contraseña nueva necesita al menos 12 caracteres y confirmación. `dispositivo` admite hasta 255 caracteres y permite identificar el acceso, por ejemplo, como «Teléfono Android».
 
@@ -217,11 +219,11 @@ La duración predeterminada del token en `config/sanctum.php` es 43 200 minutos,
 
 Se utiliza cuando la persona olvidó la contraseña y no puede iniciar sesión. Todas estas rutas son públicas.
 
-| Paso y ruta | Cuerpo requerido | Respuesta `200` y uso móvil |
-| --- | --- | --- |
-| 1. `POST /auth/recuperacion/solicitar` | `email`. | `mensaje` genérico. Mostrar la pantalla para introducir el código. |
-| 2. `POST /auth/recuperacion/verificar` | `email` y `codigo`, cadena de seis dígitos. | `mensaje`, `token_recuperacion`. Permitir escribir una contraseña nueva. |
-| 3. `POST /auth/recuperacion/restablecer` | `token_recuperacion`, `password`, `password_confirmation`. | `mensaje`. Regresar al inicio de sesión. |
+| Paso y ruta                              | Cuerpo requerido                                           | Respuesta `200` y uso móvil                                              |
+| ---------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------ |
+| 1. `POST /auth/recuperacion/solicitar`   | `email`.                                                   | `mensaje` genérico. Mostrar la pantalla para introducir el código.       |
+| 2. `POST /auth/recuperacion/verificar`   | `email` y `codigo`, cadena de seis dígitos.                | `mensaje`, `token_recuperacion`. Permitir escribir una contraseña nueva. |
+| 3. `POST /auth/recuperacion/restablecer` | `token_recuperacion`, `password`, `password_confirmation`. | `mensaje`. Regresar al inicio de sesión.                                 |
 
 Ejemplo del segundo paso:
 
@@ -242,13 +244,13 @@ La respuesta del primer paso no confirma que exista una cuenta ni que el correo 
 
 Todas las operaciones requieren autenticación. Actúan sobre la cuenta del token, sin recibir un ID de usuario.
 
-| Método y ruta | Para qué sirve | Entrada | Respuesta de éxito |
-| --- | --- | --- | --- |
-| `GET /perfil` | Cargar «Mi perfil». | Sin cuerpo. | `200`, `data`: `id`, `name`, `email`, `foto_perfil_url`, `rol`, `activo`. |
-| `PATCH /perfil` | Cambiar nombre o correo. | `name` y/o `email`; `current_password` si cambia el correo. | `200`, `mensaje` y `usuario`. |
-| `GET /perfil/foto` | Descargar la foto de la cuenta. | Sin cuerpo. | `200`, archivo; `404` si no hay foto disponible. |
-| `POST /perfil/foto` | Agregar o reemplazar la foto. | Archivo `foto_perfil` mediante formulario multipart. | `200`, `mensaje` y `foto_perfil_url`. |
-| `PUT /perfil/password` | Cambiar la contraseña con la sesión iniciada. | `current_password`, `password`, `password_confirmation`. | `200`, `mensaje`; obliga a iniciar sesión otra vez. |
+| Método y ruta          | Para qué sirve                                | Entrada                                                     | Respuesta de éxito                                                        |
+| ---------------------- | --------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `GET /perfil`          | Cargar «Mi perfil».                           | Sin cuerpo.                                                 | `200`, `data`: `id`, `name`, `email`, `foto_perfil_url`, `rol`, `activo`. |
+| `PATCH /perfil`        | Cambiar nombre o correo.                      | `name` y/o `email`; `current_password` si cambia el correo. | `200`, `mensaje` y `usuario`.                                             |
+| `GET /perfil/foto`     | Descargar la foto de la cuenta.               | Sin cuerpo.                                                 | `200`, archivo; `404` si no hay foto disponible.                          |
+| `POST /perfil/foto`    | Agregar o reemplazar la foto.                 | Archivo `foto_perfil` mediante formulario multipart.        | `200`, `mensaje` y `foto_perfil_url`.                                     |
+| `PUT /perfil/password` | Cambiar la contraseña con la sesión iniciada. | `current_password`, `password`, `password_confirmation`.    | `200`, `mensaje`; obliga a iniciar sesión otra vez.                       |
 
 Ejemplo para cambiar solo el nombre:
 
@@ -272,15 +274,15 @@ La foto admite JPEG/JPG, PNG o WEBP de hasta 2048 KiB. La contraseña nueva debe
 
 Se utiliza para las recetas creadas por la cuenta autenticada. Guardar una receta aquí la conserva en el servidor como **privada**; no la publica. Un administrador también debe ser el autor para utilizar estas operaciones sobre una receta.
 
-| Método y ruta | Para qué sirve | Entrada y resultado |
-| --- | --- | --- |
-| `GET /mis-recetas` | Mostrar el listado propio. | `filtro`, `buscar`, `page`, `per_page` opcionales. `200`, colección paginada. |
-| `POST /mis-recetas` | Guardar una receta completa en la cuenta. | Contenido e imagen. `201`, detalle en `data`, `visibilidad: "privada"`, `version: 1`. |
-| `GET /mis-recetas/{receta}` | Consultar contenido y estado antes de editar. | `200`, detalle propio en `data`. |
-| `PUT`, `PATCH` o `POST /mis-recetas/{receta}` | Actualizar una receta privada. | Contenido completo y `version`; imagen opcional. `200`, detalle actualizado en `data`. |
-| `DELETE /mis-recetas/{receta}` | Eliminar una receta propia, privada o publicada. | Sin cuerpo obligatorio. `200`, `mensaje` y `receta` con metadatos de eliminación. |
-| `GET /mis-recetas/{receta}/imagen` | Mostrar la imagen vigente al autor. | `200`, archivo de imagen autenticado. |
-| `POST /mis-recetas/{receta}/imagen` | Subir una imagen para esa receta. | Archivo `imagen`. `200`, `mensaje`, `imagen` e `imagen_url`. |
+| Método y ruta                                 | Para qué sirve                                   | Entrada y resultado                                                                    |
+| --------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| `GET /mis-recetas`                            | Mostrar el listado propio.                       | `filtro`, `buscar`, `page`, `per_page` opcionales. `200`, colección paginada.          |
+| `POST /mis-recetas`                           | Guardar una receta completa en la cuenta.        | Contenido e imagen. `201`, detalle en `data`, `visibilidad: "privada"`, `version: 1`.  |
+| `GET /mis-recetas/{receta}`                   | Consultar contenido y estado antes de editar.    | `200`, detalle propio en `data`.                                                       |
+| `PUT`, `PATCH` o `POST /mis-recetas/{receta}` | Actualizar una receta privada.                   | Contenido completo y `version`; imagen opcional. `200`, detalle actualizado en `data`. |
+| `DELETE /mis-recetas/{receta}`                | Eliminar una receta propia, privada o publicada. | Sin cuerpo obligatorio. `200`, `mensaje` y `receta` con metadatos de eliminación.      |
+| `GET /mis-recetas/{receta}/imagen`            | Mostrar la imagen vigente al autor.              | `200`, archivo de imagen autenticado.                                                  |
+| `POST /mis-recetas/{receta}/imagen`           | Subir una imagen para esa receta.                | Archivo `imagen`. `200`, `mensaje`, `imagen` e `imagen_url`.                           |
 
 Las rutas de publicación y corrección se explican en la siguiente sección.
 
@@ -298,16 +300,16 @@ El listado con `todas` incluye las eliminadas. El detalle de una receta eliminad
 
 ### Datos necesarios para guardar
 
-| Campo | Regla del contrato actual |
-| --- | --- |
-| `nombre` | Obligatorio, hasta 150 caracteres. |
-| `descripcion` | Obligatoria, hasta 16 000 caracteres. |
-| `imagen` | Obligatoria al crear. Para una receta nueva, adjuntar un archivo JPEG/JPG, PNG o WEBP de hasta 2048 KiB. |
-| `porciones`, `tiempo_preparacion` | Enteros entre 1 y 65 535. |
-| `tips` | Opcional o `null`, hasta 16 000 caracteres. |
-| `categorias` | Lista de 1 a 100 IDs existentes, sin repetir. |
-| `ingredientes` | Lista de 1 a 500 ingredientes existentes, sin repetir ID. |
-| `pasos` | Lista de 1 a 500 pasos. Basta un paso para cumplir el mínimo del backend. |
+| Campo                             | Regla del contrato actual                                                                                |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `nombre`                          | Obligatorio, hasta 150 caracteres.                                                                       |
+| `descripcion`                     | Obligatoria, hasta 16 000 caracteres.                                                                    |
+| `imagen`                          | Obligatoria al crear. Para una receta nueva, adjuntar un archivo JPEG/JPG, PNG o WEBP de hasta 2048 KiB. |
+| `porciones`, `tiempo_preparacion` | Enteros entre 1 y 65 535.                                                                                |
+| `tips`                            | Opcional o `null`, hasta 16 000 caracteres.                                                              |
+| `categorias`                      | Lista de 1 a 100 IDs existentes, sin repetir.                                                            |
+| `ingredientes`                    | Lista de 1 a 500 ingredientes existentes, sin repetir ID.                                                |
+| `pasos`                           | Lista de 1 a 500 pasos. Basta un paso para cumplir el mínimo del backend.                                |
 
 Cada ingrediente lleva `ingrediente_id`, `cantidad`, `unidad`, `notas` y `orden`. Las claves `cantidad`, `unidad` y `notas` deben estar presentes, aunque su valor sea `null`. Si se informa una cantidad, debe ser mayor que cero, como máximo 9 999 999.999 y con hasta tres decimales. `unidad` admite hasta 50 caracteres y `notas` hasta 16 000.
 
@@ -346,10 +348,10 @@ La subida independiente de imagen tiene una diferencia según el estado: en una 
 
 Estas operaciones son protegidas y solo actúan sobre recetas propias.
 
-| Método y ruta | Para qué sirve | Entrada | Resultado |
-| --- | --- | --- | --- |
-| `POST /mis-recetas/{receta}/publicar` | Solicitar que una receta privada aparezca en el catálogo. | `clave_idempotencia` en formato UUID. | Usuario normal: `201`, `mensaje` y `solicitud` pendiente. Administrador: `200`, `mensaje` y `receta` publicada directamente. |
-| `POST /mis-recetas/{receta}/corregir` | Proponer cambios a una receta ya publicada. | `clave_idempotencia`, `version_base`, `contenido`. | `201`, `mensaje` y `solicitud` pendiente, también si el autor es administrador. |
+| Método y ruta                         | Para qué sirve                                            | Entrada                                            | Resultado                                                                                                                    |
+| ------------------------------------- | --------------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `POST /mis-recetas/{receta}/publicar` | Solicitar que una receta privada aparezca en el catálogo. | `clave_idempotencia` en formato UUID.              | Usuario normal: `201`, `mensaje` y `solicitud` pendiente. Administrador: `200`, `mensaje` y `receta` publicada directamente. |
+| `POST /mis-recetas/{receta}/corregir` | Proponer cambios a una receta ya publicada.               | `clave_idempotencia`, `version_base`, `contenido`. | `201`, `mensaje` y `solicitud` pendiente, también si el autor es administrador.                                              |
 
 ### Publicar una receta privada
 
@@ -389,11 +391,26 @@ POST /api/v1/mis-recetas/42/corregir
     "tips": null,
     "categorias": [1],
     "ingredientes": [
-      {"ingrediente_id": 1, "cantidad": 1, "unidad": "taza", "notas": null, "orden": 1},
-      {"ingrediente_id": 2, "cantidad": 2, "unidad": "tazas", "notas": null, "orden": 2}
+      {
+        "ingrediente_id": 1,
+        "cantidad": 1,
+        "unidad": "taza",
+        "notas": null,
+        "orden": 1
+      },
+      {
+        "ingrediente_id": 2,
+        "cantidad": 2,
+        "unidad": "tazas",
+        "notas": null,
+        "orden": 2
+      }
     ],
     "pasos": [
-      {"orden": 1, "instruccion": "Colocar el arroz y el agua en una olla y cocinar hasta que el arroz esté listo."}
+      {
+        "orden": 1,
+        "instruccion": "Colocar el arroz y el agua en una olla y cocinar hasta que el arroz esté listo."
+      }
     ]
   }
 }
@@ -415,12 +432,12 @@ Una `version_base` desactualizada en una corrección devuelve `422`; el `409` co
 
 Permiten mostrar el seguimiento de publicaciones y correcciones de la cuenta autenticada.
 
-| Método y ruta | Para qué sirve | Entrada y respuesta |
-| --- | --- | --- |
-| `GET /mis-solicitudes` | Mostrar el historial y los envíos pendientes. | `estado`, `tipo`, `page`, `per_page` opcionales. `200`, colección paginada. |
-| `GET /mis-solicitudes/{solicitud}` | Ver la propuesta enviada y su decisión. | `200`, detalle en `data`, incluido `contenido`. |
-| `GET /mis-solicitudes/{solicitud}/imagen` | Mostrar la fotografía de la propuesta. | `200`, archivo autenticado; `404` si no se encuentra. |
-| `POST /mis-solicitudes/{solicitud}/cancelar` | Retirar una solicitud pendiente. | Sin cuerpo obligatorio. `200`, `mensaje` y `solicitud`. |
+| Método y ruta                                | Para qué sirve                                | Entrada y respuesta                                                         |
+| -------------------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------- |
+| `GET /mis-solicitudes`                       | Mostrar el historial y los envíos pendientes. | `estado`, `tipo`, `page`, `per_page` opcionales. `200`, colección paginada. |
+| `GET /mis-solicitudes/{solicitud}`           | Ver la propuesta enviada y su decisión.       | `200`, detalle en `data`, incluido `contenido`.                             |
+| `GET /mis-solicitudes/{solicitud}/imagen`    | Mostrar la fotografía de la propuesta.        | `200`, archivo autenticado; `404` si no se encuentra.                       |
+| `POST /mis-solicitudes/{solicitud}/cancelar` | Retirar una solicitud pendiente.              | Sin cuerpo obligatorio. `200`, `mensaje` y `solicitud`.                     |
 
 `estado` admite `todos` —predeterminado—, `pendiente`, `aprobada`, `rechazada` o `cancelada`. `tipo` admite `todos` —predeterminado—, `publicacion` o `correccion`. Se ordenan por fecha de creación e ID descendentes.
 
@@ -441,13 +458,13 @@ Cancelar una publicación conserva la receta privada. Cancelar una corrección c
 
 Todas estas rutas requieren autenticación:
 
-| Método y ruta | Para qué sirve | Entrada y respuesta |
-| --- | --- | --- |
-| `GET /favoritos` | Cargar la lista guardada por el usuario. | `page`, `per_page` opcionales. `200`, colección paginada. |
-| `POST /favoritos/{receta}` | Guardar una receta publicada. | Sin cuerpo obligatorio. `201`, `mensaje`, `receta_id`, `es_favorito: true`. |
-| `DELETE /favoritos/{receta}` | Quitarla de favoritos, incluso si fue eliminada. | Sin cuerpo obligatorio. `200`, `mensaje`, `es_favorito: false`. |
-| `GET /favoritos/{receta}/estado` | Saber cómo mostrar el botón de favorito. | `200`, `receta_id` y `es_favorito`. |
-| `POST /favoritos/verificar-disponibilidad` | Comprobar varios IDs desde una sesión autenticada. | Cuerpo `ids`; `200`, resultados en `data`, descritos abajo. |
+| Método y ruta                              | Para qué sirve                                     | Entrada y respuesta                                                         |
+| ------------------------------------------ | -------------------------------------------------- | --------------------------------------------------------------------------- |
+| `GET /favoritos`                           | Cargar la lista guardada por el usuario.           | `page`, `per_page` opcionales. `200`, colección paginada.                   |
+| `POST /favoritos/{receta}`                 | Guardar una receta publicada.                      | Sin cuerpo obligatorio. `201`, `mensaje`, `receta_id`, `es_favorito: true`. |
+| `DELETE /favoritos/{receta}`               | Quitarla de favoritos, incluso si fue eliminada.   | Sin cuerpo obligatorio. `200`, `mensaje`, `es_favorito: false`.             |
+| `GET /favoritos/{receta}/estado`           | Saber cómo mostrar el botón de favorito.           | `200`, `receta_id` y `es_favorito`.                                         |
+| `POST /favoritos/verificar-disponibilidad` | Comprobar varios IDs desde una sesión autenticada. | Cuerpo `ids`; `200`, resultados en `data`, descritos abajo.                 |
 
 Ejemplo al pulsar «Guardar en favoritos»:
 
@@ -488,20 +505,28 @@ Se requiere una lista de entre 1 y 50 IDs positivos, sin duplicados. Ejemplo ilu
 ```json
 {
   "data": [
-    {"id": 42, "estado": "disponible"},
-    {"id": 43, "estado": "eliminada_autor", "mensaje": "Esta receta fue eliminada por su autor"},
-    {"id": 44, "estado": "eliminada_administracion", "mensaje": "Esta receta fue eliminada"},
-    {"id": 45, "estado": "no_disponible"}
+    { "id": 42, "estado": "disponible" },
+    {
+      "id": 43,
+      "estado": "eliminada_autor",
+      "mensaje": "Esta receta fue eliminada por su autor"
+    },
+    {
+      "id": 44,
+      "estado": "eliminada_administracion",
+      "mensaje": "Esta receta fue eliminada"
+    },
+    { "id": 45, "estado": "no_disponible" }
   ]
 }
 ```
 
-| Estado | Interpretación para la app |
-| --- | --- |
-| `disponible` | La receta está publicada y no eliminada. |
-| `eliminada_autor` | Eliminación confirmada y atribuida al autor. Mostrar su aviso. |
-| `eliminada_administracion` | Eliminación confirmada con aviso general. No atribuirla al autor. |
-| `no_disponible` | No hay una publicación identificable para esa consulta. No revela si existe una receta privada ni confirma quién la eliminó. |
+| Estado                     | Interpretación para la app                                                                                                   |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `disponible`               | La receta está publicada y no eliminada.                                                                                     |
+| `eliminada_autor`          | Eliminación confirmada y atribuida al autor. Mostrar su aviso.                                                               |
+| `eliminada_administracion` | Eliminación confirmada con aviso general. No atribuirla al autor.                                                            |
+| `no_disponible`            | No hay una publicación identificable para esa consulta. No revela si existe una receta privada ni confirma quién la eliminó. |
 
 La API no descarga ni elimina por sí misma archivos del teléfono. Según la regla funcional acordada, si ya hay una copia local puede consultarse sin conexión hasta que se confirme la eliminación. Cuando llegue esa confirmación, la app debe dejar de mostrar su contenido y conservar el aviso con la opción de quitar el favorito. Un fallo de red, un error del servidor o un `404` genérico no confirman una eliminación.
 
@@ -511,10 +536,10 @@ Los invitados deben guardar sus favoritos en el dispositivo. No existe aquí un 
 
 Se utilizan para representar la puntuación personal mediante sombreritos de chef y actualizar el promedio. Requieren cuenta activa; también las pueden utilizar administradores.
 
-| Método y ruta | Para qué sirve | Entrada y resultado |
-| --- | --- | --- |
-| `GET /recetas/{receta}/valoracion` | Consultar el voto propio y los agregados. | `200`, `data` con `receta_id`, `puntuacion`, `valoracion_promedio`, `cantidad_valoraciones`. |
-| `PUT` o `POST /recetas/{receta}/valoracion` | Registrar o modificar el voto propio. | `puntuacion`, entero de 1 a 5. `200`, `mensaje` y `data` con los mismos campos. |
+| Método y ruta                               | Para qué sirve                            | Entrada y resultado                                                                          |
+| ------------------------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `GET /recetas/{receta}/valoracion`          | Consultar el voto propio y los agregados. | `200`, `data` con `receta_id`, `puntuacion`, `valoracion_promedio`, `cantidad_valoraciones`. |
+| `PUT` o `POST /recetas/{receta}/valoracion` | Registrar o modificar el voto propio.     | `puntuacion`, entero de 1 a 5. `200`, `mensaje` y `data` con los mismos campos.              |
 
 ```http
 PUT /api/v1/recetas/42/valoracion
@@ -534,15 +559,15 @@ Solo se pueden valorar recetas publicadas y vigentes. Guardar una valoración so
 
 ### Qué debe hacer la app ante un error
 
-| Código | Significado en este contrato | Tratamiento esperado |
-| --- | --- | --- |
-| `401` | Falta token válido o el inicio de sesión fue rechazado. | Pedir acceso cuando corresponda; en login, informar que no se pudo ingresar. |
-| `403` | Cuenta deshabilitada detectada con acceso residual o recurso ajeno sin permiso. | Mostrar el motivo; no confundir todos los casos con una sesión vencida. |
-| `404` | Recurso inexistente o no disponible para esa consulta; también archivo ausente. | Mostrar que no está disponible, sin afirmar automáticamente que fue eliminado. |
-| `409` | Versión desactualizada al editar una receta privada. | Recargar la receta y revisar los cambios antes de guardar otra vez. |
-| `422` | Datos o estado no válidos, incluidas correcciones desactualizadas y claves reutilizadas. | Mostrar errores junto a los campos o explicar la regla incumplida. |
-| `429` | Se alcanzó un límite de solicitudes. | Esperar lo indicado en `Retry-After` o `retry_after`. |
-| `500` u otro `5xx` | Error del servidor. | Informar el fallo; no dar por confirmada una escritura ni una eliminación. |
+| Código             | Significado en este contrato                                                             | Tratamiento esperado                                                           |
+| ------------------ | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `401`              | Falta token válido o el inicio de sesión fue rechazado.                                  | Pedir acceso cuando corresponda; en login, informar que no se pudo ingresar.   |
+| `403`              | Cuenta deshabilitada detectada con acceso residual o recurso ajeno sin permiso.          | Mostrar el motivo; no confundir todos los casos con una sesión vencida.        |
+| `404`              | Recurso inexistente o no disponible para esa consulta; también archivo ausente.          | Mostrar que no está disponible, sin afirmar automáticamente que fue eliminado. |
+| `409`              | Versión desactualizada al editar una receta privada.                                     | Recargar la receta y revisar los cambios antes de guardar otra vez.            |
+| `422`              | Datos o estado no válidos, incluidas correcciones desactualizadas y claves reutilizadas. | Mostrar errores junto a los campos o explicar la regla incumplida.             |
+| `429`              | Se alcanzó un límite de solicitudes.                                                     | Esperar lo indicado en `Retry-After` o `retry_after`.                          |
+| `500` u otro `5xx` | Error del servidor.                                                                      | Informar el fallo; no dar por confirmada una escritura ni una eliminación.     |
 
 Los mensajes definidos por los controladores suelen usar `mensaje`; las excepciones de Laravel utilizan `message`. El cliente debe admitir ambos y utilizar el código HTTP y `errors` para decidir qué mostrar, sin depender del texto exacto.
 
@@ -561,33 +586,33 @@ Ejemplo de validación:
 
 Son valores predeterminados; los configurables pueden cambiar en el entorno. No representan una cuota global para todas las consultas públicas.
 
-| Operación | Límite |
-| --- | --- |
-| Registro | 5 por minuto y 20 por hora por IP, configurables. |
-| Login | 5 por minuto por correo y 10 por minuto por IP. El limitador cuenta solicitudes, aunque sus mensajes mencionen intentos fallidos. |
-| Solicitar recuperación | 1 por minuto y 5 por hora por correo; 15 por hora por IP. |
-| Verificar código | 10 por minuto por IP, además del máximo de cinco fallos por código. |
-| Restablecer contraseña | 10 por minuto por IP, configurable. |
-| Disponibilidad pública | 30 por minuto por IP, configurable. |
-| Escrituras autenticadas | 60 por minuto por cuenta, configurable. No incluye consultas `GET` ni logout. |
-| Peticiones con archivo de imagen | 10 por minuto por cuenta, configurable y adicional a la cuota de escrituras. |
+| Operación                        | Límite                                                                                                                            |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Registro                         | 5 por minuto y 20 por hora por IP, configurables.                                                                                 |
+| Login                            | 5 por minuto por correo y 10 por minuto por IP. El limitador cuenta solicitudes, aunque sus mensajes mencionen intentos fallidos. |
+| Solicitar recuperación           | 1 por minuto y 5 por hora por correo; 15 por hora por IP.                                                                         |
+| Verificar código                 | 10 por minuto por IP, además del máximo de cinco fallos por código.                                                               |
+| Restablecer contraseña           | 10 por minuto por IP, configurable.                                                                                               |
+| Disponibilidad pública           | 30 por minuto por IP, configurable.                                                                                               |
+| Escrituras autenticadas          | 60 por minuto por cuenta, configurable. No incluye consultas `GET` ni logout.                                                     |
+| Peticiones con archivo de imagen | 10 por minuto por cuenta, configurable y adicional a la cuota de escrituras.                                                      |
 
 La verificación autenticada de disponibilidad consume la cuota de escrituras. La edición sin archivo no consume la cuota de imágenes. Las respuestas `429` de estos limitadores incluyen `mensaje`, `retry_after` en segundos y la cabecera `Retry-After`.
 
 ## 12. Funciones que no cubre esta API
 
-| Necesidad del proyecto | Situación observada y responsabilidad |
-| --- | --- |
-| Borradores incompletos | No existe endpoint para guardarlos. El requisito es conservarlos localmente, asociados a la cuenta; guardar una receta privada en el servidor exige contenido completo. |
-| Consulta sin conexión | Hay endpoints para obtener contenido y comprobar disponibilidad. El almacenamiento local, las descargas y la actualización de copias deben implementarse en el móvil. |
-| Favoritos invitados | Se conservan localmente. No hay endpoint de migración automática a la cuenta. |
-| Lectura de instrucciones por audio | El detalle proporciona los pasos como texto. No hay un endpoint de audio; la herramienta y el comportamiento sin conexión siguen pendientes de definición. |
-| Compartir una receta y abrirla en la app | El ID permite consultar su detalle JSON. No se encontró `share_url`, página pública de receta ni asociación de enlaces Android en las rutas revisadas. El flujo de compartir y el enlace diferido necesitan implementación y despliegue. |
-| Verificar propiedad del correo | No hay rutas para verificar el correo al registrarse o cambiarlo. La recuperación por código tiene otro propósito. |
-| Crear categorías o ingredientes desde el móvil | Solo existen catálogos de lectura en esta API. No inventar IDs ni enviar ingredientes nuevos como si ya estuvieran registrados. |
-| Administrar cuentas y aprobar/rechazar recetas | Se realiza mediante rutas del panel web, con sesión administrativa. El token móvil no sustituye ese acceso. |
-| Retirada administrativa de recetas ajenas | Los recursos contemplan avisos y metadatos de eliminación administrativa, pero no se encontró la ruta que complete esa operación en los archivos de rutas revisados. No confundir esos campos con un flujo ya disponible. |
-| Restaurar recetas, borrar la cuenta o renovar tokens | No hay endpoints para estas operaciones en `routes/api.php`. |
+| Necesidad del proyecto                               | Situación observada y responsabilidad                                                                                                                                                                                                    |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Borradores incompletos                               | No existe endpoint para guardarlos. El requisito es conservarlos localmente, asociados a la cuenta; guardar una receta privada en el servidor exige contenido completo.                                                                  |
+| Consulta sin conexión                                | Hay endpoints para obtener contenido y comprobar disponibilidad. El almacenamiento local, las descargas y la actualización de copias deben implementarse en el móvil.                                                                    |
+| Favoritos invitados                                  | Se conservan localmente. No hay endpoint de migración automática a la cuenta.                                                                                                                                                            |
+| Lectura de instrucciones por audio                   | El detalle proporciona los pasos como texto. No hay un endpoint de audio; la herramienta y el comportamiento sin conexión siguen pendientes de definición.                                                                               |
+| Compartir una receta y abrirla en la app             | El ID permite consultar su detalle JSON. No se encontró `share_url`, página pública de receta ni asociación de enlaces Android en las rutas revisadas. El flujo de compartir y el enlace diferido necesitan implementación y despliegue. |
+| Verificar propiedad del correo                       | No hay rutas para verificar el correo al registrarse o cambiarlo. La recuperación por código tiene otro propósito.                                                                                                                       |
+| Crear categorías o ingredientes desde el móvil       | Solo existen catálogos de lectura en esta API. No inventar IDs ni enviar ingredientes nuevos como si ya estuvieran registrados.                                                                                                          |
+| Administrar cuentas y aprobar/rechazar recetas       | Se realiza mediante rutas del panel web, con sesión administrativa. El token móvil no sustituye ese acceso.                                                                                                                              |
+| Retirada administrativa de recetas ajenas            | Los recursos contemplan avisos y metadatos de eliminación administrativa, pero no se encontró la ruta que complete esa operación en los archivos de rutas revisados. No confundir esos campos con un flujo ya disponible.                |
+| Restaurar recetas, borrar la cuenta o renovar tokens | No hay endpoints para estas operaciones en `routes/api.php`.                                                                                                                                                                             |
 
 Estas observaciones describen el backend revisado y los puntos de integración. No constituyen una auditoría de la implementación actual de las pantallas móviles.
 

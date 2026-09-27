@@ -1,12 +1,37 @@
 import { styles } from '@/styles/mis_ingredientes.styles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from "expo-image";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const ingredientesEjemplo = ['Pollo', 'Arroz', 'Tomate', 'Cebolla'];
+import { BuscadorIngredientes } from '@/components/ingredientes/BuscadorIngredientes';
+import type { Categoria } from "@/components/ingredientes/ListaCategorias";
+import { useIngredientes } from '@/hooks/useIngredientes';
+
+function agruparEnFilas <T>(array: T[], tamano:number): T[][]{
+  const resultado: T[][] = [];
+  for (let i = 0; i < array.length; i += tamano) {
+    resultado.push(array.slice(i, i + tamano));
+  }
+  return resultado;
+}
 
 export default function Ingredientes() {
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<Categoria | null>(null);
+  const {ingredientes, agregarIngrediente, quitarIngrediente, limpiarTodo} = useIngredientes();
+
+  const buscarRecomendaciones =()=>{
+    router.push({
+      pathname: "..",
+      params: {
+        ingredientes: ingredientes.map((i)=> i.nombre).join(","),
+        categoriaId: categoriaSeleccionada ? categoriaSeleccionada.id.toString() : "comidas",
+      },
+    });
+  };
+  
   return (
     <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
       <View style={styles.seccionSuperior}>
@@ -30,25 +55,10 @@ export default function Ingredientes() {
           contentFit="contain"
         />
 
-        <View style={styles.busquedaContenedor}>
-          <View style={styles.inputWrapper}>
-            <MaterialCommunityIcons name="magnify" size={18} color="#999" />
-            <TextInput
-              style={styles.input}
-              placeholder="Escribe un ingrediente"
-              placeholderTextColor="#999"
-            />
-          </View>
-
-          <Pressable style={styles.botonAgregar}>
-            <Text style={styles.botonAgregarTexto}>Agregar</Text>
-          </Pressable>
-
-          <Pressable style={styles.botonCategorias}>
-            <Text style={styles.botonCategoriasTexto}>Categorías</Text>
-            <MaterialCommunityIcons name="chevron-down" size={16} color="#333" />
-          </Pressable>
-        </View>
+        <BuscadorIngredientes
+          onAgregarIngrediente={agregarIngrediente}
+          onSeleccionarCategoria={setCategoriaSeleccionada}
+        />
 
         <View style={styles.ingredientesHeader}>
           <View style={styles.ingredientesHeaderIzq}>
@@ -59,7 +69,7 @@ export default function Ingredientes() {
             />
             <Text style={styles.ingredientesTitulo}>Ingredientes añadidos</Text>
           </View>
-          <Pressable style={styles.limpiarBoton}>
+          <Pressable style={styles.limpiarBoton} onPress={limpiarTodo}>
             <MaterialCommunityIcons name="trash-can-outline" size={16} color="#4CAF50" />
             <Text style={styles.limpiarTexto}>Limpiar todo</Text>
           </Pressable>
@@ -67,14 +77,18 @@ export default function Ingredientes() {
 
         <View style={styles.chipsContenedor}>
           <ScrollView nestedScrollEnabled showsHorizontalScrollIndicator={false}>
-            <View style={styles.chipsFila}>
-              {ingredientesEjemplo.map((nombre) => (
-                <View key={nombre} style={styles.chip}>
-                  <Text style={styles.chipTexto}>{nombre}</Text>
-                  <MaterialCommunityIcons name="close" size={16} color="#552414" />
-                </View>
-              ))}
-            </View>
+            {agruparEnFilas(ingredientes, 3).map((fila, index) => (
+              <View key={index} style={styles.chipsFila}>
+                {fila.map((ingrediente) => (
+                  <View key={ingrediente.id} style={styles.chip}>
+                    <Text style={styles.chipTexto} numberOfLines={1} ellipsizeMode="tail">{ingrediente.nombre}</Text>
+                    <Pressable onPress={() => quitarIngrediente(ingrediente.id)}>
+                      <MaterialCommunityIcons name="close" size={16} color="#552414" />
+                    </Pressable>
+                  </View>
+                ))}
+              </View>
+            ))}
           </ScrollView>
         </View>
       </View>
@@ -86,7 +100,11 @@ export default function Ingredientes() {
                 style={styles.adornoBoton}
                 contentFit="contain"
             />
-            <Pressable style={styles.botonBuscar}>
+            <Pressable 
+              style={styles.botonBuscar}
+              onPress={buscarRecomendaciones}
+              disabled={ingredientes.length ===0}
+            >
                 <MaterialCommunityIcons name="magnify" size={24} color="#fff" />
                 <Text style={styles.botonBuscarTexto}>Buscar recomendaciones</Text>
                 <MaterialCommunityIcons name="arrow-right" size={20} color="#fff" />

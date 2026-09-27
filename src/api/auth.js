@@ -1,4 +1,4 @@
-export async function registrarUsuario() {
+export async function registrarUsuario(datosUsuario) {
   const URL = `${process.env.EXPO_PUBLIC_URL_API}/auth/registro`;
 
   const respuesta = await fetch(URL, {

@@ -17,6 +17,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { registrarUsuario } from "../api/auth";
 
 import { AppButton } from "@/components/ui/appButton";
 import { getRegisterStyles } from "@/styles/register.styles";
@@ -48,6 +49,7 @@ export default function Register() {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [serverError, setServerError] = useState<string | null>(null);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -103,15 +105,36 @@ export default function Register() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setServerError(null);
     if (!validateForm()) return;
 
     setIsLoading(true);
-    // TODO: Integrar con API de Laravel para crear cuenta
-    setTimeout(() => {
+    // Integracion de api registrar
+    try {
+      await registrarUsuario({
+        name: formData.nombre,
+        email: formData.email,
+        password: formData.password,
+        password_confirmation: formData.confirmPassword,
+      });
+      // nos devolvemos al login
+      const nuevaCuenta = {
+        name: formData.nombre,
+        email: formData.email,
+      };
+      await AsyncStorage.setItem("nuevaCuenta", JSON.stringify(nuevaCuenta));
+      router.replace({
+        pathname: "/login",
+        params: {
+          email: formData.email,
+        },
+      });
+    } catch (error: any) {
+      setServerError(error.message);
+    } finally {
       setIsLoading(false);
-      router.replace("/(tabs)");
-    }, 1500);
+    }
   };
 
   const getInputStyle = (field: string, hasError: boolean) => [
@@ -246,7 +269,9 @@ export default function Register() {
                       placeholder="Nombre completo"
                       placeholderTextColor="#9D9DA7"
                       value={formData.nombre}
-                      onChangeText={(value) => handleInputChange("nombre", value)}
+                      onChangeText={(value) =>
+                        handleInputChange("nombre", value)
+                      }
                       onFocus={() => setFocusedField("nombre")}
                       onBlur={() => setFocusedField(null)}
                       autoCapitalize="words"
@@ -275,7 +300,9 @@ export default function Register() {
                       placeholder="Correo electrónico"
                       placeholderTextColor="#9D9DA7"
                       value={formData.email}
-                      onChangeText={(value) => handleInputChange("email", value)}
+                      onChangeText={(value) =>
+                        handleInputChange("email", value)
+                      }
                       onFocus={() => setFocusedField("email")}
                       onBlur={() => setFocusedField(null)}
                       keyboardType="email-address"
@@ -305,7 +332,9 @@ export default function Register() {
                       placeholder="Contraseña"
                       placeholderTextColor="#9D9DA7"
                       value={formData.password}
-                      onChangeText={(value) => handleInputChange("password", value)}
+                      onChangeText={(value) =>
+                        handleInputChange("password", value)
+                      }
                       onFocus={() => setFocusedField("password")}
                       onBlur={() => setFocusedField(null)}
                       secureTextEntry={!showPassword}
@@ -314,14 +343,18 @@ export default function Register() {
                       textContentType="newPassword"
                       accessibilityLabel="Contraseña"
                       returnKeyType="next"
-                      onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+                      onSubmitEditing={() =>
+                        confirmPasswordRef.current?.focus()
+                      }
                     />
                     <Pressable
                       style={styles.passwordToggle}
                       onPress={() => setShowPassword(!showPassword)}
                       accessibilityRole="button"
                       accessibilityLabel={
-                        showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                        showPassword
+                          ? "Ocultar contraseña"
+                          : "Mostrar contraseña"
                       }
                     >
                       <Image
@@ -342,7 +375,10 @@ export default function Register() {
 
                 <View style={styles.inputGroup}>
                   <View
-                    style={getInputStyle("confirmPassword", !!errors.confirmPassword)}
+                    style={getInputStyle(
+                      "confirmPassword",
+                      !!errors.confirmPassword,
+                    )}
                   >
                     <Image
                       source={require("../assets/SVG/iconos/candado_blanco.svg")}
@@ -373,7 +409,9 @@ export default function Register() {
                       onPress={() => setShowPassword(!showPassword)}
                       accessibilityRole="button"
                       accessibilityLabel={
-                        showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                        showPassword
+                          ? "Ocultar contraseña"
+                          : "Mostrar contraseña"
                       }
                     >
                       <Image
@@ -388,7 +426,9 @@ export default function Register() {
                     </Pressable>
                   </View>
                   {errors.confirmPassword ? (
-                    <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+                    <Text style={styles.errorText}>
+                      {errors.confirmPassword}
+                    </Text>
                   ) : null}
                 </View>
 
@@ -412,14 +452,25 @@ export default function Register() {
                     </View>
                     <Text style={styles.termsText}>
                       Acepto los{" "}
-                      <Text style={styles.termsLink}>términos y condiciones</Text>
+                      <Text style={styles.termsLink}>
+                        términos y condiciones
+                      </Text>
                     </Text>
                   </Pressable>
                   {errors.terms ? (
                     <Text style={styles.errorText}>{errors.terms}</Text>
                   ) : null}
                 </View>
-
+                {serverError ? (
+                  <Text
+                    style={[
+                      styles.errorText,
+                      { textAlign: "center", marginBottom: 15 },
+                    ]}
+                  >
+                    {serverError}
+                  </Text>
+                ) : null}
                 <AppButton
                   label="Registrarme"
                   onPress={handleSubmit}

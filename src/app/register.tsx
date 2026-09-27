@@ -1,3 +1,6 @@
+import { AppButton } from "@/components/ui/appButton";
+import { getRegisterStyles } from "@/styles/register.styles";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useRef, useState } from "react";
@@ -18,9 +21,6 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { registrarUsuario } from "../api/auth";
-
-import { AppButton } from "@/components/ui/appButton";
-import { getRegisterStyles } from "@/styles/register.styles";
 
 type FormData = {
   nombre: string;
@@ -124,12 +124,7 @@ export default function Register() {
         email: formData.email,
       };
       await AsyncStorage.setItem("nuevaCuenta", JSON.stringify(nuevaCuenta));
-      router.replace({
-        pathname: "/login",
-        params: {
-          email: formData.email,
-        },
-      });
+      router.replace("/login");
     } catch (error: any) {
       setServerError(error.message);
     } finally {

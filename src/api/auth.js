@@ -1,15 +1,45 @@
-// Solo para probar la interfaz: no autentica ni guarda una sesión real.
-const cuentasDePrueba = [
-  { id: "1", name: "Usuario de prueba", email: "prueba@example.com" },
-  { id: "2", name: "Otra cuenta", email: "otra@example.com" },
-];
+export async function registrarUsuario(datosUsuario) {
+  const URL = `${process.env.EXPO_PUBLIC_URL_API}/auth/registro`;
 
-export async function obtenerCuentasRecordadas() {
-  return cuentasDePrueba.map((account) => ({ ...account }));
+  const respuesta = await fetch(URL, {
+    method: "POST",
+    headers: {
+      // le decimos al servidor que le estamos enviando un JSON
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(datosUsuario), // enviamos los datos del usuario en el cuerpo de la solicitud
+  });
+
+  // convertimos la respuesta a JSON
+  const json = await respuesta.json();
+
+  // si la respuesta no es correcta, lanzamos un error
+  if (!respuesta.ok) {
+    throw new Error(json.message || "Error al registrar el usuario");
+  }
+  return json;
 }
 
-/** @param {{ id: string, name: string, email: string }} account */
-export async function validarSesion(account) {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return { ...account };
+export async function iniciarSesion(datosUsuario) {
+  const URL = `${process.env.EXPO_PUBLIC_URL_API}/auth/login`;
+
+  const respuesta = await fetch(URL, {
+    method: "POST",
+    headers: {
+      // le decimos al servidor que le estamos enviando un JSON
+      "Content-Type": "application/json",
+      // le decimos al servidor que esperamos recibir un JSON en la respuesta
+      Accept: "application/json",
+    },
+    body: JSON.stringify(datosUsuario), // enviamos los datos del usuario
+  });
+  // convertimos la respuesta a JSON y devolvemos los datos
+  const json = await respuesta.json();
+  // si la respuesta no es correcta, lanzamos un error
+  if (!respuesta.ok) {
+    throw new Error(json.message || "Error al iniciar sesión");
+  }
+
+  return json;
 }

@@ -1,6 +1,6 @@
 ﻿import { Image } from "expo-image";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -13,79 +13,36 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-import { obtenerCuentasRecordadas, validarSesion } from "@/api/auth";
-
 import { getLoginStyles } from "@/styles/login.styles";
-
-type Account = {
-  id: string;
-  name: string;
-  email: string;
-};
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Login() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
-
   const [notice, setNotice] = useState("");
   const [showOterAccounts, setShowOtherAccounts] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(true);
 
-  useEffect(() => {
-    let active = true;
-
-    const loadAccounts = async () => {
-      try {
-        const data = await obtenerCuentasRecordadas();
-        if (active) setAccounts(data);
-      } catch {
-        if (active) setNotice("No se pudieron cargar las cuentas.");
-      } finally {
-        if (active) setIsLoadingAccounts(false);
-      }
-    };
-
-    void loadAccounts();
-    return () => {
-      active = false;
-    };
-  }, []);
+  const [cuentasGuardadas, setCuentasGuardadas] = useState<any[]>([]);
 
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const styles = getLoginStyles(height - insets.top - insets.bottom);
 
-  const visibleAccounts = showOterAccounts ? accounts : accounts.slice(0, 1);
-
-  const handleSelectAccount = async (account: (typeof accounts)[number]) => {
-    if (isLoading) {
-      return;
-    }
-    setIsLoading(true);
-    setNotice(`Ingresando con ${account.name}...`);
-
-    try {
-      // Simulación temporal definida en src/api/auth.js.
-      await validarSesion(account);
-      router.replace("/(tabs)");
-    } catch (error) {
-      setNotice(
-        error instanceof Error
-          ? error.message
-          : "No se pudo iniciar sesion. Intentalo nuevamente.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleOtherAccount = () => {
-    if (isLoading) {
-      return;
-    }
-    setShowOtherAccounts((previous) => !previous);
-    setNotice("");
-  };
+  useFocusEffect(
+    useCallback(() => {
+      const cargarCuentas = async () => {
+        try {
+          const data = await AsyncStorage.getItem("cuentasGuardadas");
+          if (data) {
+            setCuentasGuardadas(JSON.parse(data));
+          }
+        } catch (error) {
+          console.error("Error al cargar las cuentas guardadas:", error);
+        }
+      };
+      cargarCuentas();
+    }, []),
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -175,46 +132,52 @@ export default function Login() {
             </View>
           </View>
 
-          {isLoadingAccounts && (
-            <Text style={styles.notice}>Cargando cuentas...</Text>
-          )}
-          {!isLoadingAccounts && accounts.length === 0 && !notice && (
-            <Text style={styles.notice}>
-              No hay cuentas recordadas en este dispositivo.
-            </Text>
-          )}
-
           <View style={styles.accounts}>
-            {visibleAccounts.map((account) => (
-              <Pressable
-                key={account.id}
-                style={({ pressed }) => [
-                  styles.accountCard,
-                  pressed && styles.pressed,
-                  isLoading && { opacity: 0.6 },
-                ]}
-                onPress={() => handleSelectAccount(account)}
-                disabled={isLoading}
-                accessibilityRole="button"
-                accessibilityState={{ disabled: isLoading, busy: isLoading }}
-                accessibilityLabel={`Continuar con ${account.name}, ${account.email}`}
+            {cuentasGuardadas.length > 0 ? (
+              cuentasGuardadas.map((cuenta, index) => (
+                <Pressable
+                  key={index}
+                  style={({ pressed }) => [
+                    styles.accountCard,
+                    pressed && styles.pressed,
+                    isLoading && { opacity: 0.6 },
+                  ]}
+                  accessibilityRole="button"
+                  // lili aqui va a ir lo que vas a hacer okey en este onpress
+                  onPress={() =>
+                    console.log(
+                      "Clic en la cuenta. Aquí mi compañera abrirá el modal",
+                    )
+                  }
+                >
+                  <Image
+                    source={require("../assets/SVG/iconos/avatar_naranja.svg")}
+                    style={styles.avatar}
+                    contentFit="contain"
+                  />
+                  <View style={styles.accountCopy}>
+                    <Text style={styles.accountName}>{cuenta.name}</Text>
+                    <Text style={styles.accountEmail}>{cuenta.email}</Text>
+                  </View>
+                  <Image
+                    source={require("../assets/SVG/iconos/chevron.svg")}
+                    style={styles.chevron}
+                    contentFit="contain"
+                  />
+                </Pressable>
+              ))
+            ) : (
+              <Text
+                style={{
+                  textAlign: "center",
+                  color: "#828282",
+                  marginVertical: 10,
+                }}
               >
-                <Image
-                  source={require("../assets/SVG/iconos/avatar_naranja.svg")}
-                  style={styles.avatar}
-                  contentFit="contain"
-                />
-                <View style={styles.accountCopy}>
-                  <Text style={styles.accountName}>{account.name}</Text>
-                  <Text style={styles.accountEmail}>{account.email}</Text>
-                </View>
-                <Image
-                  source={require("../assets/SVG/iconos/chevron.svg")}
-                  style={styles.chevron}
-                  contentFit="contain"
-                />
-              </Pressable>
-            ))}
+                No hay cuentas guardadas. Por favor, inicia sesión con una
+                cuenta nueva.
+              </Text>
+            )}
           </View>
 
           <Pressable
@@ -222,7 +185,8 @@ export default function Login() {
               styles.otherAccount,
               pressed && styles.pressed,
             ]}
-            onPress={handleOtherAccount}
+            // lili aqui va a ir lo que vas a hacer okey en este onpress este es para el login
+            // onPress={}
             disabled={isLoading}
             accessibilityRole="button"
             accessibilityState={{

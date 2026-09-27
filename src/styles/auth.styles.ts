@@ -1,0 +1,135 @@
+import { StyleSheet } from "react-native";
+
+export const styles = StyleSheet.create({
+  // Contenedor y encabezado de LoginModal.
+  overlay: { flex: 1, backgroundColor: "rgba(35, 30, 20, 0.42)" },
+  safeContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  card: {
+    width: "100%",
+    maxWidth: 400,
+    backgroundColor: "#FFFCF2",
+    borderRadius: 32,
+    overflow: "hidden",
+    boxShadow: "0px 8px 24px rgba(64, 38, 16, 0.18)",
+  },
+  cardContent: {
+    paddingHorizontal: 24,
+    paddingTop: 36,
+    paddingBottom: 28,
+    gap: 14,
+  },
+  headingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2,
+  },
+  headingLeaves: { width: 26, height: 30, flexShrink: 0 },
+  heading: {
+    color: "#512013",
+    fontFamily: "Inter_800ExtraBold",
+    fontSize: 25,
+    lineHeight: 31,
+    textAlign: "center",
+    flexShrink: 1,
+  },
+  subtitle: {
+    color: "#7D808A",
+    fontFamily: "Inter_400Regular",
+    fontSize: 13.5,
+    lineHeight: 19,
+    textAlign: "center",
+    marginTop: -10,
+    marginBottom: 12,
+  },
+
+  // CuentaGuardada (avatar + nombre + correo) — usado en la lista y en el modal
+  accountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 16,
+  },
+  avatar: { width: 60, height: 60, flexShrink: 0 },
+  accountCopy: { flex: 1, gap: 2, minWidth: 0 },
+  accountName: {
+    color: "#512013",
+    fontFamily: "Inter_800ExtraBold",
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  accountEmail: {
+    color: "#6D6D7B",
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    lineHeight: 17,
+  },
+
+  // Formulario (correo / CampoContrasena)
+  inputGroup: { gap: 5 },
+  label: { color: "#512013", fontFamily: "Inter_600SemiBold", fontSize: 13 },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: "transparent",
+    paddingLeft: 8,
+    paddingRight: 8,
+    paddingVertical: 8,
+    boxShadow: "0px 4px 10px rgba(64, 38, 16, 0.06)",
+  },
+  inputRowFocused: { borderColor: "#FF5008" },
+  inputRowError: { borderColor: "#FF4F0A" },
+  inputIcon: { width: 40, height: 40, flexShrink: 0 },
+  inputField: {
+    flex: 1,
+    minWidth: 0,
+    marginLeft: 10,
+    paddingVertical: 6,
+    color: "#512013",
+    fontFamily: "Inter_400Regular",
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  passwordToggle: {
+    width: 36,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    flexShrink: 0,
+  },
+  passwordToggleIcon: { width: 22, height: 22 },
+  errorText: {
+    color: "#FF4F0A",
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    lineHeight: 16,
+    paddingHorizontal: 4,
+  },
+
+  // Acciones y adornos de LoginModal. Los botones usan AppButton.
+  buttonArrow: { width: 22, height: 22 },
+  actions: { gap: 24, marginTop: 22 },
+  cancelWrapper: { position: "relative" },
+  bottomLeavesLeft: {
+    position: "absolute",
+    width: 30,
+    height: 38,
+    left: -22,
+    top: -18,
+  },
+  bottomLeavesRight: {
+    position: "absolute",
+    width: 30,
+    height: 38,
+    right: -22,
+    bottom: 0,
+  },
+});

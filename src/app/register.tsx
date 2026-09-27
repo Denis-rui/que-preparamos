@@ -119,11 +119,24 @@ export default function Register() {
         password_confirmation: formData.confirmPassword,
       });
       // nos devolvemos al login
-      const nuevaCuenta = {
+      //Extraemos la lista de cuentas que ya existen en el teléfono
+      const memoriaActual = await AsyncStorage.getItem("cuentasGuardadas");
+      const cuentasExistentes = memoriaActual ? JSON.parse(memoriaActual) : [];
+
+      //Preparamos los datos de la cuenta que se acaba de registrar
+      const cuentaRegistrada = {
         name: formData.nombre,
         email: formData.email,
       };
-      await AsyncStorage.setItem("nuevaCuenta", JSON.stringify(nuevaCuenta));
+
+      //Juntamos las cuentas viejas con esta nueva en una sola lista (arreglo)
+      const nuevasCuentas = [...cuentasExistentes, cuentaRegistrada];
+
+      //Guardamos la lista completa usando la clave correcta que lee el login
+      await AsyncStorage.setItem(
+        "cuentasGuardadas",
+        JSON.stringify(nuevasCuentas),
+      );
       router.replace("/login");
     } catch (error: any) {
       setServerError(error.message);

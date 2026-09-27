@@ -10,7 +10,7 @@ export const styles = StyleSheet.create({
   seccionInferior: {
     paddingBottom: BottomTabInset,
   },
-  seccionSuperior:{
+  seccionSuperior: {
 
   },
   header: {
@@ -38,54 +38,6 @@ export const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 1942 / 810,
     marginTop: 12,
-  },
-  botonAgregar: {
-    backgroundColor: '#FF4F0A',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-  },
-  botonAgregarTexto: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 13,
-  },
-  busquedaContenedor: {
-    backgroundColor: '#FBEEDC',
-    borderRadius: 20,
-    padding: 12,
-    marginTop: -3,
-    marginHorizontal: 5,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  inputWrapper: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 6,
-  },
-  input: {
-    flex: 1,
-    fontSize: 12,
-  },
-  botonCategorias: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    gap: 4,
-  },
-  botonCategoriasTexto: {
-    fontSize: 13,
-    color: '#333',
   },
   ingredientesHeader: {
     flexDirection: 'row',
@@ -130,23 +82,25 @@ export const styles = StyleSheet.create({
   },
   chipsFila: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     gap: 10,
+    marginBottom: 10,
   },
   chip: {
+    width: 112,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#fff',
     borderRadius: 20,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    gap: 8,
   },
   chipTexto: {
     fontSize: 13,
     color: '#552414',
     fontWeight: '600',
+    flexShrink: 1,
   },
   botonBuscar: {
     flexDirection: 'row',
@@ -189,5 +143,5 @@ export const styles = StyleSheet.create({
   adornoBoton: {
     width: 22,
     height: 22,
-   },
+  },
 });

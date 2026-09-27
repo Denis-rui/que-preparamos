@@ -1,6 +1,6 @@
 ﻿import { Image } from "expo-image";
-import { router } from "expo-router";
-import { useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -14,25 +14,35 @@ import {
 } from "react-native-safe-area-context";
 
 import { getLoginStyles } from "@/styles/login.styles";
-
-const accounts = [
-  {
-    name: "Liliana Bustamante Tauma",
-    email: "lili@gmail.com",
-    avatar: require("../assets/SVG/iconos/avatar_naranja.svg"),
-  },
-  {
-    name: "Usuario 02",
-    email: "usuario02@gmail.com",
-    avatar: require("../assets/SVG/iconos/avatar_verde.svg"),
-  },
-];
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Login() {
   const [notice, setNotice] = useState("");
+  const [showOterAccounts, setShowOtherAccounts] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(true);
+
+  const [cuentasGuardadas, setCuentasGuardadas] = useState<any[]>([]);
+
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const styles = getLoginStyles(height - insets.top - insets.bottom);
+
+  useFocusEffect(
+    useCallback(() => {
+      const cargarCuentas = async () => {
+        try {
+          const data = await AsyncStorage.getItem("cuentasGuardadas");
+          if (data) {
+            setCuentasGuardadas(JSON.parse(data));
+          }
+        } catch (error) {
+          console.error("Error al cargar las cuentas guardadas:", error);
+        }
+      };
+      cargarCuentas();
+    }, []),
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -49,6 +59,7 @@ export default function Login() {
             onPress={() =>
               router.canGoBack() ? router.back() : router.replace("/welcome")
             }
+            disabled={isLoading}
             accessibilityRole="button"
             accessibilityLabel="Volver a la bienvenida"
           >
@@ -122,32 +133,51 @@ export default function Login() {
           </View>
 
           <View style={styles.accounts}>
-            {accounts.map((account) => (
-              <Pressable
-                key={account.email}
-                style={({ pressed }) => [
-                  styles.accountCard,
-                  pressed && styles.pressed,
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel={`Continuar con ${account.name}, ${account.email}`}
+            {cuentasGuardadas.length > 0 ? (
+              cuentasGuardadas.map((cuenta, index) => (
+                <Pressable
+                  key={index}
+                  style={({ pressed }) => [
+                    styles.accountCard,
+                    pressed && styles.pressed,
+                    isLoading && { opacity: 0.6 },
+                  ]}
+                  accessibilityRole="button"
+                  // lili aqui va a ir lo que vas a hacer okey en este onpress
+                  onPress={() =>
+                    console.log(
+                      "Clic en la cuenta. Aquí mi compañera abrirá el modal",
+                    )
+                  }
+                >
+                  <Image
+                    source={require("../assets/SVG/iconos/avatar_naranja.svg")}
+                    style={styles.avatar}
+                    contentFit="contain"
+                  />
+                  <View style={styles.accountCopy}>
+                    <Text style={styles.accountName}>{cuenta.name}</Text>
+                    <Text style={styles.accountEmail}>{cuenta.email}</Text>
+                  </View>
+                  <Image
+                    source={require("../assets/SVG/iconos/chevron.svg")}
+                    style={styles.chevron}
+                    contentFit="contain"
+                  />
+                </Pressable>
+              ))
+            ) : (
+              <Text
+                style={{
+                  textAlign: "center",
+                  color: "#828282",
+                  marginVertical: 10,
+                }}
               >
-                <Image
-                  source={account.avatar}
-                  style={styles.avatar}
-                  contentFit="contain"
-                />
-                <View style={styles.accountCopy}>
-                  <Text style={styles.accountName}>{account.name}</Text>
-                  <Text style={styles.accountEmail}>{account.email}</Text>
-                </View>
-                <Image
-                  source={require("../assets/SVG/iconos/chevron.svg")}
-                  style={styles.chevron}
-                  contentFit="contain"
-                />
-              </Pressable>
-            ))}
+                No hay cuentas guardadas. Por favor, inicia sesión con una
+                cuenta nueva.
+              </Text>
+            )}
           </View>
 
           <Pressable
@@ -155,15 +185,29 @@ export default function Login() {
               styles.otherAccount,
               pressed && styles.pressed,
             ]}
+            // lili aqui va a ir lo que vas a hacer okey en este onpress este es para el login
+            // onPress={}
+            disabled={isLoading}
             accessibilityRole="button"
+            accessibilityState={{
+              disabled: isLoading,
+              expanded: showOterAccounts,
+            }}
           >
             <Image
               source={require("../assets/SVG/iconos/otra_cuenta_mas.svg")}
               style={styles.plusIcon}
               contentFit="contain"
             />
-            <Text style={styles.otherAccountText}>Usar otra cuenta</Text>
+            <Text style={styles.otherAccountText}>
+              {showOterAccounts ? "Volver a mi cuenta" : "Usar otra cuenta"}
+            </Text>
           </Pressable>
+          {isLoading || notice ? (
+            <Text accessibilityLiveRegion="polite" style={styles.notice}>
+              {isLoading ? "Iniciando sesión..." : notice}
+            </Text>
+          ) : null}
 
           <View style={styles.signupCard}>
             <Image
@@ -183,6 +227,7 @@ export default function Login() {
                   pressed && styles.pressed,
                 ]}
                 onPress={() => router.push("/register")}
+                disabled={isLoading}
               >
                 <Text style={styles.signupButtonText}>Crear cuenta →</Text>
               </Pressable>
@@ -193,12 +238,6 @@ export default function Login() {
               contentFit="contain"
             />
           </View>
-
-          {notice ? (
-            <Text accessibilityLiveRegion="polite" style={styles.notice}>
-              {notice}
-            </Text>
-          ) : null}
         </View>
       </ScrollView>
     </SafeAreaView>

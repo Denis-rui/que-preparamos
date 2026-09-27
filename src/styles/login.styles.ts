@@ -1,5 +1,6 @@
 ﻿import { StyleSheet } from "react-native";
 
+// Pantalla Elegir cuenta. El contenido reutilizable de cada cuenta usa auth.styles.
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFBF0" },
   content: {
@@ -81,20 +82,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 22,
     boxShadow: "0px 4px 10px rgba(64, 38, 16, 0.09)",
-  },
-  avatar: { width: 60, height: 60 },
-  accountCopy: { flex: 1, gap: 7 },
-  accountName: {
-    color: "#512013",
-    fontFamily: "Inter_800ExtraBold",
-    fontSize: 16,
-    lineHeight: 22,
-  },
-  accountEmail: {
-    color: "#6D6D7B",
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
-    lineHeight: 18,
   },
   chevron: { width: 14, height: 20 },
   otherAccount: {
@@ -213,8 +200,6 @@ export function getLoginStyles(availableHeight: number) {
     heading: { ...styles.heading, fontSize: 27, lineHeight: 34 },
     accounts: { ...styles.accounts, gap: 14 },
     accountCard: { ...styles.accountCard, minHeight: 72, paddingVertical: 10 },
-    avatar: { ...styles.avatar, width: 48, height: 48 },
-    accountCopy: { ...styles.accountCopy, gap: 4 },
     otherAccount: {
       ...styles.otherAccount,
       minHeight: 48,

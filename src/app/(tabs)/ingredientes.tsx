@@ -7,6 +7,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BuscadorIngredientes } from '@/components/ingredientes/BuscadorIngredientes';
+import { IconoCanastaVacia } from "@/components/ingredientes/IconoCanastaVacia";
 import type { Categoria } from "@/components/ingredientes/ListaCategorias";
 import { useIngredientes } from '@/hooks/useIngredientes';
 
@@ -76,20 +77,32 @@ export default function Ingredientes() {
         </View>
 
         <View style={styles.chipsContenedor}>
-          <ScrollView nestedScrollEnabled showsHorizontalScrollIndicator={false}>
-            {agruparEnFilas(ingredientes, 3).map((fila, index) => (
-              <View key={index} style={styles.chipsFila}>
-                {fila.map((ingrediente) => (
-                  <View key={ingrediente.id} style={styles.chip}>
-                    <Text style={styles.chipTexto} numberOfLines={1} ellipsizeMode="tail">{ingrediente.nombre}</Text>
-                    <Pressable onPress={() => quitarIngrediente(ingrediente.id)}>
-                      <MaterialCommunityIcons name="close" size={16} color="#552414" />
-                    </Pressable>
-                  </View>
-                ))}
-              </View>
-            ))}
-          </ScrollView>
+          {ingredientes.length === 0 ? (
+            <View style={styles.mensajeVacioContenedor}>
+              <IconoCanastaVacia size={64}/>
+              <Text style={styles.mensajeVacioTitulo}>Aún no tienes ingredientes</Text>
+              <Text style={styles.mensajeVacioTexto}>
+                ¡Agrega algunos y descubre que puedes preparar!
+              </Text>
+            </View>
+          ) : (
+            <ScrollView nestedScrollEnabled showsHorizontalScrollIndicator={false}>
+              {agruparEnFilas(ingredientes, 3).map((fila, index) => (
+                <View key={index} style={styles.chipsFila}>
+                  {fila.map((ingrediente) => (
+                    <View key={ingrediente.id} style={styles.chip}>
+                      <Text style={styles.chipTexto} numberOfLines={1} ellipsizeMode="tail">
+                        {ingrediente.nombre}
+                      </Text>
+                      <Pressable onPress={() => quitarIngrediente(ingrediente.id)}>
+                        <MaterialCommunityIcons name="close" size={16} color="#552414" />
+                      </Pressable>
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </ScrollView>
+          )}
         </View>
       </View>
 

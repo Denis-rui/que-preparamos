@@ -8,10 +8,10 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   seccionInferior: {
-    paddingBottom: BottomTabInset,
+    paddingBottom: BottomTabInset,       
   },
   seccionSuperior: {
-
+    flex:1,
   },
   header: {
     flexDirection: 'row',
@@ -35,16 +35,17 @@ export const styles = StyleSheet.create({
     marginLeft: 0,
   },
   mascota: {
-    width: '100%',
+    width: '83%',
     aspectRatio: 1942 / 810,
-    marginTop: 12,
+    alignSelf: 'center',
+    marginTop: 16,           
   },
   ingredientesHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginHorizontal: 16,
-    marginTop: 20,
+    marginTop: 20,          
   },
   ingredientesHeaderIzq: {
     flexDirection: 'row',
@@ -73,12 +74,38 @@ export const styles = StyleSheet.create({
     marginTop: -16,
   },
   chipsContenedor: {
+    flex:1,             
     backgroundColor: '#FBEEDC',
     borderRadius: 20,
     marginHorizontal: 16,
     marginTop: 10,
+    marginBottom: 16,
     padding: 12,
-    maxHeight: 140,
+  },
+  mensajeVacioContenedor: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 28,
+    gap: 10,
+  },
+  mensajeVacioIcono: {
+    width: 48,
+    height: 48,
+    opacity: 0.4,
+  },
+  mensajeVacioTitulo: {
+    fontSize: 15,
+    color: '#552414',
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  mensajeVacioTexto: {
+    fontSize: 13,
+    color: '#9C8B7A',
+    textAlign: 'center',
+    fontWeight: '500',
+    lineHeight: 18,
   },
   chipsFila: {
     flexDirection: 'row',
@@ -87,7 +114,7 @@ export const styles = StyleSheet.create({
     marginBottom: 10,
   },
   chip: {
-    width: 112,
+    width: 108,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

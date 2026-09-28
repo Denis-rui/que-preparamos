@@ -150,6 +150,10 @@ export default function LoginModal({ cuenta, onClose, onSuccess }: Props) {
                 showLabel={false}
               />
 
+              <Text style={styles.forgotPassword}>
+                ¿Olvidaste tu contraseña?
+              </Text>
+
               {error && (
                 <Text
                   style={styles.errorText}

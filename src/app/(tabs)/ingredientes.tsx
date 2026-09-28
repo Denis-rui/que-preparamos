@@ -20,17 +20,11 @@ function agruparEnFilas <T>(array: T[], tamano:number): T[][]{
 }
 
 export default function Ingredientes() {
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<Categoria | null>(null);
+  const [, setCategoriaSeleccionada] = useState<Categoria | null>(null);
   const {ingredientes, agregarIngrediente, quitarIngrediente, limpiarTodo} = useIngredientes();
 
   const buscarRecomendaciones =()=>{
-    router.push({
-      pathname: "..",
-      params: {
-        ingredientes: ingredientes.map((i)=> i.nombre).join(","),
-        categoriaId: categoriaSeleccionada ? categoriaSeleccionada.id.toString() : "comidas",
-      },
-    });
+    router.push("/recomendaciones");
   };
   
   return (

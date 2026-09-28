@@ -106,6 +106,16 @@ export const styles = StyleSheet.create({
     flexShrink: 0,
   },
   passwordToggleIcon: { width: 22, height: 22 },
+  forgotPassword: {
+    alignSelf: "flex-end",
+    color: "#FF5008",
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 12,
+    lineHeight: 16,
+    textAlign: "right",
+    textDecorationLine: "underline",
+    marginTop: -6,
+  },
   errorText: {
     color: "#FF4F0A",
     fontFamily: "Inter_400Regular",

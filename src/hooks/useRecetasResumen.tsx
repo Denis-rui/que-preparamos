@@ -1,29 +1,10 @@
 import { getRecetasAleatorias } from "@/api/recetasAleatorias";
 import { useEffect, useState } from "react";
 
-export interface CategoriaResumen {
-  id: number;
-  nombre: string;
-}
-export interface IngredienteResumen {
-  ingrediente_id: number;
-  nombre: string;
-}
-export interface RecetaAleatoria {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  imagen_url: string;
-  porciones: number;
-  tiempo_preparacion: number;
-  categorias: CategoriaResumen[];
-  valoracion_promedio: number | null;
-  cantidad_valoraciones: number;
-  ingredientes_resumen: IngredienteResumen[];
-  cantidad_ingredientes: number;
-}
+import type { RecetaResumen } from "@/types/receta";
+
 export const useRecetasResumen = () => {
-  const [recetas, setRecetas] = useState<RecetaAleatoria[]>([]);
+  const [recetas, setRecetas] = useState<RecetaResumen[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {

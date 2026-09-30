@@ -1,4 +1,21 @@
 // Resumen compartido por Inicio y Explorar.
+// Los tipos permanecen aquí; el servicio de API está escrito en JavaScript.
+export interface PaginaRecetas {
+  data: RecetaResumen[];
+  links: {
+    first: string | null;
+    last: string | null;
+    prev: string | null;
+    next: string | null;
+  };
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
 export interface CategoriaResumen {
   id: number;
   nombre: string;

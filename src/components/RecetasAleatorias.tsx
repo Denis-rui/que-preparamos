@@ -1,4 +1,5 @@
 import { useRecetasResumen } from "@/hooks/useRecetasResumen";
+
 import { TarjetaReceta } from "@/components/recetas/TarjetaReceta";
 import { ReactElement } from "react";
 import {
@@ -9,12 +10,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
 interface Props {
   ComponenteCabecera?: ReactElement;
 }
 export const RecetasAleatorias = ({ ComponenteCabecera }: Props) => {
   const { recetas, loading, error } = useRecetasResumen();
+
 
   return (
     <View style={styles.contenedorSeccion}>

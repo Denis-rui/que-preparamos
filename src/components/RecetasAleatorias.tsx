@@ -2,8 +2,6 @@ import { useRecetasResumen } from "@/hooks/useRecetasResumen";
 
 import { TarjetaReceta } from "@/components/recetas/TarjetaReceta";
 import { ReactElement } from "react";
-<
-
 import {
   ActivityIndicator,
   FlatList,
@@ -53,7 +51,9 @@ export const RecetasAleatorias = ({ ComponenteCabecera }: Props) => {
             )}
           </>
         }
-        renderItem={({ item }) => <TarjetaReceta receta={item} variante="cuadricula" />}
+        renderItem={({ item }) => (
+          <TarjetaReceta receta={item} variante="cuadricula" />
+        )}
       />
     </View>
   );

@@ -1,4 +1,5 @@
-import { RecetaAleatoria, useRecetasResumen } from "@/hooks/useRecetasResumen";
+import { useRecetasResumen } from "@/hooks/useRecetasResumen";
+import { RecetaResumen } from "@/types/receta";
 import { Ionicons } from "@expo/vector-icons";
 import { ReactElement, useState } from "react";
 import {
@@ -10,7 +11,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
 interface Props {
   ComponenteCabecera?: ReactElement;
 }
@@ -18,11 +18,16 @@ export const RecetasAleatorias = ({ ComponenteCabecera }: Props) => {
   const { recetas, loading, error } = useRecetasResumen();
   const [esFavorito, setEsFavorito] = useState<boolean>(false);
 
-  const tarjetaReceta = ({ receta }: { receta: RecetaAleatoria }) => {
+  const tarjetaReceta = ({ receta }: { receta: RecetaResumen }) => {
     return (
       <TouchableOpacity style={styles.tarjetaContenedor}>
         <View style={styles.imagenWrapper}>
-          <Image style={styles.imagen} source={{ uri: receta.imagen_url }} />
+          <Image
+            style={styles.imagen}
+            source={{
+              uri: receta.imagen_url || "../assets/imagenes/not-found.png",
+            }}
+          />
 
           <TouchableOpacity style={styles.corazonFlotante}>
             {/* falta la funcionalidad del corazón y conectarlo con la api, ademas de hacerlo que se guarde cuando no inice sesion */}

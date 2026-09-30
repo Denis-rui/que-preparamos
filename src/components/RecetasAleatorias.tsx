@@ -2,6 +2,8 @@ import { useRecetasResumen } from "@/hooks/useRecetasResumen";
 
 import { TarjetaReceta } from "@/components/recetas/TarjetaReceta";
 import { ReactElement } from "react";
+<
+
 import {
   ActivityIndicator,
   FlatList,
@@ -15,7 +17,6 @@ interface Props {
 }
 export const RecetasAleatorias = ({ ComponenteCabecera }: Props) => {
   const { recetas, loading, error } = useRecetasResumen();
-
 
   return (
     <View style={styles.contenedorSeccion}>

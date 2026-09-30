@@ -1,6 +1,8 @@
 import { useRecetasResumen } from "@/hooks/useRecetasResumen";
+
 import { TarjetaReceta } from "@/components/recetas/TarjetaReceta";
 import { ReactElement } from "react";
+
 import {
   ActivityIndicator,
   FlatList,
@@ -9,7 +11,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
 interface Props {
   ComponenteCabecera?: ReactElement;
 }

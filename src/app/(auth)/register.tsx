@@ -20,7 +20,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { registrarUsuario } from "../api/auth";
+import { registrarUsuario } from "../../api/auth";
 
 type FormData = {
   nombre: string;
@@ -160,13 +160,13 @@ export default function Register() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <SafeAreaView style={styles.container}>
           <Image
-            source={require("../assets/SVG/adornos/hojas_inferiores.svg")}
+            source={require("../../assets/SVG/adornos/hojas_inferiores.svg")}
             style={styles.bottomLeafLeft}
             contentFit="contain"
             pointerEvents="none"
           />
           <Image
-            source={require("../assets/SVG/adornos/hojas_inferiores.svg")}
+            source={require("../../assets/SVG/adornos/hojas_inferiores.svg")}
             style={styles.bottomLeafRight}
             contentFit="contain"
             pointerEvents="none"
@@ -190,7 +190,7 @@ export default function Register() {
                 accessibilityLabel="Volver al login"
               >
                 <Image
-                  source={require("../assets/SVG/iconos/volver.svg")}
+                  source={require("../../assets/SVG/iconos/volver.svg")}
                   style={styles.backIcon}
                   contentFit="contain"
                 />
@@ -203,12 +203,12 @@ export default function Register() {
                   accessibilityLabel="¿Qué preparamos?"
                 >
                   <Image
-                    source={require("../assets/imagenes/icono_sombrero_chef.png")}
+                    source={require("../../assets/imagenes/icono_sombrero_chef.png")}
                     style={styles.chefHat}
                     contentFit="contain"
                   />
                   <Image
-                    source={require("../assets/imagenes/titulo.png")}
+                    source={require("../../assets/imagenes/titulo.png")}
                     style={styles.titleLogo}
                     contentFit="contain"
                   />
@@ -231,7 +231,7 @@ export default function Register() {
                     </Text>
                   </View>
                   <Image
-                    source={require("../assets/SVG/iconos/corazon_contorno.svg")}
+                    source={require("../../assets/SVG/iconos/corazon_contorno.svg")}
                     style={styles.taglineHeart}
                     contentFit="contain"
                   />
@@ -239,7 +239,7 @@ export default function Register() {
 
                 <View style={styles.illustration}>
                   <Image
-                    source={require("../assets/SVG/ilustraciones/chef_elegir_cuenta_con_adornos.svg")}
+                    source={require("../../assets/SVG/ilustraciones/chef_elegir_cuenta_con_adornos.svg")}
                     style={styles.chef}
                     contentFit="contain"
                   />
@@ -248,7 +248,7 @@ export default function Register() {
                       {"¡Únete\na nuestra\ncomunidad!"}
                     </Text>
                     <Image
-                      source={require("../assets/SVG/iconos/corazon_contorno.svg")}
+                      source={require("../../assets/SVG/iconos/corazon_contorno.svg")}
                       style={styles.communityHeart}
                       contentFit="contain"
                     />
@@ -268,7 +268,7 @@ export default function Register() {
                 <View style={styles.inputGroup}>
                   <View style={getInputStyle("nombre", !!errors.nombre)}>
                     <Image
-                      source={require("../assets/SVG/iconos/usuario_blanco.svg")}
+                      source={require("../../assets/SVG/iconos/usuario_blanco.svg")}
                       style={styles.inputIcon}
                       contentFit="contain"
                     />
@@ -298,7 +298,7 @@ export default function Register() {
                 <View style={styles.inputGroup}>
                   <View style={getInputStyle("email", !!errors.email)}>
                     <Image
-                      source={require("../assets/SVG/iconos/correo_blanco.svg")}
+                      source={require("../../assets/SVG/iconos/correo_blanco.svg")}
                       style={styles.inputIcon}
                       contentFit="contain"
                     />
@@ -330,7 +330,7 @@ export default function Register() {
                 <View style={styles.inputGroup}>
                   <View style={getInputStyle("password", !!errors.password)}>
                     <Image
-                      source={require("../assets/SVG/iconos/candado_blanco.svg")}
+                      source={require("../../assets/SVG/iconos/candado_blanco.svg")}
                       style={styles.inputIcon}
                       contentFit="contain"
                     />
@@ -368,8 +368,8 @@ export default function Register() {
                       <Image
                         source={
                           showPassword
-                            ? require("../assets/SVG/iconos/ojo.svg")
-                            : require("../assets/SVG/iconos/ojo_cerrado.svg")
+                            ? require("../../assets/SVG/iconos/ojo.svg")
+                            : require("../../assets/SVG/iconos/ojo_cerrado.svg")
                         }
                         style={styles.passwordToggleIcon}
                         contentFit="contain"
@@ -389,7 +389,7 @@ export default function Register() {
                     )}
                   >
                     <Image
-                      source={require("../assets/SVG/iconos/candado_blanco.svg")}
+                      source={require("../../assets/SVG/iconos/candado_blanco.svg")}
                       style={styles.inputIcon}
                       contentFit="contain"
                     />
@@ -425,8 +425,8 @@ export default function Register() {
                       <Image
                         source={
                           showPassword
-                            ? require("../assets/SVG/iconos/ojo.svg")
-                            : require("../assets/SVG/iconos/ojo_cerrado.svg")
+                            ? require("../../assets/SVG/iconos/ojo.svg")
+                            : require("../../assets/SVG/iconos/ojo_cerrado.svg")
                         }
                         style={styles.passwordToggleIcon}
                         contentFit="contain"
@@ -486,7 +486,7 @@ export default function Register() {
                   loadingLabel="Creando cuenta..."
                   icon={
                     <Image
-                      source={require("../assets/SVG/iconos/flecha_ingresar.svg")}
+                      source={require("../../assets/SVG/iconos/flecha_ingresar.svg")}
                       style={styles.buttonArrow}
                       contentFit="contain"
                     />

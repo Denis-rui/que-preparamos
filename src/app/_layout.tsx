@@ -32,14 +32,13 @@ export default function RootLayout() {
         <AnimatedSplashOverlay ready={fontsLoaded} />
         {fontsLoaded && (
           <Stack
-            initialRouteName="welcome"
+            initialRouteName="(auth)"
             screenOptions={{ headerShown: false }}
           >
-            <Stack.Screen name="welcome" />
-            <Stack.Screen name="login" />
-            <Stack.Screen name="register" />
+            <Stack.Screen name="(auth)" />
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="recomendaciones" />
+            <Stack.Screen name="receta/[id]" />
           </Stack>
         )}
       </ThemeProvider>

@@ -127,7 +127,7 @@ export default function Login() {
               accessibilityLabel="Volver a la bienvenida"
             >
               <Image
-                source={require("../assets/SVG/iconos/volver.svg")}
+                source={require("../../assets/SVG/iconos/volver.svg")}
                 style={styles.backIcon}
                 contentFit="contain"
               />
@@ -140,12 +140,12 @@ export default function Login() {
                 accessibilityLabel="¿Qué preparamos?"
               >
                 <Image
-                  source={require("../assets/imagenes/icono_sombrero_chef.png")}
+                  source={require("../../assets/imagenes/icono_sombrero_chef.png")}
                   style={styles.chefHat}
                   contentFit="contain"
                 />
                 <Image
-                  source={require("../assets/imagenes/titulo.png")}
+                  source={require("../../assets/imagenes/titulo.png")}
                   style={styles.titleLogo}
                   contentFit="contain"
                 />
@@ -168,19 +168,19 @@ export default function Login() {
                   </Text>
                 </View>
                 <Image
-                  source={require("../assets/SVG/iconos/corazon_contorno.svg")}
+                  source={require("../../assets/SVG/iconos/corazon_contorno.svg")}
                   style={styles.taglineHeart}
                   contentFit="contain"
                 />
               </View>
               <Image
-                source={require("../assets/SVG/ilustraciones/chef_elegir_cuenta_con_adornos.svg")}
+                source={require("../../assets/SVG/ilustraciones/chef_elegir_cuenta_con_adornos.svg")}
                 style={styles.chef}
                 contentFit="contain"
               />
               <View style={styles.headingRow}>
                 <Image
-                  source={require("../assets/SVG/adornos/hojas_izquierda.svg")}
+                  source={require("../../assets/SVG/adornos/hojas_izquierda.svg")}
                   style={styles.headingLeaves}
                   contentFit="contain"
                 />
@@ -188,7 +188,7 @@ export default function Login() {
                   Elegir cuenta
                 </Text>
                 <Image
-                  source={require("../assets/SVG/adornos/hojas_derecha.svg")}
+                  source={require("../../assets/SVG/adornos/hojas_derecha.svg")}
                   style={styles.headingLeaves}
                   contentFit="contain"
                 />
@@ -216,7 +216,7 @@ export default function Login() {
                     />
 
                     <Image
-                      source={require("../assets/SVG/iconos/chevron.svg")}
+                      source={require("../../assets/SVG/iconos/chevron.svg")}
                       style={styles.chevron}
                       contentFit="contain"
                     />
@@ -250,7 +250,7 @@ export default function Login() {
               }}
             >
               <Image
-                source={require("../assets/SVG/iconos/otra_cuenta_mas.svg")}
+                source={require("../../assets/SVG/iconos/otra_cuenta_mas.svg")}
                 style={styles.plusIcon}
                 contentFit="contain"
               />
@@ -264,7 +264,7 @@ export default function Login() {
 
             <View style={styles.signupCard}>
               <Image
-                source={require("../assets/SVG/adornos/hojas_verticales.svg")}
+                source={require("../../assets/SVG/adornos/hojas_verticales.svg")}
                 style={styles.leftLeaves}
                 contentFit="contain"
               />
@@ -286,7 +286,7 @@ export default function Login() {
                 </Pressable>
               </View>
               <Image
-                source={require("../assets/SVG/adornos/hojas_inferiores.svg")}
+                source={require("../../assets/SVG/adornos/hojas_inferiores.svg")}
                 style={styles.rightLeaves}
                 contentFit="contain"
               />

@@ -15,12 +15,12 @@ export default function Welcome() {
             <View style={styles.brandLockup}>
               <View style={styles.brandHeader}>
                 <Image
-                  source={require('../assets/imagenes/icono_sombrero_chef.png')}
+                  source={require('../../assets/imagenes/icono_sombrero_chef.png')}
                   style={styles.chefHat}
                   contentFit="contain"
                 />
                 <Image
-                  source={require('../assets/imagenes/titulo.png')}
+                  source={require('../../assets/imagenes/titulo.png')}
                   style={styles.titleLogo}
                   contentFit="contain"
                 />
@@ -49,7 +49,7 @@ export default function Welcome() {
             </View>
 
             <Image
-              source={require('../assets/imagenes/icono_mascota.png')}
+              source={require('../../assets/imagenes/icono_mascota.png')}
               style={styles.mascota}
               contentFit="contain"
             />
@@ -76,7 +76,7 @@ export default function Welcome() {
         </View>
 
         <Image
-          source={require('../assets/imagenes/icono_1.png')}
+          source={require('../../assets/imagenes/icono_1.png')}
           style={styles.footerIcon}
           contentFit="contain"
         />

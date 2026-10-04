@@ -86,6 +86,7 @@ export default function MiPerfil() {
             </View>
           </View>
 
+          
           <Text accessibilityRole="header" style={styles.optionsTitle}>
             Opciones
           </Text>

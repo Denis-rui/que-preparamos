@@ -6,6 +6,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 
+import { Kavoon_400Regular } from "@expo-google-fonts/kavoon";
 import { Lobster_400Regular } from "@expo-google-fonts/lobster";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -24,6 +25,7 @@ export default function RootLayout() {
     Coiny_400Regular,
     Inter_800ExtraBold,
     Lobster_400Regular,
+    Kavoon_400Regular,
   });
 
   return (

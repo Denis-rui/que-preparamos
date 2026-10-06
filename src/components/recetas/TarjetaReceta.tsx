@@ -1,7 +1,8 @@
 import type { RecetaResumen } from "@/types/receta";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { StyleSheet, Text, View } from "react-native";
+import { router } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { FotoReceta } from "./FotoReceta";
 
 // La tarjeta comparte datos y presentación; cada pantalla decide qué API consultar.
@@ -17,11 +18,13 @@ export function TarjetaReceta({
 }) {
   const horizontal = variante === "horizontal";
   return (
-    <View
-      style={[
+    <Pressable 
+      onPress={()=> router.push(`/receta/${receta.id}`)}
+      style={({pressed}) =>[
         s.tarjeta,
         horizontal ? s.horizontal : s.cuadricula,
         horizontal && alto !== undefined && { minHeight: alto, marginBottom: 0 },
+        pressed && {opacity: 0.85},
       ]}
     >
       <View style={horizontal ? s.fotoHorizontal : s.fotoCuadricula}>
@@ -91,7 +94,7 @@ export function TarjetaReceta({
           </>
         )}
       </View>
-    </View>
+    </Pressable>
   );
 }
 const s = StyleSheet.create({

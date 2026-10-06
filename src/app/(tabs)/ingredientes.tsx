@@ -113,7 +113,7 @@ export default function Ingredientes() {
                 style={styles.adornoBoton}
                 contentFit="contain"
             />
-            {/* <Pressable 
+            <Pressable 
               style={styles.botonBuscar}
               onPress={buscarRecomendaciones}
               disabled={ingredientes.length ===0}
@@ -126,10 +126,7 @@ export default function Ingredientes() {
                 source={require("../../assets/SVG/adornos/hojas_derecha.svg")}
                 style={styles.adornoBoton}
                 contentFit="contain"
-            /> */}
-            <Pressable onPress={() => router.push("/receta/1")}>
-              <Text>Probar receta 1</Text>
-            </Pressable>
+            />
         </View>
 
         <View style={styles.tipContenedor}>

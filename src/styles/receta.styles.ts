@@ -34,12 +34,14 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#FFFBF0",
   },
   estadoContenedorError: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
+    backgroundColor: "#FFFBF0",
   },
   estadoTexto: {
     marginTop: 12,
@@ -111,12 +113,6 @@ export const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#552414",
   },
-  seccionTitulo: {
-    fontSize: 16,
-    fontWeight: "700",
-    marginBottom: 16,
-    color: "#552414",
-  },
   ingredientesTitulo: {
     fontSize: 16,
     fontWeight: "900",
@@ -133,15 +129,6 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
     color: "#756B64",
-  },
-  valoracionFila: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    margin: 16,
-  },
-  valoracionTexto: {
-    color: "#552414",
   },
   ingredientesCard: {
     backgroundColor: "#fff",
@@ -195,11 +182,25 @@ export const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
   },
+  preparacionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
   preparacionTitulo: {
     fontSize: 16,
     fontWeight: "900",
-    marginBottom: 16,
     color: "#552414",
+  },
+  botonAudio: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: "#FF4F0A",
+    justifyContent: "center",
+    alignItems: "center",
   },
   pasoFila: {
     flexDirection: "row",

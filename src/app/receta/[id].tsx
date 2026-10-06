@@ -2,18 +2,48 @@ import { styles } from "@/styles/receta.styles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
+import * as Speech from "expo-speech";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Defs, Path, Text as SvgText, TextPath } from "react-native-svg";
 
 import ModalValoracion from "@/components/recetas/ModalValoracion";
 import { useReceta } from "@/hooks/useReceta";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function DetalleReceta() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { receta, loading, error } = useReceta(id);
   const [modalVisible, setModalVisible] = useState(false);
+  const [leyendo, setLeyendo]= useState(false);
+
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
+
+  const alternarLectura = ()=>{
+    if(leyendo){
+      Speech.stop();
+      setLeyendo(false);
+      return;
+    }
+
+    const texto = receta.pasos
+      .map((paso:any)=> `Paso ${paso.orden}. ${paso.instruccion}`)
+      .join(".");
+
+    
+    Speech.speak(texto, {
+      language: "es-ES",
+      onDone: ()=> setLeyendo(false),
+      onStopped: ()=> setLeyendo(false),
+      onError: ()=> setLeyendo(false),
+    });
+
+    setLeyendo(true);
+  }
 
   if (loading) {
     return (
@@ -132,15 +162,24 @@ export default function DetalleReceta() {
 
         {/* Pasos */}
         <View style={styles.preparacionCard}>
+          <View style={styles.preparacionHeader}>
             <Text style={styles.preparacionTitulo}>Preparación</Text>
-            {receta.pasos?.map((paso: any) => (
-                <View key={paso.orden} style={styles.pasoFila}>
-                    <View style={styles.pasoNumero}>
-                        <Text style={styles.pasoNumeroTexto}>{paso.orden}</Text>
-                    </View>
-                    <Text style={styles.pasoTexto}>{paso.instruccion}</Text>
-                </View>
-            ))}
+            <Pressable onPress={alternarLectura} style={styles.botonAudio}>
+              <MaterialCommunityIcons
+                name={leyendo ? "pause" : "play"}
+                size={20}
+                color="#FF4F0A"
+              />
+            </Pressable>
+          </View>
+          {receta.pasos?.map((paso: any) => (
+            <View key={paso.orden} style={styles.pasoFila}>
+              <View style={styles.pasoNumero}>
+                <Text style={styles.pasoNumeroTexto}>{paso.orden}</Text>
+              </View>
+              <Text style={styles.pasoTexto}>{paso.instruccion}</Text>
+            </View>
+          ))}
         </View>
 
         {/* Tips (opcional) */}

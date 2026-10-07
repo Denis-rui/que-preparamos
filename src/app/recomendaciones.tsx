@@ -1,130 +1,211 @@
+import { FotoReceta } from "@/components/recetas/FotoReceta";
+import { useRecomendaciones } from "@/hooks/useRecomendaciones";
 import { styles } from "@/styles/recomendaciones.styles";
+import type { RecetaRecomendada } from "@/types/receta";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { router } from "expo-router";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import type { ReactNode } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// MOCK solo diseño — sin API, sin funcionalidad.
-// Al estar en src/app/recomendaciones.tsx (fuera de (tabs)) no muestra la barra inferior.
-type RecomendacionMock = {
-  id: string;
-  nombre: string;
-  descripcion: string;
-  imagen: string;
-  tienes: string[];
-  tiempo: string;
-  porciones: string;
-};
+// leer lo que llega desde "Mis ingredientes".
+// La pantalla anterior manda texto: ingredientes="1,2,3". Aquí vuelve a números.
+function parsearIds(valor: string | string[] | undefined): number[] {
+  const texto = Array.isArray(valor) ? valor.join(",") : (valor ?? "");
+  const ids = texto
+    .split(",")
+    .map((parte) => Number(parte.trim()))
+    .filter((n) => Number.isInteger(n) && n > 0);
+  return [...new Set(ids)].slice(0, 50);
+}
 
-const MOCK_RECOMENDACIONES: RecomendacionMock[] = [
-  {
-    id: "1",
-    nombre: "Ají de Gallina",
-    descripcion: "Cremoso, tradicional y siempre una buena idea.",
-    imagen: '',
-    tienes: ["pollo", "cebolla", "ajo"],
-    tiempo: "35 min",
-    porciones: "4 porciones",
-  },
-  {
-    id: "2",
-    nombre: "Arroz con Pollo",
-    descripcion: "Un clásico peruano lleno de sabor",
-    imagen:"",
-    tienes: ["pollo", "cebolla", "arroz"],
-    tiempo: "50 min",
-    porciones: "4 porciones",
-  },
-  {
-    id: "3",
-    nombre: "Lomo Saltado",
-    descripcion: "Sabor peruano en cada bocado",
-    imagen:"",
-    tienes: ["carne", "cebolla", "tomate"],
-    tiempo: "30 min",
-    porciones: "4 porciones",
-  },
-];
+function parsearCategoria(valor: string | string[] | undefined): number | null {
+  const texto = Array.isArray(valor) ? valor[0] : valor;
+  const id = Number(texto);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
 
-function TarjetaRecomendacion({ item }: { item: RecomendacionMock }) {
+// cómo se ve una receta (foto, datos e ingredientes que sí tienes).
+function TarjetaRecomendacion({ item }: { item: RecetaRecomendada }) {
+  const faltantes =
+    item.cantidad_faltantes ?? item.ingredientes_faltantes?.length ?? 0;
+  const disponibles = item.ingredientes_disponibles ?? [];
+
   return (
-    <View style={styles.tarjeta}>
-      <Image
-        source={{ uri: item.imagen }}
-        style={styles.imagen}
-        contentFit="cover"
-      />
-      <View style={styles.tarjetaContenido}>
-        <View style={styles.tarjetaHeader}>
-          <Text style={styles.tarjetaTitulo} numberOfLines={1}>
-            {item.nombre}
-          </Text>
-          <Pressable style={styles.corazon} accessibilityRole="button">
-            <MaterialCommunityIcons
-              name="heart-outline"
-              size={18}
-              color="#552414"
+    <Pressable
+      style={styles.tarjeta}
+      onPress={() => router.push(`/receta/${item.id}`)}
+    >
+      <View style={styles.filaSuperior}>
+        <FotoReceta uri={item.imagen_url} style={styles.imagen} />
+        <View style={styles.tarjetaContenido}>
+          <View style={styles.tarjetaHeader}>
+            <Text style={styles.tarjetaTitulo}>{item.nombre}</Text>
+            <View style={styles.corazon}>
+              <MaterialCommunityIcons
+                name="heart-outline"
+                size={18}
+                color="#552414"
+              />
+            </View>
+          </View>
+
+          <View style={styles.metaFila}>
+            <MetaCapsula
+              icono="clock-outline"
+              texto={`${item.tiempo_preparacion} min`}
             />
-          </Pressable>
+            <MetaCapsula
+              icono="account-group-outline"
+              texto={`${item.porciones} porciones`}
+            />
+          </View>
+
+          <Text style={styles.descripcion}>{item.descripcion}</Text>
+
+          <View
+            style={[
+              styles.insignia,
+              faltantes === 0
+                ? styles.insigniaCompleta
+                : styles.insigniaParcial,
+            ]}
+          >
+            <Text style={styles.insigniaTexto}>
+              {faltantes === 0
+                ? "¡Lo tienes todo!"
+                : faltantes === 1
+                  ? "Te falta 1 ingrediente"
+                  : `Te faltan ${faltantes} ingredientes`}
+            </Text>
+          </View>
         </View>
+      </View>
 
-        <Text style={styles.descripcion} numberOfLines={2}>
-          {item.descripcion}
-        </Text>
-
+      {disponibles.length > 0 && (
         <View style={styles.tienesBox}>
-          <Text style={styles.tienesLabel}>Tienes:</Text>
+          <View style={styles.tienesHeader}>
+            <MaterialCommunityIcons
+              name="check-circle"
+              size={22}
+              color="#80B94B"
+            />
+            <Text style={styles.tienesLabel}>Tienes</Text>
+          </View>
           <View style={styles.chipsFila}>
-            {item.tienes.map((ing) => (
-              <View key={ing} style={styles.chip}>
-                <Text style={styles.chipTexto}>{ing}</Text>
+            {disponibles.map((ing) => (
+              <View key={ing.ingrediente_id} style={styles.chip}>
+                <Text style={styles.chipTexto}>{ing.nombre}</Text>
               </View>
             ))}
           </View>
         </View>
+      )}
+    </Pressable>
+  );
+}
 
-        <View style={styles.metaFila}>
-          <View style={styles.metaItem}>
-            <MaterialCommunityIcons
-              name="clock-outline"
-              size={14}
-              color="#9C8B7A"
-            />
-            <Text style={styles.metaTexto}>{item.tiempo}</Text>
-          </View>
-          <View style={styles.metaItem}>
-            <MaterialCommunityIcons
-              name="account-group-outline"
-              size={14}
-              color="#9C8B7A"
-            />
-            <Text style={styles.metaTexto}>{item.porciones}</Text>
-          </View>
-        </View>
-      </View>
+// Capsulas con icono (se usa para tiempo y porciones).
+function MetaCapsula({
+  icono,
+  texto,
+}: {
+  icono: "clock-outline" | "account-group-outline";
+  texto: string;
+}) {
+  return (
+    <View style={styles.metaItem}>
+      <MaterialCommunityIcons name={icono} size={12} color="#552414" />
+      <Text style={styles.metaTexto}>{texto}</Text>
     </View>
   );
 }
 
+// mensajes de estado (carga, error o lista vacía).
+function EstadoMensaje({
+  titulo,
+  texto,
+  children,
+}: {
+  titulo?: string;
+  texto: string;
+  children?: ReactNode;
+}) {
+  return (
+    <View style={styles.estadoContenedor}>
+      {titulo && <Text style={styles.estadoTitulo}>{titulo}</Text>}
+      <Text style={styles.estadoTexto}>{texto}</Text>
+      {children}
+    </View>
+  );
+}
+
+// La pantalla junta todo con una lista infinita.
 export default function Recomendaciones() {
+  const params = useLocalSearchParams<{
+    ingredientes?: string | string[];
+    categoriaId?: string | string[];
+  }>();
+  const ids = parsearIds(params.ingredientes);
+  const categoriaId = parsearCategoria(params.categoriaId);
+  const {
+    recetas,
+    total,
+    loading,
+    error,
+    recargar,
+    tieneMas,
+    cargandoMas,
+    cargarMas,
+  } = useRecomendaciones(ids, categoriaId);
+
+  const sinIds = ids.length === 0;
+  const mostrarLista = !sinIds && !loading && !error && total > 0;
+
+  let contenidoVacio = (
+    <EstadoMensaje
+      titulo="Sin coincidencias"
+      texto="Ninguna receta usa esos ingredientes. Prueba agregando otros."
+    />
+  );
+  if (sinIds) {
+    contenidoVacio = (
+      <EstadoMensaje
+        titulo="Sin ingredientes"
+        texto="Vuelve atrás y agrega al menos un ingrediente para ver qué puedes preparar."
+      />
+    );
+  } else if (loading) {
+    contenidoVacio = (
+      <EstadoMensaje texto="Buscando platos con tus ingredientes...">
+        <ActivityIndicator size="large" />
+      </EstadoMensaje>
+    );
+  } else if (error) {
+    contenidoVacio = (
+      <EstadoMensaje titulo="No se pudo cargar" texto={error}>
+        <Pressable style={styles.botonReintentar} onPress={recargar}>
+          <Text style={styles.botonReintentarTexto}>Reintentar</Text>
+        </Pressable>
+      </EstadoMensaje>
+    );
+  }
+
   return (
     <SafeAreaView
       style={styles.contenedor}
       edges={["top", "left", "right", "bottom"]}
     >
       <View style={styles.topBar}>
-        <Pressable
-          style={styles.botonAtras}
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Volver"
-        >
-          <MaterialCommunityIcons
-            name="arrow-left"
-            size={24}
-            color="#552414"
-          />
+        <Pressable style={styles.botonAtras} onPress={() => router.back()}>
+          <MaterialCommunityIcons name="arrow-left" size={24} color="#552414" />
         </Pressable>
         <View style={styles.logoFila}>
           <Image
@@ -140,31 +221,51 @@ export default function Recomendaciones() {
         </View>
       </View>
 
-      <ScrollView
+      <FlatList
+        data={mostrarLista ? recetas : []}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={({ item }) => <TarjetaRecomendacion item={item} />}
+        ListHeaderComponent={
+          <>
+            <View style={styles.tituloFila}>
+              <Image
+                source={require("../assets/SVG/adornos/hojas_izquierda.svg")}
+                style={styles.hojaTitulo}
+                contentFit="contain"
+              />
+              <Text style={styles.titulo}>Recomendaciones</Text>
+              <Image
+                source={require("../assets/SVG/adornos/hojas_derecha.svg")}
+                style={styles.hojaTitulo}
+                contentFit="contain"
+              />
+            </View>
+            <Text style={styles.subtitulo}>
+              Basadas en los ingredientes que seleccionaste
+            </Text>
+            {mostrarLista && (
+              <Text style={styles.contador}>
+                {total}{" "}
+                {total === 1 ? "receta encontrada" : "recetas encontradas"}
+              </Text>
+            )}
+          </>
+        }
+        ListEmptyComponent={contenidoVacio}
+        ListFooterComponent={
+          cargandoMas ? (
+            <View style={styles.cargarMasContenedor}>
+              <ActivityIndicator size="small" />
+            </View>
+          ) : null
+        }
+        onEndReached={() => {
+          if (mostrarLista && tieneMas && !cargandoMas) void cargarMas();
+        }}
+        onEndReachedThreshold={0.5}
         contentContainerStyle={styles.scrollContenido}
         showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.tituloFila}>
-          <Image
-            source={require("../assets/SVG/adornos/hojas_izquierda.svg")}
-            style={styles.hojaTitulo}
-            contentFit="contain"
-          />
-          <Text style={styles.titulo}>Recomendaciones</Text>
-          <Image
-            source={require("../assets/SVG/adornos/hojas_derecha.svg")}
-            style={styles.hojaTitulo}
-            contentFit="contain"
-          />
-        </View>
-        <Text style={styles.subtitulo}>
-          Basadas en los ingredientes que seleccionaste
-        </Text>
-
-        {MOCK_RECOMENDACIONES.map((item) => (
-          <TarjetaRecomendacion key={item.id} item={item} />
-        ))}
-      </ScrollView>
+      />
     </SafeAreaView>
   );
 }

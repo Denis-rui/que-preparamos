@@ -37,3 +37,28 @@ export interface RecetaResumen {
   ingredientes_resumen: IngredienteResumen[];
   cantidad_ingredientes: number;
 }
+
+// Respuesta de GET /recetas cuando se filtra por ingredientes[].
+// El backend agrega disponibles/faltantes solo con selección no vacía.
+export interface RecetaRecomendada extends RecetaResumen {
+  ingredientes_disponibles: IngredienteResumen[];
+  ingredientes_faltantes: IngredienteResumen[];
+  cantidad_coincidencias: number;
+  cantidad_faltantes: number;
+}
+
+export interface PaginaRecomendaciones {
+  data: RecetaRecomendada[];
+  links: {
+    first: string | null;
+    last: string | null;
+    prev: string | null;
+    next: string | null;
+  };
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}

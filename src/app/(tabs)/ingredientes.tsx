@@ -24,13 +24,13 @@ export default function Ingredientes() {
   const {ingredientes, agregarIngrediente, quitarIngrediente, limpiarTodo} = useIngredientes();
 
   const buscarRecomendaciones = () => {
-    router.push({
-      pathname: "/recomendaciones",
-      params: {
-        ingredientes: ingredientes.map((i) => i.id.toString()).join(","),
-        categoriaId: categoriaSeleccionada ? categoriaSeleccionada.id.toString() : "comidas",
-      },
-    });
+    const params: Record<string, string> = {
+      ingredientes: ingredientes.map((i) => i.id.toString()).join(","),
+    };
+    if (categoriaSeleccionada) {
+      params.categoriaId = categoriaSeleccionada.id.toString();
+    }
+    router.push({ pathname: "/recomendaciones", params });
   };
   
   const sinIngredientes = ingredientes.length === 0;

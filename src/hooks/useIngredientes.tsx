@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 export interface Ingrediente {
-    id: string;
+    id: number;
     nombre: string;
 }
 
@@ -9,17 +9,17 @@ export const useIngredientes =()=>{
 
     const[ingredientes, setIngredientes] = useState<Ingrediente[]>([]);
 
-    const agregarIngrediente =(nombre: string)=>{
+    const agregarIngrediente =(ingrediente: Ingrediente)=>{
         const yaExiste = ingredientes.some(
-            (i) => i.nombre.toLowerCase() === nombre.toLowerCase()
+            (i) => i.id === ingrediente.id
         );
 
         if(yaExiste) return; // ayuda a evitar duplicados
 
-        setIngredientes((prev)=> [...prev, {id: Date.now().toString(), nombre}]);
+        setIngredientes((prev)=> [...prev, ingrediente]);
     };
 
-    const quitarIngrediente = (id: string) => {
+    const quitarIngrediente = (id: number) => {
         setIngredientes((prev) => prev.filter((i) => i.id !== id));
     };
 

@@ -33,6 +33,8 @@ export default function Ingredientes() {
     });
   };
   
+  const sinIngredientes = ingredientes.length === 0;
+
   return (
     <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
       <View style={styles.seccionSuperior}>
@@ -70,7 +72,13 @@ export default function Ingredientes() {
             />
             <Text style={styles.ingredientesTitulo}>Ingredientes añadidos</Text>
           </View>
-          <Pressable style={styles.limpiarBoton} onPress={limpiarTodo}>
+          <Pressable 
+            style={({pressed}) => [
+              styles.limpiarBoton,
+              pressed && styles.limpiarBotonPresionado,
+            ]} 
+            onPress={limpiarTodo}
+          >
             <MaterialCommunityIcons name="trash-can-outline" size={16} color="#4CAF50" />
             <Text style={styles.limpiarTexto}>Limpiar todo</Text>
           </Pressable>
@@ -114,13 +122,24 @@ export default function Ingredientes() {
                 contentFit="contain"
             />
             <Pressable 
-              style={styles.botonBuscar}
+              style={({pressed}) =>[
+                styles.botonBuscar,
+                sinIngredientes && styles.botonBuscarDesactivado,
+                pressed && !sinIngredientes && styles.botonBuscarPresionado,
+              ]}
               onPress={buscarRecomendaciones}
-              disabled={ingredientes.length ===0}
+              disabled={sinIngredientes}
             >
-                <MaterialCommunityIcons name="magnify" size={24} color="#fff" />
-                <Text style={styles.botonBuscarTexto}>Buscar recomendaciones</Text>
-                <MaterialCommunityIcons name="arrow-right" size={20} color="#fff" />
+                <MaterialCommunityIcons name="magnify" size={24} color={sinIngredientes ? "#8B7B70" : "#fff"}/>
+                <Text 
+                  style={[
+                    styles.botonBuscarTexto,
+                    sinIngredientes && styles.botonBuscarTextoDesactivado,
+                  ]}
+                >
+                  Buscar recomendaciones
+                </Text>
+                <MaterialCommunityIcons name="arrow-right" size={20} color={sinIngredientes ? "#8B7B70" : "#fff"} />
             </Pressable>
             <Image
                 source={require("../../assets/SVG/adornos/hojas_derecha.svg")}
@@ -130,9 +149,9 @@ export default function Ingredientes() {
         </View>
 
         <View style={styles.tipContenedor}>
-          <MaterialCommunityIcons name="lightbulb-outline" size={20} color="#552414" />
+          <MaterialCommunityIcons name="lightbulb-on-outline" size={20} color="#552414" />
           <Text style={styles.tipTexto}>
-            Te mostraremos recetas que puedes preparar y lo que te falta
+            Te mostraremos recetas que puedes preparar y los ingredientes que te hacen falta
           </Text>
         </View>
       </View>

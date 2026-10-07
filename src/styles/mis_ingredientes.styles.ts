@@ -171,4 +171,17 @@ export const styles = StyleSheet.create({
     width: 22,
     height: 22,
   },
+  botonBuscarPresionado: {
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
+  },
+  limpiarBotonPresionado: {
+    opacity: 0.6,
+  },
+  botonBuscarDesactivado: {
+    backgroundColor: "#D6C9BE",
+  },
+  botonBuscarTextoDesactivado: {
+    color: "#8B7B70",
+  },
 });

@@ -27,7 +27,7 @@ export default function Ingredientes() {
     router.push({
       pathname: "/recomendaciones",
       params: {
-        ingredientes: ingredientes.map((i) => i.nombre).join(","),
+        ingredientes: ingredientes.map((i) => i.id.toString()).join(","),
         categoriaId: categoriaSeleccionada ? categoriaSeleccionada.id.toString() : "comidas",
       },
     });

@@ -1,6 +1,6 @@
-﻿import { Image } from "expo-image";
-import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { Image } from "expo-image";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -26,7 +26,9 @@ import LoginModal from "@/components/auth/LoginModal";
 type ModalActivo = "guardada" | "otra" | null;
 
 export default function Login() {
+  const { sesionVencida } = useLocalSearchParams<{ sesionVencida?: string }>();
   const [notice, setNotice] = useState("");
+
   // const [showOterAccounts, setShowOtherAccounts] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(true);
@@ -65,7 +67,42 @@ export default function Login() {
     }, []),
   );
 
-  // Agregue
+  // La señal viene de solicitarInicioSesion; la lista de cuentas sigue
+  // cargándose por separado en el useFocusEffect existente.
+  useEffect(() => {
+    if (sesionVencida !== "1") return;
+    let activo = true;
+
+    async function abrirIngreso() {
+      let cuenta: CuentaGuardadaData | null = null;
+      try {
+        const guardada = await AsyncStorage.getItem("ultimaCuentaSesion");
+        const datos = guardada ? JSON.parse(guardada) : null;
+        if (
+          typeof datos?.name === "string" &&
+          typeof datos?.email === "string"
+        ) {
+          cuenta = { name: datos.name, email: datos.email };
+        }
+      } catch {
+        // Sin una cuenta válida, el modal pedirá correo y contraseña.
+      }
+
+      if (!activo) return;
+      setNotice("Tu sesión ya no es válida. Inicia sesión nuevamente.");
+      setAlturaFondoModal(alturaDisponible);
+      setCuentaSeleccionada(cuenta);
+      setModalActivo(cuenta ? "guardada" : "otra");
+      // Consumimos la señal para que cancelar no vuelva a abrir el modal.
+      router.setParams({ sesionVencida: undefined });
+    }
+
+    void abrirIngreso();
+    return () => {
+      activo = false;
+    };
+  }, [sesionVencida, alturaDisponible]);
+
   function abrirModalCuenta(cuenta: CuentaGuardadaData) {
     setAlturaFondoModal(alturaDisponible);
     setCuentaSeleccionada(cuenta);
@@ -85,23 +122,34 @@ export default function Login() {
 
   // Se ejecuta cuando LoginModal logra iniciar sesión (cuenta guardada u otra cuenta)
   async function handleLoginExitoso(respuesta: any, email: string) {
-    if (modalActivo === "otra") {
-      // Guardamos la cuenta en el dispositivo para que aparezca en "Elegir cuenta"
-      const memoriaActual = await AsyncStorage.getItem("cuentasGuardadas");
-      const cuentasExistentes = memoriaActual ? JSON.parse(memoriaActual) : [];
-      const yaExiste = cuentasExistentes.some(
-        (cuenta: any) => cuenta.email === email,
-      );
-      if (!yaExiste) {
-        // La API devuelve los datos de la cuenta en "usuario".
-        const nuevaCuenta = { name: respuesta?.usuario?.name ?? email, email };
-        await AsyncStorage.setItem(
-          "cuentasGuardadas",
-          JSON.stringify([...cuentasExistentes, nuevaCuenta]),
+    try {
+      if (modalActivo === "otra") {
+        // Guardamos la cuenta en el dispositivo para que aparezca en "Elegir cuenta"
+        const memoriaActual = await AsyncStorage.getItem("cuentasGuardadas");
+        const cuentasExistentes = memoriaActual
+          ? JSON.parse(memoriaActual)
+          : [];
+        const yaExiste = cuentasExistentes.some(
+          (cuenta: any) => cuenta.email === email,
         );
+        if (!yaExiste) {
+          // La API devuelve los datos de la cuenta en "usuario".
+          const nuevaCuenta = {
+            name: respuesta?.usuario?.name ?? email,
+            email,
+          };
+          await AsyncStorage.setItem(
+            "cuentasGuardadas",
+            JSON.stringify([...cuentasExistentes, nuevaCuenta]),
+          );
+        }
       }
+    } catch {
+      // Recordar la cuenta es opcional: en hook se guardó el token.
+      // Un fallo de almacenamiento no debe impedir entrar a la app.
     }
 
+    setNotice("");
     cerrarModal();
     router.replace("/(tabs)");
   }
@@ -298,6 +346,7 @@ export default function Login() {
       {modalActivo ? (
         <LoginModal
           cuenta={modalActivo === "guardada" ? cuentaSeleccionada : null}
+          aviso={notice}
           onClose={cerrarModal}
           onSuccess={handleLoginExitoso}
         />

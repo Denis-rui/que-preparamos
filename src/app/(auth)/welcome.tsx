@@ -5,8 +5,51 @@ import { router } from 'expo-router';
 import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
+import { useEffect, useState } from 'react';
+import { obtenerToken } from '@/storage/token';
+import { obtenerPerfil, PerfilError } from '@/api/perfil';
+import { cerrarSesion } from '@/api/sesion';
 
 export default function Welcome() {
+  const [ocupado, setOcupado] = useState(true);
+  const [aviso, setAviso] = useState('');
+
+  useEffect(() => {
+    let activo = true;
+    async function restaurarSesion() {
+      try {
+        if (!await obtenerToken() || !activo) return;
+        // Tener un token guardado no demuestra que siga siendo válido.
+        await obtenerPerfil();
+        if (activo) router.replace('/(tabs)');
+      } catch (error) {
+        // El cliente compartido ya redirige los 401. Los demás errores
+        // conservan el token, porque no demuestran que haya vencido.
+        if (activo && !(error instanceof PerfilError && error.status === 401)) {
+          setAviso('No pudimos comprobar tu sesión. Revisa tu conexión o inicia sesión nuevamente.');
+        }
+      } finally {
+        if (activo) setOcupado(false);
+      }
+    }
+    void restaurarSesion();
+    return () => { activo = false; };
+  }, []);
+
+  async function continuarComoInvitado() {
+    if (ocupado) return;
+    setOcupado(true);
+    setAviso('');
+    try {
+      // Reutilizamos el cierre: el invitado no debe heredar otra sesión.
+      await cerrarSesion();
+      router.replace('/(tabs)');
+    } catch {
+      setAviso('No pudimos cerrar la sesión anterior. Revisa tu conexión e inténtalo nuevamente.');
+    } finally {
+      setOcupado(false);
+    }
+  }
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -63,14 +106,17 @@ export default function Welcome() {
         </View>
 
         <View style={styles.buttonsWrapper}>
+            {aviso ? <Text accessibilityRole="alert">{aviso}</Text> : null}
             <AppButton
               label = 'Iniciar sesión'
+              loading={ocupado}
               onPress={()=> router.push('/login')}
             />
 
             <AppButton
               label= 'Continuar sin cuenta'
-              onPress={() => router.replace('/(tabs)')}
+              onPress={continuarComoInvitado}
+              loading={ocupado}
               variant='secundario'
             />
         </View>

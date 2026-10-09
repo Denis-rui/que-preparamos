@@ -20,11 +20,17 @@ import { CuentaGuardada, CuentaGuardadaData } from "./CuentaGuardada";
 
 type Props = {
   cuenta: CuentaGuardadaData | null;
+  aviso?: string;
   onClose: () => void;
-  onSuccess: (respuesta: any, email: string) => void;
+  onSuccess: (respuesta: any, email: string) => Promise<void>;
 };
 
-export default function LoginModal({ cuenta, onClose, onSuccess }: Props) {
+export default function LoginModal({
+  cuenta,
+  aviso,
+  onClose,
+  onSuccess,
+}: Props) {
   const [email, setEmail] = useState("");
   const [emailFocused, setEmailFocused] = useState(false);
   const [password, setPassword] = useState("");
@@ -38,8 +44,12 @@ export default function LoginModal({ cuenta, onClose, onSuccess }: Props) {
   async function handleSubmit() {
     if (loading) return;
     try {
-      const respuesta = await submit({ email: correoAEnviar, password });
-      onSuccess(respuesta, correoAEnviar);
+      const respuesta = await submit({
+        email: correoAEnviar,
+        password,
+      });
+      // Esperamos a que la pantalla termine de recordar la cuenta y navegar.
+      await onSuccess(respuesta, correoAEnviar);
     } catch {
       // el mensaje de error (se muestra bajo el campo)
     }
@@ -92,6 +102,17 @@ export default function LoginModal({ cuenta, onClose, onSuccess }: Props) {
                   ? "Ingresa tu contraseña para continuar"
                   : "Ingresa tu correo y contraseña"}
               </Text>
+
+              {/* El aviso de sesión se muestra dentro del modal visible. */}
+              {aviso ? (
+                <Text
+                  style={styles.errorText}
+                  accessibilityRole="alert"
+                  accessibilityLiveRegion="polite"
+                >
+                  {aviso}
+                </Text>
+              ) : null}
 
               {cuenta ? (
                 <View style={styles.accountRow}>

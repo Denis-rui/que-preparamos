@@ -1,6 +1,10 @@
+import { AuthError, iniciarSesion } from "@/api/auth";
 import { useState } from "react";
 
-import { AuthError, iniciarSesion } from "@/api/auth";
+// El token es secreto y se guarda en SecureStore.
+import { guardarToken } from "@/storage/token";
+// AsyncStorage recuerda solo nombre y correo, nunca contraseña ni token.
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type LoginCredentials = {
   email: string;
@@ -30,10 +34,29 @@ export function useLogin(cuentaGuardada = false) {
         throw new Error("Ingresa un correo electrónico válido.");
       }
 
+      //el backend verifica las credenciales y devuelve el token
+
       const respuesta = await iniciarSesion({
         email: email.trim(),
         password,
       });
+
+      // Comprobamos si recibimos un token antes de guardar
+      if (typeof respuesta.token !== "string" || !respuesta.token.trim()) {
+        throw new Error("No se recibio un token válido.");
+      }
+
+      // Recordamos la cuenta para pedir su contraseña si la sesión vence.
+      await AsyncStorage.setItem(
+        "ultimaCuentaSesion",
+        JSON.stringify({
+          name: respuesta.usuario.name,
+          email: respuesta.usuario.email,
+        }),
+      );
+
+      // Guardamos el token de forma segura
+      await guardarToken(respuesta.token);
 
       return respuesta;
     } catch (err: unknown) {

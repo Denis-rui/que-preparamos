@@ -1,4 +1,5 @@
 import { AppButton } from "@/components/ui/appButton";
+import { BotonVolver } from "@/components/ui/botonVolver";
 import { getRegisterStyles } from "@/styles/register.styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
@@ -178,23 +179,7 @@ export default function Register() {
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.page}>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.backButton,
-                  pressed && styles.pressed,
-                ]}
-                onPress={() =>
-                  router.canGoBack() ? router.back() : router.replace("/login")
-                }
-                accessibilityRole="button"
-                accessibilityLabel="Volver al login"
-              >
-                <Image
-                  source={require("../../assets/SVG/iconos/volver.svg")}
-                  style={styles.backIcon}
-                  contentFit="contain"
-                />
-              </Pressable>
+              <BotonVolver rutaAlternativa="/login" etiqueta="Volver al login" />
 
               <View style={styles.brand}>
                 <View

@@ -13,6 +13,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
+import { BotonVolver } from "@/components/ui/botonVolver";
 import { getLoginStyles } from "@/styles/login.styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -162,25 +163,12 @@ export default function Login() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.page}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.backButton,
-                pressed && styles.pressed,
-              ]}
-              onPress={() =>
-                router.canGoBack() ? router.back() : router.replace("/welcome")
-              }
-              disabled={isLoading}
-              accessibilityRole="button"
-              accessibilityLabel="Volver a la bienvenida"
-            >
-              <Image
-                source={require("../../assets/SVG/iconos/volver.svg")}
-                style={styles.backIcon}
-                contentFit="contain"
-              />
-            </Pressable>
-
+            <BotonVolver
+              rutaAlternativa="/welcome"
+              deshabilitado={isLoading}
+              etiqueta="Volver a la bienvenida"
+            />
+            
             <View style={styles.brand}>
               <View
                 style={styles.logoRow}

@@ -205,7 +205,7 @@ export default function Recomendaciones() {
     >
       <View style={styles.topBar}>
         <Pressable style={styles.botonAtras} onPress={() => router.back()}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#552414" />
+          <MaterialCommunityIcons name="arrow-left-thick" size={26} color="#552414" />
         </Pressable>
         <View style={styles.logoFila}>
           <Image

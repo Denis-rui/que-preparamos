@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Defs, Path, Text as SvgText, TextPath } from "react-native-svg";
 
 import ModalValoracion from "@/components/recetas/ModalValoracion";
+import { BotonVolver } from "@/components/ui/botonVolver";
 import { useReceta } from "@/hooks/useReceta";
 import { useEffect, useState } from "react";
 
@@ -69,9 +70,7 @@ export default function DetalleReceta() {
     <SafeAreaView style={styles.contenedor} edges={["top", "left", "right", "bottom"]}>
       
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.botonCircular}>
-          <MaterialCommunityIcons name="arrow-left-thick" size={30} color="#552414" />
-        </Pressable>
+        <BotonVolver variante="blanco"/>
 
         <View style={styles.logoContenedor}>
           <Image 

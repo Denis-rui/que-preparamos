@@ -1,5 +1,5 @@
 ﻿import { eliminarToken, obtenerToken } from "@/storage/token";
-import { router } from "expo-router";
+import { reiniciarNavegacion } from "./navegacion";
 
 let solicitudEnCurso: Promise<void> | null = null;
 
@@ -10,7 +10,7 @@ export async function solicitarInicioSesion(tokenRechazado?: string) {
     // Una respuesta antigua no debe borrar el token de un login más reciente.
     if (tokenRechazado && (await obtenerToken()) !== tokenRechazado) return;
     await eliminarToken();
-    router.replace({ pathname: "/login", params: { sesionVencida: "1" } });
+    reiniciarNavegacion({ pathname: "/login", params: { sesionVencida: "1" } });
   })();
   try {
     await solicitudEnCurso;

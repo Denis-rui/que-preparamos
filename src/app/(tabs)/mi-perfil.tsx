@@ -4,6 +4,7 @@ import { obtenerPerfil } from "@/api/perfil";
 import { cerrarSesion } from "@/api/sesion";
 import { LogoQuePreparamos } from "@/components/LogoQuePreparamos";
 import { obtenerToken } from "@/storage/token";
+import { reiniciarNavegacion } from "@/utils/navegacion";
 import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
@@ -85,7 +86,7 @@ export default function MiPerfil() {
     if (loading || saliendo) return;
     // El invitado no tiene sesión que revocar: vuelve a la bienvenida.
     if (!haySesion) {
-      router.replace("/welcome");
+      reiniciarNavegacion("/welcome");
       return;
     }
     setSaliendo(true);
@@ -94,7 +95,7 @@ export default function MiPerfil() {
       await cerrarSesion();
       setProfile(null);
       setEditing(false);
-      router.replace("/login");
+      reiniciarNavegacion("/login");
     } catch {
       setNotice(
         "No pudimos cerrar sesión. Revisa tu conexión e inténtalo nuevamente.",

@@ -7,9 +7,11 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Defs, Path, Text as SvgText, TextPath } from "react-native-svg";
 
+import { InvitarInicioSesion } from "@/components/auth/InvitarInicioSesion";
 import ModalValoracion from "@/components/recetas/ModalValoracion";
 import { BotonVolver } from "@/components/ui/botonVolver";
 import { useReceta } from "@/hooks/useReceta";
+import { obtenerToken } from "@/storage/token";
 import { useEffect, useState } from "react";
 
 export default function DetalleReceta() {
@@ -17,6 +19,7 @@ export default function DetalleReceta() {
   const { receta, loading, error } = useReceta(id);
   const [modalVisible, setModalVisible] = useState(false);
   const [leyendo, setLeyendo]= useState(false);
+  const [invitacionVisible, setInvitacionVisible] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -45,6 +48,15 @@ export default function DetalleReceta() {
 
     setLeyendo(true);
   }
+
+  const alPresionarCalificar = async () => {
+    const token = await obtenerToken();
+    if (token) {
+      setModalVisible(true);       // con sesión: abre la calificación
+    } else {
+      setInvitacionVisible(true);  // invitado: lo invita a iniciar sesión
+    }
+  };
 
   if (loading) {
     return (
@@ -109,7 +121,7 @@ export default function DetalleReceta() {
           <View style={styles.lineaVertical} />
 
           <Pressable
-            onPress={()=>setModalVisible(true)}
+            onPress={alPresionarCalificar}
             style={({pressed}) => [
               styles.valoracionBloque,
               pressed && styles.valoracionPresionado,
@@ -201,6 +213,12 @@ export default function DetalleReceta() {
           // TODO: guardar `puntaje` para la receta `id`
           setModalVisible(false);
         }}
+      />
+
+      <InvitarInicioSesion 
+        visible={invitacionVisible}
+        onClose={()=> setInvitacionVisible(false)}
+        volverA={`/receta/${id}`}
       />
     </SafeAreaView>
   );

@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { Href, router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   Pressable,
@@ -15,6 +15,7 @@ import {
 
 import { BotonVolver } from "@/components/ui/botonVolver";
 import { getLoginStyles } from "@/styles/login.styles";
+import { reiniciarNavegacion } from "@/utils/navegacion";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 //Agregué aqui para abrir el modal
@@ -27,7 +28,10 @@ import LoginModal from "@/components/auth/LoginModal";
 type ModalActivo = "guardada" | "otra" | null;
 
 export default function Login() {
-  const { sesionVencida } = useLocalSearchParams<{ sesionVencida?: string }>();
+  const { sesionVencida, volverA } = useLocalSearchParams<{ 
+    sesionVencida?: string;
+    volverA: string;
+  }>();
   const [notice, setNotice] = useState("");
 
   // const [showOterAccounts, setShowOtherAccounts] = useState(false);
@@ -150,9 +154,18 @@ export default function Login() {
       // Un fallo de almacenamiento no debe impedir entrar a la app.
     }
 
+    const destino = 
+      typeof volverA === "string" && volverA.startsWith("/receta/") 
+      ? volverA 
+      : undefined;
+
     setNotice("");
     cerrarModal();
-    router.replace("/(tabs)");
+    if(destino && router.canGoBack()){
+      router.back();
+      return;
+    }
+    reiniciarNavegacion("/(tabs)", destino as Href | undefined);
   }
 
   return (

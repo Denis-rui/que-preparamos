@@ -2,7 +2,7 @@
 
 Este documento reúne el contexto funcional, técnico y organizativo compartido por el equipo. Su finalidad es permitir que otro integrante o asistente de IA continúe el proyecto sin depender del historial de una conversación.
 
-**Estado del documento:** requisitos y decisiones en actualización. Última actualización funcional: **12 de septiembre de 2026**. Las funcionalidades descritas son requisitos; su presencia en este documento no significa que estén implementadas. Los antecedentes de instalación de la sección 7 no sustituyen una revisión del código actual.
+**Estado del documento:** requisitos y decisiones en actualización. Última actualización funcional: **24 de octubre de 2026**, sobre categorías, subcategorías y su contrato de integración. Las funcionalidades descritas son requisitos; su presencia en este documento no significa que estén implementadas. Los antecedentes de instalación de la sección 7 no sustituyen una revisión del código actual.
 
 ## 1. Cómo utilizar este documento
 
@@ -61,16 +61,19 @@ La consulta del catálogo no debe exigir registro. Las operaciones administrativ
     - Si el correo no está registrado o la cuenta está deshabilitada, no se genera ni envía ningún código y se devuelve una respuesta genérica idéntica para prevenir la enumeración de cuentas. La verificación para correos no registrados responde con el mismo error genérico de código inválido o vencido.
     - _Diferenciación de alcance:_ Esta confirmación corresponde exclusivamente a la recuperación de contraseña. La comprobación de propiedad del correo para el registro o para cambios de correo permanece como una decisión funcional pendiente (no se añaden flujos adicionales de códigos para estos casos).
 
-### 4.2. Catálogo y categorías
+### 4.2. Catálogo, categorías y subcategorías
 
-El catálogo tendrá cuatro categorías principales:
+El catálogo se organiza en categorías y subcategorías. Cada receta nueva o guardada mediante creación, edición o corrección debe tener una categoría y una subcategoría perteneciente a ella. Esta clasificación sustituye el contrato anterior de una lista de categorías.
 
-1. Comidas.
-2. Bebidas.
-3. Cócteles.
-4. Postres.
+Las opciones y sus identificadores se obtienen del catálogo vigente del backend; la app no debe fijar una lista de categorías ni reutilizar IDs del catálogo anterior, que fue retirado durante la transición. Las recetas antiguas se conservaron y pueden tener `categoria: null` y `subcategoria: null`. Deben seguir visibles en las consultas generales y en el detalle; no coinciden con filtros de categoría o subcategoría. Antes de guardar una edición o corrección de esas recetas se debe completar la clasificación.
 
-El usuario podrá explorar recetas, buscar por nombre y aplicar filtros por categoría. No se han confirmado otros filtros, como calorías, dietas, alergias, dificultad o precio.
+El usuario podrá explorar recetas, buscar por nombre y aplicar filtros opcionales por categoría y subcategoría. La app obtiene las opciones con `GET /api/v1/categorias`, que devuelve cada categoría con su arreglo `subcategorias` y excluye las que no tienen ninguna. No existe un endpoint separado `/subcategorias`.
+
+En la interfaz móvil, las opciones de subcategoría se muestran después de elegir categoría y se limpia la subcategoría anterior al cambiarla. Se puede buscar sin clasificación o solo por categoría. Aunque la API admite `subcategoria_id` por sí solo, la interfaz conserva la selección previa de categoría. Si se envían ambos filtros y no corresponden entre sí, el backend responde `422`.
+
+El catálogo completo, incluidas categorías sin subcategorías, se consulta con `GET /api/v1/admin/categorias`, exclusivo de administradores activos con token Bearer. Para los filtros y formularios habituales de la app se utiliza el catálogo público. Si existe una copia local del catálogo o selecciones de sus IDs, se debe renovar la copia y descartar las selecciones anteriores sin asumir equivalencias entre IDs.
+
+La gestión de categorías y subcategorías pertenece al panel web con sesión y CSRF. No se han confirmado filtros por calorías, dietas, alergias, dificultad o precio. Las estructuras y cuerpos de escritura se detallan en [API_BACKEND.md](API_BACKEND.md).
 
 ### 4.3. Búsqueda por ingredientes
 
@@ -90,7 +93,7 @@ Cada receta incluirá:
 - Descripción.
 - Ingredientes.
 - Cantidad de porciones.
-- Categoria.
+- Categoría y subcategoría; ambas pueden ser `null` en recetas antiguas conservadas tras la transición.
 - Tiempo de preparación.
 - Instrucciones numeradas y ordenadas.
 - Tips: campo de texto opcional para consejos que el autor desee agregar. Puede quedar vacío y no será obligatorio para guardar la receta, enviarla a revisión o publicarla.
@@ -133,6 +136,7 @@ Cuando un invitado ingrese a «Mi perfil», verá una imagen anónima y un mensa
 - El autor podrá consultar el estado de sus envíos desde la app y recibir allí el motivo obligatorio de un rechazo.
 - El autor podrá corregir una solicitud rechazada y reenviarla a revisión.
 - El formulario tendrá inicialmente dos campos para escribir pasos y permitirá agregar más. Esto no define un mínimo obligatorio de dos pasos por receta.
+- Crear y editar una receta privada exige `categoria_id` y `subcategoria_id`, además del resto del contenido completo; al editar se conserva el control mediante `version`. Las correcciones envían ambos IDs dentro de `contenido` y mantienen `version_base` y `clave_idempotencia` en el nivel superior del cuerpo. Laravel verifica que ambos existan y que la subcategoría pertenezca a la categoría. El cuerpo de publicación conserva `clave_idempotencia`.
 
 #### Recetas privadas y publicación
 
@@ -202,7 +206,7 @@ La web será exclusiva para administradores activos y permitirá:
 
 Un administrador no podrá deshabilitarse ni cambiar su propio rol desde ninguna pantalla o solicitud. Estas restricciones se aplican también desde la gestión de cuentas, no solo desde Mi perfil.
 
-La web tendrá además el módulo de revisión de recetas de la sección 4.9. Esto amplía el alcance anterior de administración exclusiva de cuentas; no implica trasladar a la web el formulario móvil de creación de recetas.
+La web tendrá además el módulo de revisión de recetas de la sección 4.9. El backend también incorpora gestión de categorías y subcategorías y edición administrativa directa de recetas mediante rutas del panel web, con sesión y protección CSRF. Estas operaciones amplían el alcance anterior de administración exclusiva de cuentas; no se crearon APIs móviles de gestión para ellas. `GET /api/v1/admin/categorias` solo permite consultar el catálogo completo y requiere un administrador activo con token Bearer.
 
 ### 4.9. Revisión manual y alertas de posibles duplicados en la web
 
@@ -289,8 +293,8 @@ No hay una integración externa de recetas aprobada como parte del alcance actua
 | Parte del sistema                  | Tecnología o herramienta acordada | Función                                                                                                           |
 | ---------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | Aplicación móvil                   | React Native, Expo y TypeScript   | Pantallas e interacción con el usuario.                                                                           |
-| Backend                            | Laravel con PHP                   | API, reglas de negocio, acceso a datos y soporte de gestión de cuentas y revisión web.                            |
-| Base de datos                      | MariaDB mediante XAMPP            | Almacenar cuentas, recetas, ingredientes, categorías, favoritos, valoraciones y solicitudes de revisión enviadas. |
+| Backend                            | Laravel con PHP                   | API, reglas de negocio, acceso a datos y panel web para cuentas, clasificación, revisión y edición administrativa de recetas. |
+| Base de datos                      | MariaDB mediante XAMPP            | Almacenar cuentas, recetas, ingredientes, categorías, subcategorías, favoritos, valoraciones y solicitudes de revisión enviadas. |
 | Administración de la base de datos | phpMyAdmin                        | Consultar y administrar la base de datos durante el desarrollo.                                                   |
 | Control de versiones               | Git y GitHub                      | Registrar cambios y colaborar entre integrantes.                                                                  |
 
@@ -380,7 +384,7 @@ Estas prácticas se propusieron para el equipo; no se ha comprobado que estén c
 
 1. Resuelto: compatibilidad por al menos un ingrediente, menos faltantes primero, empate por fecha e ID descendentes y comparación solo por identificador.
 2. Resuelto: selección conservada mientras la app esté abierta; se borra al cerrarla por completo, sin persistencia en Laravel.
-3. Si una receta puede pertenecer a una o varias categorías.
+3. Resuelto: cada creación, edición o corrección requiere una categoría y una subcategoría perteneciente a ella. Las respuestas utilizan `categoria` y `subcategoria`, con `null` admitido para recetas antiguas sin clasificación. Los filtros de consulta son opcionales y la interfaz ofrece subcategorías después de seleccionar categoría, conforme a la sección 4.2 y `API_BACKEND.md`.
 4. Contenido que se descarga al guardar en favoritos y momento de la descarga. Ya se confirmó que una copia descargada puede consultarse sin conexión y que, al confirmar su eliminación con el servidor, se deja de mostrar el contenido y se conserva el aviso en favoritos.
 5. Tratamiento de favoritos locales al iniciar sesión o registrarse y posibles duplicados.
 6. Herramienta de audio y comportamiento sin conexión.

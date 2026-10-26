@@ -2,9 +2,11 @@
 
 Guía para comprender qué endpoints ofrece `recetas-api`, para qué se utilizarán en la aplicación móvil y qué información debe enviarse o recibirse.
 
-**Fecha de revisión:** 18 de septiembre de 2026. **Base del documento:** rutas, controladores, validaciones, acciones y recursos de respuesta del backend. Los ejemplos son ilustrativos: sus identificadores, usuarios y tokens deben sustituirse por datos del entorno de pruebas.
+**Revisión base:** 18 de septiembre de 2026. **Actualización del contrato de categorías y subcategorías:** 24 de octubre de 2026. **Base del documento:** rutas, controladores, validaciones, acciones y recursos de respuesta del backend. Los ejemplos son ilustrativos: sus identificadores, usuarios y tokens deben sustituirse por datos del entorno de pruebas.
 
-Esta revisión confirma lo que está definido en el código. No acredita funcionamiento en un servidor, entrega de correos ni integración terminada en la app. No se ejecutaron peticiones, pruebas ni cambios de base de datos. El PHP localizado en XAMPP es 8.2.12 y las dependencias instaladas requieren al menos 8.4.1, por lo que no se ejecutó Artisan.
+La actualización de clasificación se contrastó con `docs/api.md`, las rutas y las validaciones del repositorio local `recetas-api`, además del resumen de cambios facilitado para la app. Conserva las URLs existentes y añade `GET /admin/categorias`. No acredita funcionamiento en EC2, entrega de correos ni integración terminada en la app; el resto del documento conserva el alcance de la revisión base.
+
+No se ejecutaron peticiones al servidor, pruebas funcionales ni cambios de base de datos en esta actualización documental. En la revisión base, el PHP localizado en XAMPP era 8.2.12 y las dependencias instaladas requerían al menos 8.4.1, por lo que entonces no se ejecutó Artisan.
 
 ## Índice
 
@@ -43,7 +45,7 @@ La dirección del servidor debe configurarse según el entorno. Este documento n
 
 ### Acceso público y acceso con cuenta
 
-**Público** significa que no se necesita iniciar sesión. **Protegido** significa que se necesita un token válido y una cuenta activa. Un usuario normal y un administrador pueden usar las operaciones protegidas, respetando la propiedad de los recursos.
+**Público** significa que no se necesita iniciar sesión. **Protegido** significa que se necesita un token válido y una cuenta activa. Un usuario normal y un administrador pueden usar las operaciones protegidas, respetando la propiedad de los recursos, salvo las rutas exclusivas de administrador, como `GET /admin/categorias`.
 
 Cabeceras para una petición JSON protegida:
 
@@ -78,7 +80,7 @@ Esta tabla propone dónde consumir los endpoints; no afirma que las pantallas ya
 
 | Pantalla o acción móvil   | Endpoints principales                                    | Para qué se utilizarán                                                    |
 | ------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Inicio y explorar         | `GET /recetas`, `GET /categorias`                        | Mostrar publicaciones y filtros por categoría.                            |
+| Inicio y explorar         | `GET /recetas/aleatorias`, `GET /recetas`, `GET /categorias` | Mostrar publicaciones y filtros por categoría y subcategoría.             |
 | Ingredientes disponibles  | `GET /ingredientes`, `GET /recetas` con `ingredientes[]` | Seleccionar ingredientes y encontrar recetas con menos faltantes.         |
 | Detalle de receta         | `GET /recetas/{receta}` y su imagen                      | Mostrar preparación, cantidades, pasos, tips y promedio de valoraciones.  |
 | Crear cuenta e ingresar   | `/auth/registro`, `/auth/login`                          | Registrar al usuario y obtener acceso autenticado.                        |
@@ -95,24 +97,48 @@ Esta tabla propone dónde consumir los endpoints; no afirma que las pantallas ya
 
 Estos endpoints se pueden utilizar como invitado.
 
-Ademas se a agregado esta api recetas/aleatorias para las recetas aleatoriaas de inicio
-
 | Método y ruta                  | Para qué sirve                                                 | Entrada y respuesta de éxito                                                      |
 | ------------------------------ | -------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `GET /categorias`              | Construir los filtros y el selector del formulario de recetas. | Sin cuerpo. `200`, `data` con objetos `{id, nombre}`, ordenados por nombre e ID.  |
+| `GET /categorias`              | Construir los filtros y los selectores del formulario de recetas. | Sin cuerpo. `200`, `data` con `{id, nombre, subcategorias: [{id, nombre}]}`. Solo categorías con al menos una subcategoría, ordenadas por nombre e ID. |
 | `GET /ingredientes`            | Buscar ingredientes existentes para seleccionarlos.            | `buscar`, `page`, `per_page` opcionales. `200`, lista paginada de `{id, nombre}`. |
 | `GET /recetas`                 | Alimentar el inicio y los resultados de búsqueda.              | Filtros descritos abajo. `200`, catálogo paginado.                                |
+| `GET /recetas/aleatorias`      | Mostrar recetas aleatorias en Inicio.                         | Sin parámetros. `200`, hasta 10 recetas publicadas en `data`. Este endpoint ya existía; cambió su clasificación de respuesta. |
 | `GET /recetas/{receta}`        | Abrir la ficha completa de una publicación.                    | ID en la ruta. `200`, detalle en `data`.                                          |
 | `GET /recetas/{receta}/imagen` | Mostrar la fotografía pública.                                 | ID en la ruta. `200`, archivo de imagen.                                          |
 
 El catálogo solo incluye recetas publicadas y no eliminadas. Deshabilitar la cuenta autora no retira automáticamente sus recetas públicas. Una receta privada, eliminada o inexistente no se puede abrir mediante el detalle público y devuelve `404`. La imagen también puede devolver `404` si falta el archivo.
 
-### Buscar por nombre, categoría o ingredientes
+### Categorías y subcategorías
+
+Ejemplo del catálogo público:
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "nombre": "Comidas",
+      "subcategorias": [
+        { "id": 10, "nombre": "Arroces" }
+      ]
+    }
+  ]
+}
+```
+
+La app obtiene las subcategorías del arreglo de la categoría seleccionada. **No existe un endpoint separado `/subcategorias`.** En la interfaz móvil se ofrecen opciones de subcategoría después de seleccionar categoría; al cambiarla, se limpia la subcategoría anterior. Los filtros son opcionales, por lo que elegir categoría no obliga a filtrar también por subcategoría.
+
+**Catálogo administrativo:** `GET /api/v1/admin/categorias` requiere token Bearer, cuenta activa y rol `administrador`. Devuelve la misma estructura e incluye categorías sin subcategorías, con `subcategorias: []`. Para los filtros y formularios habituales de la app corresponde utilizar `GET /categorias`.
+
+La gestión de categorías y subcategorías y la edición administrativa directa de recetas se realizan mediante rutas del panel web, con sesión y CSRF. No se crearon APIs móviles para esas operaciones.
+
+### Buscar por nombre, categoría, subcategoría o ingredientes
 
 | Filtro de `GET /recetas` | Significado                                                                                                  |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------ |
 | `buscar`                 | Texto contenido en el nombre, hasta 100 caracteres. También se utiliza en ingredientes.                      |
 | `categoria_id`           | ID de una categoría existente.                                                                               |
+| `subcategoria_id`        | ID de una subcategoría existente. Si se envía junto con `categoria_id`, debe pertenecer a esa categoría.       |
 | `ingredientes[]`         | Lista de hasta 50 IDs de ingredientes existentes, sin repetir. Vacía equivale a no filtrar por ingredientes. |
 | `page`, `per_page`       | Controles de paginación.                                                                                     |
 
@@ -121,10 +147,13 @@ Ejemplos:
 ```http
 GET /api/v1/ingredientes?buscar=arroz&per_page=15&page=1
 GET /api/v1/recetas?buscar=arroz&categoria_id=1&per_page=15&page=1
+GET /api/v1/recetas?categoria_id=1&subcategoria_id=10&per_page=15&page=1
 GET /api/v1/recetas?ingredientes[]=1&ingredientes[]=2&per_page=15&page=1
 ```
 
-Los filtros pueden combinarse. Los IDs de los ejemplos solo funcionan si existen en el catálogo del entorno.
+Los filtros pueden combinarse. `categoria_id` y `subcategoria_id` son opcionales; si se envían juntos y no corresponden entre sí, la API responde `422` con un error en `subcategoria_id`. La API también admite `subcategoria_id` por sí solo, aunque la interfaz móvil aplica la selección previa de categoría. Los IDs de los ejemplos solo funcionan si existen en el catálogo del entorno.
+
+Las recetas antiguas sin clasificación siguen apareciendo en el listado general, las aleatorias y el detalle. No coinciden cuando se filtra por categoría o subcategoría; la app no debe descartarlas de las consultas generales por tener ambos campos en `null`.
 
 **Ejemplo de uso:** una persona selecciona arroz y zanahoria. El backend incluye recetas que contengan al menos uno de esos ingredientes y coloca primero las que tengan menos ingredientes faltantes. En caso de empate, ordena por fecha de publicación más reciente y luego por ID descendente. Sin selección de ingredientes, utiliza los dos últimos criterios.
 
@@ -137,13 +166,36 @@ Laravel no guarda esta selección como una despensa. El comportamiento acordado 
 
 ### Qué devuelve una receta
 
-La tarjeta del catálogo incluye `id`, `nombre`, `descripcion`, `imagen_url`, `porciones`, `tiempo_preparacion`, `categorias`, `valoracion_promedio`, `cantidad_valoraciones`, `ingredientes_resumen` y `cantidad_ingredientes`.
+La tarjeta del catálogo incluye `id`, `nombre`, `descripcion`, `imagen_url`, `porciones`, `tiempo_preparacion`, `categoria`, `subcategoria`, `valoracion_promedio`, `cantidad_valoraciones`, `ingredientes_resumen` y `cantidad_ingredientes`.
+
+El antiguo campo `categorias` como lista fue sustituido por dos objetos:
+
+```json
+{
+  "categoria": { "id": 1, "nombre": "Comidas" },
+  "subcategoria": { "id": 10, "nombre": "Arroces" }
+}
+```
+
+Las recetas anteriores a la transición pueden conservarse sin clasificación:
+
+```json
+{
+  "categoria": null,
+  "subcategoria": null
+}
+```
+
+Este contrato se utiliza en `GET /recetas`, `GET /recetas/aleatorias`, `GET /recetas/{receta}`, las recetas vigentes de `GET /favoritos`, `GET /mis-recetas` y `GET /mis-recetas/{receta}`. En `GET /mis-solicitudes/{solicitud}` aparece dentro de `contenido`; también se aplica a `receta` cuando la publicación administrativa directa la devuelve. Los objetos de clasificación de una receta son resúmenes `{id, nombre}` o `null`, sin el arreglo de subcategorías del catálogo.
+
+La transición retiró el catálogo anterior de categorías, pero conservó las recetas. Si la app almacena una copia del catálogo o selecciones de sus IDs, debe renovar esa copia y descartar las selecciones anteriores; no debe asumir que los IDs antiguos representan las opciones vigentes.
 
 `ingredientes_resumen` contiene como máximo tres ingredientes. Para cocinar o preparar una copia local completa hay que consultar el detalle, que añade `tips`, `ingredientes` y `pasos`.
 
 | Campo del detalle       | Estructura o significado                                                                |
 | ----------------------- | --------------------------------------------------------------------------------------- |
-| `categorias`            | Lista de `{id, nombre}`. El contrato actual admite varias categorías.                   |
+| `categoria`             | Objeto `{id, nombre}` o `null` en recetas antiguas sin clasificación.                    |
+| `subcategoria`          | Objeto `{id, nombre}` o `null` en recetas antiguas sin clasificación.                    |
 | `ingredientes`          | Lista ordenada con `ingrediente_id`, `nombre`, `cantidad`, `unidad`, `notas` y `orden`. |
 | `pasos`                 | Lista ordenada con `orden` e `instruccion`.                                             |
 | `tips`                  | Texto de consejos o `null`.                                                             |
@@ -277,9 +329,9 @@ Se utiliza para las recetas creadas por la cuenta autenticada. Guardar una recet
 | Método y ruta                                 | Para qué sirve                                   | Entrada y resultado                                                                    |
 | --------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------- |
 | `GET /mis-recetas`                            | Mostrar el listado propio.                       | `filtro`, `buscar`, `page`, `per_page` opcionales. `200`, colección paginada.          |
-| `POST /mis-recetas`                           | Guardar una receta completa en la cuenta.        | Contenido e imagen. `201`, detalle en `data`, `visibilidad: "privada"`, `version: 1`.  |
+| `POST /mis-recetas`                           | Guardar una receta completa en la cuenta.        | Contenido e imagen, incluidos `categoria_id` y `subcategoria_id`. `201`, detalle en `data`, `visibilidad: "privada"`, `version: 1`. |
 | `GET /mis-recetas/{receta}`                   | Consultar contenido y estado antes de editar.    | `200`, detalle propio en `data`.                                                       |
-| `PUT`, `PATCH` o `POST /mis-recetas/{receta}` | Actualizar una receta privada.                   | Contenido completo y `version`; imagen opcional. `200`, detalle actualizado en `data`. |
+| `PUT`, `PATCH` o `POST /mis-recetas/{receta}` | Actualizar una receta privada.                   | Contenido completo, ambos IDs de clasificación y `version`; imagen opcional. `200`, detalle actualizado en `data`. |
 | `DELETE /mis-recetas/{receta}`                | Eliminar una receta propia, privada o publicada. | Sin cuerpo obligatorio. `200`, `mensaje` y `receta` con metadatos de eliminación.      |
 | `GET /mis-recetas/{receta}/imagen`            | Mostrar la imagen vigente al autor.              | `200`, archivo de imagen autenticado.                                                  |
 | `POST /mis-recetas/{receta}/imagen`           | Subir una imagen para esa receta.                | Archivo `imagen`. `200`, `mensaje`, `imagen` e `imagen_url`.                           |
@@ -294,7 +346,7 @@ Las rutas de publicación y corrección se explican en la siguiente sección.
 GET /api/v1/mis-recetas?filtro=privadas&per_page=15&page=1
 ```
 
-El recurso propio agrega `visibilidad`, `version`, `solicitud_pendiente`, `created_at`, `updated_at` y `publicada_en`. `solicitud_pendiente` puede ser `null` o contener `id`, `tipo`, `estado` y `created_at`. Conviene volver a consultar el detalle para conocer el estado vigente: no todas las respuestas de escritura cargan esa relación.
+Las recetas vigentes del listado y del detalle propio utilizan `categoria` y `subcategoria`, con la misma posibilidad de `null` descrita en el catálogo. El recurso propio agrega `visibilidad`, `version`, `solicitud_pendiente`, `created_at`, `updated_at` y `publicada_en`. `solicitud_pendiente` puede ser `null` o contener `id`, `tipo`, `estado` y `created_at`. Conviene volver a consultar el detalle para conocer el estado vigente: no todas las respuestas de escritura cargan esa relación.
 
 El listado con `todas` incluye las eliminadas. El detalle de una receta eliminada devuelve metadatos como `id`, `nombre`, `visibilidad`, `version`, `deleted_at`, `tipo_eliminacion` y `motivo_eliminacion`, sin ingredientes ni pasos. No asumir que el listado y el detalle de eliminadas tienen exactamente los mismos campos.
 
@@ -307,13 +359,16 @@ El listado con `todas` incluye las eliminadas. El detalle de una receta eliminad
 | `imagen`                          | Obligatoria al crear. Para una receta nueva, adjuntar un archivo JPEG/JPG, PNG o WEBP de hasta 2048 KiB. |
 | `porciones`, `tiempo_preparacion` | Enteros entre 1 y 65 535.                                                                                |
 | `tips`                            | Opcional o `null`, hasta 16 000 caracteres.                                                              |
-| `categorias`                      | Lista de 1 a 100 IDs existentes, sin repetir.                                                            |
+| `categoria_id`                    | Obligatorio, ID entero positivo canónico de una categoría existente.                                    |
+| `subcategoria_id`                 | Obligatorio, ID entero positivo canónico de una subcategoría existente que pertenezca a `categoria_id`. |
 | `ingredientes`                    | Lista de 1 a 500 ingredientes existentes, sin repetir ID.                                                |
 | `pasos`                           | Lista de 1 a 500 pasos. Basta un paso para cumplir el mínimo del backend.                                |
 
 Cada ingrediente lleva `ingrediente_id`, `cantidad`, `unidad`, `notas` y `orden`. Las claves `cantidad`, `unidad` y `notas` deben estar presentes, aunque su valor sea `null`. Si se informa una cantidad, debe ser mayor que cero, como máximo 9 999 999.999 y con hasta tres decimales. `unidad` admite hasta 50 caracteres y `notas` hasta 16 000.
 
 Cada paso lleva `orden` e `instruccion`, con hasta 16 000 caracteres de instrucción. Los órdenes de pasos y de ingredientes son enteros entre 1 y 65 535, sin repetir dentro de su respectiva lista. Las listas deben tener índices consecutivos desde cero.
+
+Crear o actualizar exige ambos IDs; la clasificación `null` se admite al leer recetas antiguas, pero no permite omitir esos campos al guardar. La ausencia de un ID, un ID inexistente o una pareja de categoría y subcategoría incompatible produce `422`.
 
 Ejemplo de campos de un formulario **multipart** para crear una receta. `imagen` representa un archivo real, no el texto entre corchetes:
 
@@ -325,18 +380,19 @@ descripcion: Arroz cocido para acompañar el almuerzo.
 porciones: 2
 tiempo_preparacion: 20
 imagen: [archivo arroz.jpg]
-categorias: [1]
+categoria_id: 1
+subcategoria_id: 10
 ingredientes: [{"ingrediente_id":1,"cantidad":1,"unidad":"taza","notas":null,"orden":1},{"ingrediente_id":2,"cantidad":2,"unidad":"tazas","notas":null,"orden":2}]
 pasos: [{"orden":1,"instruccion":"Colocar el arroz y el agua en una olla y cocinar hasta que el arroz esté listo."}]
 ```
 
-En este ejemplo se supone que categoría `1` es Comidas, ingrediente `1` es arroz e ingrediente `2` es agua. Se deben obtener los IDs reales de los catálogos. El backend acepta `categorias`, `ingredientes` y `pasos` como textos JSON dentro del formulario y los convierte a listas. `tips` se omitió porque es opcional.
+En este ejemplo se supone que categoría `1` es Comidas, subcategoría `10` es Arroces y pertenece a Comidas, ingrediente `1` es arroz e ingrediente `2` es agua. Se deben obtener los IDs reales de los catálogos. En multipart, `categoria_id` y `subcategoria_id` son campos escalares enteros o cadenas numéricas canónicas. El backend acepta `ingredientes` y `pasos` como textos JSON y los convierte a listas. `tips` se omitió porque es opcional. Ya no se envía el antiguo arreglo `categorias`.
 
 El contrato también valida referencias de imágenes ya almacenadas para la receta correspondiente. Una ruta del teléfono o un nombre inventado de archivo no sustituye la subida de una imagen.
 
 ### Edición y eliminación
 
-Para editar, primero consultar `GET /mis-recetas/{receta}` y conservar su `version`. Enviar después el contenido completo y esa versión. Si la edición se acepta, la versión aumenta; si quedó desactualizada, se devuelve `409` y hay que recargar los datos.
+Para editar, primero consultar `GET /mis-recetas/{receta}` y conservar su `version`. Enviar después el contenido completo, incluidos `categoria_id` y `subcategoria_id`, y esa versión. Si la receta antigua no tiene clasificación, hay que seleccionar ambos valores del catálogo vigente antes de guardarla. Si la edición se acepta, la versión aumenta; si quedó desactualizada, se devuelve `409` y hay que recargar los datos.
 
 **Aunque se utilice `PATCH`, este formulario exige el contenido completo.** La imagen puede omitirse para conservar la actual. Con archivos se puede utilizar la variante `POST` admitida por la ruta. No se puede editar así una receta publicada, eliminada o con solicitud pendiente.
 
@@ -369,9 +425,11 @@ Para un usuario normal, este envío no hace pública la receta: debe aprobarse d
 
 Un administrador publica directamente sus propias recetas con este mismo endpoint. No se crea una solicitud ficticia. Una receta publicada no puede volver a privada mediante estas rutas.
 
+El cuerpo de publicación conserva únicamente `clave_idempotencia`; no se trasladan a él los IDs de clasificación. Cuando la respuesta de publicación directa incluye `receta`, ese objeto utiliza `categoria` y `subcategoria`.
+
 ### Corregir una receta publicada
 
-La app obtiene `version_base` del campo `version` del detalle propio, no del catálogo público. `contenido` debe ser la propuesta completa, con los campos de receta descritos anteriormente. No basta con mandar únicamente la frase modificada.
+La app obtiene `version_base` del campo `version` del detalle propio, no del catálogo público. `contenido` debe ser la propuesta completa, con los campos de receta descritos anteriormente, incluidos los obligatorios `contenido.categoria_id` y `contenido.subcategoria_id`. No basta con mandar únicamente la frase modificada. El servidor valida que ambos existan y que la subcategoría pertenezca a la categoría.
 
 Ejemplo de corrección que conserva la imagen:
 
@@ -389,7 +447,8 @@ POST /api/v1/mis-recetas/42/corregir
     "porciones": 2,
     "tiempo_preparacion": 20,
     "tips": null,
-    "categorias": [1],
+    "categoria_id": 1,
+    "subcategoria_id": 10,
     "ingredientes": [
       {
         "ingrediente_id": 1,
@@ -448,7 +507,7 @@ POST /api/v1/mis-solicitudes/18/cancelar
 
 El resumen incluye `id`, `receta_id`, `receta_nombre`, `tipo`, `estado`, `version_base`, `clave_idempotencia`, `created_at`, `revisada_en`, `cancelada_en` y `motivo_rechazo`. Así, la app puede mostrar por qué se rechazó un envío y permitir preparar uno nuevo.
 
-El detalle agrega `contenido`, con los datos propuestos, nombres de categorías e ingredientes e `imagen_url`. Para reenviar, hay que reconstruir el cuerpo de escritura: `categorias` se envía como IDs y los ingredientes sin el campo de lectura `nombre`. No copiar el objeto de respuesta completo al formulario de corrección.
+El detalle agrega `contenido`, con `categoria` y `subcategoria` como objetos `{id, nombre}` o `null`, los ingredientes enriquecidos con nombres e `imagen_url`. Para reenviar, hay que reconstruir el cuerpo de escritura: convertir la clasificación a `contenido.categoria_id` y `contenido.subcategoria_id`, y enviar los ingredientes sin el campo de lectura `nombre`. Si falta clasificación, se deben seleccionar ambos IDs del catálogo vigente antes de enviar. No copiar el objeto de respuesta completo al formulario de corrección.
 
 Cancelar una publicación conserva la receta privada. Cancelar una corrección conserva la publicación anterior. No se puede cancelar una solicitud aprobada o rechazada (`422`); repetir la cancelación de una ya cancelada devuelve éxito. No existe en esta API móvil una operación para aprobar o rechazar solicitudes ajenas: esas acciones pertenecen al panel web.
 
@@ -482,7 +541,7 @@ POST /api/v1/favoritos/42
 
 Agregar el mismo favorito otra vez no crea una segunda entrada. Quitar uno que ya se quitó también devuelve éxito. No se puede agregar una receta privada ni una eliminada. La consulta de estado reconoce recetas publicadas —incluidas las eliminadas— y recetas propias; una privada ajena o un ID inexistente devuelve `404`.
 
-Los favoritos vigentes incluyen el resumen de la receta, `visibilidad: "publicada"` y `agregado_en`, ordenados por fecha de agregado e ID de favorito descendentes. Si la receta fue eliminada, la entrada permanece con `id`, `nombre`, `visibilidad: "eliminada"`, `mensaje` y `agregado_en`. Ya no contiene los datos de preparación.
+Los favoritos vigentes incluyen el resumen de la receta con `categoria` y `subcategoria` (cada una admite `null`), `visibilidad: "publicada"` y `agregado_en`, ordenados por fecha de agregado e ID de favorito descendentes. Si la receta fue eliminada, la entrada permanece con `id`, `nombre`, `visibilidad: "eliminada"`, `mensaje` y `agregado_en`. Ya no contiene los datos de preparación.
 
 Los avisos distinguen «Esta receta fue eliminada por su autor» y «Esta receta fue eliminada». El motivo administrativo no se expone a quien simplemente guardó el favorito.
 
@@ -616,6 +675,8 @@ La verificación autenticada de disponibilidad consume la cuota de escrituras. L
 
 Estas observaciones describen el backend revisado y los puntos de integración. No constituyen una auditoría de la implementación actual de las pantallas móviles.
 
+La gestión de categorías y subcategorías y la edición administrativa directa de recetas pertenecen al panel web, con sesión y protección CSRF. `GET /admin/categorias` es únicamente una consulta del catálogo completo; no habilita escrituras móviles ni sustituye las rutas del panel.
+
 ## 13. Fuentes y alcance de la revisión
 
 El documento se contrastó con estos archivos del repositorio **recetas-api**; las rutas de esta lista se interpretan desde la raíz de ese backend:
@@ -631,3 +692,5 @@ El documento se contrastó con estos archivos del repositorio **recetas-api**; l
 - `CONTEXTO_PROYECTO.md`, `docs/patrones.md` y `docs/api.md`: contexto y documentación de apoyo, contrastados con el código actual.
 
 Se priorizó el código cuando la documentación anterior contenía observaciones históricas. No se verificaron migraciones aplicadas, configuración efectiva del servidor, conectividad desde teléfonos ni entrega de correo. Tampoco se ejecutaron pruebas funcionales. La presencia de una ruta o de una prueba escrita no demuestra por sí sola que el servicio esté funcionando en el entorno de uso.
+
+La actualización de clasificación del 24 de octubre de 2026 se contrastó con `docs/api.md`, `routes/api.php`, `routes/web.php`, `ListarRecetasRequest.php`, `GuardarRecetaRequest.php` y `CorregirRecetaRequest.php` del backend local. Incluye catálogo anidado, filtros, respuestas, cuerpos de creación/edición/corrección, compatibilidad con recetas sin clasificación y separación del panel web. No supone una nueva verificación funcional de los demás contratos ni del despliegue en EC2.

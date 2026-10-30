@@ -28,7 +28,7 @@ export const useCategorias = () => {
       }
     };
     cargarDatos();
-    return () => controller.abort(); // limpiar la llamada a la API si el componente se desmonta
+    return () => controller.abort(); // limpiar la llamada si el componente se desmonta
   }, []);
 
   return { categorias, loading, error }; // devolver el estado de categorías, carga y error

@@ -1,11 +1,7 @@
+import { Categoria } from "@/types/categorias";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 const colores = ["#FFE8D6", "#FFD1DC", "#D4EAC8", "#D6E4FF", "#F3E8FF"];
-
-export interface Categoria {
-  id: number;
-  nombre: string;
-}
 
 export const CategoriasInicio = ({
   categorias,

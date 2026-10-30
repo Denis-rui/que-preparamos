@@ -1,17 +1,17 @@
-import { styles } from '@/styles/mis_ingredientes.styles';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { styles } from "@/styles/mis_ingredientes.styles";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { router } from "expo-router";
+import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { BuscadorIngredientes } from '@/components/ingredientes/BuscadorIngredientes';
+import { BuscadorIngredientes } from "@/components/ingredientes/BuscadorIngredientes";
 import { IconoCanastaVacia } from "@/components/ingredientes/IconoCanastaVacia";
-import type { Categoria } from "@/components/ingredientes/ListaCategorias";
-import { useIngredientes } from '@/hooks/useIngredientes';
+import { useIngredientes } from "@/hooks/useIngredientes";
+import { Categoria } from "@/types/categorias";
 
-function agruparEnFilas <T>(array: T[], tamano:number): T[][]{
+function agruparEnFilas<T>(array: T[], tamano: number): T[][] {
   const resultado: T[][] = [];
   for (let i = 0; i < array.length; i += tamano) {
     resultado.push(array.slice(i, i + tamano));
@@ -20,8 +20,10 @@ function agruparEnFilas <T>(array: T[], tamano:number): T[][]{
 }
 
 export default function Ingredientes() {
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<Categoria | null>(null);
-  const {ingredientes, agregarIngrediente, quitarIngrediente, limpiarTodo} = useIngredientes();
+  const [categoriaSeleccionada, setCategoriaSeleccionada] =
+    useState<Categoria | null>(null);
+  const { ingredientes, agregarIngrediente, quitarIngrediente, limpiarTodo } =
+    useIngredientes();
 
   const buscarRecomendaciones = () => {
     const params: Record<string, string> = {
@@ -32,7 +34,7 @@ export default function Ingredientes() {
     }
     router.push({ pathname: "/recomendaciones", params });
   };
-  
+
   const sinIngredientes = ingredientes.length === 0;
 
   return (
@@ -53,7 +55,7 @@ export default function Ingredientes() {
         </View>
 
         <Image
-          source={require('../../assets/imagenes/imagen_de_mis_ing.png')}
+          source={require("../../assets/imagenes/imagen_de_mis_ing.png")}
           style={styles.mascota}
           contentFit="contain"
         />
@@ -66,20 +68,24 @@ export default function Ingredientes() {
         <View style={styles.ingredientesHeader}>
           <View style={styles.ingredientesHeaderIzq}>
             <Image
-              source={require('../../assets/SVG/iconos/icono ingredientes añadidos.svg')}
+              source={require("../../assets/SVG/iconos/icono ingredientes añadidos.svg")}
               contentFit="contain"
               style={styles.taza}
             />
             <Text style={styles.ingredientesTitulo}>Ingredientes añadidos</Text>
           </View>
-          <Pressable 
-            style={({pressed}) => [
+          <Pressable
+            style={({ pressed }) => [
               styles.limpiarBoton,
               pressed && styles.limpiarBotonPresionado,
-            ]} 
+            ]}
             onPress={limpiarTodo}
           >
-            <MaterialCommunityIcons name="trash-can-outline" size={16} color="#4CAF50" />
+            <MaterialCommunityIcons
+              name="trash-can-outline"
+              size={16}
+              color="#4CAF50"
+            />
             <Text style={styles.limpiarTexto}>Limpiar todo</Text>
           </Pressable>
         </View>
@@ -87,23 +93,38 @@ export default function Ingredientes() {
         <View style={styles.chipsContenedor}>
           {ingredientes.length === 0 ? (
             <View style={styles.mensajeVacioContenedor}>
-              <IconoCanastaVacia size={64}/>
-              <Text style={styles.mensajeVacioTitulo}>Aún no tienes ingredientes</Text>
+              <IconoCanastaVacia size={64} />
+              <Text style={styles.mensajeVacioTitulo}>
+                Aún no tienes ingredientes
+              </Text>
               <Text style={styles.mensajeVacioTexto}>
                 ¡Agrega algunos y descubre que puedes preparar!
               </Text>
             </View>
           ) : (
-            <ScrollView nestedScrollEnabled showsHorizontalScrollIndicator={false}>
+            <ScrollView
+              nestedScrollEnabled
+              showsHorizontalScrollIndicator={false}
+            >
               {agruparEnFilas(ingredientes, 3).map((fila, index) => (
                 <View key={index} style={styles.chipsFila}>
                   {fila.map((ingrediente) => (
                     <View key={ingrediente.id} style={styles.chip}>
-                      <Text style={styles.chipTexto} numberOfLines={1} ellipsizeMode="tail">
+                      <Text
+                        style={styles.chipTexto}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
                         {ingrediente.nombre}
                       </Text>
-                      <Pressable onPress={() => quitarIngrediente(ingrediente.id)}>
-                        <MaterialCommunityIcons name="close" size={16} color="#552414" />
+                      <Pressable
+                        onPress={() => quitarIngrediente(ingrediente.id)}
+                      >
+                        <MaterialCommunityIcons
+                          name="close"
+                          size={16}
+                          color="#552414"
+                        />
                       </Pressable>
                     </View>
                   ))}
@@ -116,42 +137,55 @@ export default function Ingredientes() {
 
       <View style={styles.seccionInferior}>
         <View style={styles.filaBotonBuscar}>
-            <Image
-                source={require("../../assets/SVG/adornos/hojas_izquierda.svg")}
-                style={styles.adornoBoton}
-                contentFit="contain"
+          <Image
+            source={require("../../assets/SVG/adornos/hojas_izquierda.svg")}
+            style={styles.adornoBoton}
+            contentFit="contain"
+          />
+          <Pressable
+            style={({ pressed }) => [
+              styles.botonBuscar,
+              sinIngredientes && styles.botonBuscarDesactivado,
+              pressed && !sinIngredientes && styles.botonBuscarPresionado,
+            ]}
+            onPress={buscarRecomendaciones}
+            disabled={sinIngredientes}
+          >
+            <MaterialCommunityIcons
+              name="magnify"
+              size={24}
+              color={sinIngredientes ? "#8B7B70" : "#fff"}
             />
-            <Pressable 
-              style={({pressed}) =>[
-                styles.botonBuscar,
-                sinIngredientes && styles.botonBuscarDesactivado,
-                pressed && !sinIngredientes && styles.botonBuscarPresionado,
+            <Text
+              style={[
+                styles.botonBuscarTexto,
+                sinIngredientes && styles.botonBuscarTextoDesactivado,
               ]}
-              onPress={buscarRecomendaciones}
-              disabled={sinIngredientes}
             >
-                <MaterialCommunityIcons name="magnify" size={24} color={sinIngredientes ? "#8B7B70" : "#fff"}/>
-                <Text 
-                  style={[
-                    styles.botonBuscarTexto,
-                    sinIngredientes && styles.botonBuscarTextoDesactivado,
-                  ]}
-                >
-                  Buscar recomendaciones
-                </Text>
-                <MaterialCommunityIcons name="arrow-right" size={20} color={sinIngredientes ? "#8B7B70" : "#fff"} />
-            </Pressable>
-            <Image
-                source={require("../../assets/SVG/adornos/hojas_derecha.svg")}
-                style={styles.adornoBoton}
-                contentFit="contain"
+              Buscar recomendaciones
+            </Text>
+            <MaterialCommunityIcons
+              name="arrow-right"
+              size={20}
+              color={sinIngredientes ? "#8B7B70" : "#fff"}
             />
+          </Pressable>
+          <Image
+            source={require("../../assets/SVG/adornos/hojas_derecha.svg")}
+            style={styles.adornoBoton}
+            contentFit="contain"
+          />
         </View>
 
         <View style={styles.tipContenedor}>
-          <MaterialCommunityIcons name="lightbulb-on-outline" size={20} color="#552414" />
+          <MaterialCommunityIcons
+            name="lightbulb-on-outline"
+            size={20}
+            color="#552414"
+          />
           <Text style={styles.tipTexto}>
-            Te mostraremos recetas que puedes preparar y los ingredientes que te hacen falta
+            Te mostraremos recetas que puedes preparar y los ingredientes que te
+            hacen falta
           </Text>
         </View>
       </View>

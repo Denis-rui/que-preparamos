@@ -1,6 +1,6 @@
 // Resumen compartido por Inicio y Explorar.
 
-import { CategoriaResumen } from "./categorias";
+import { CategoriaResumen, Subcategoria } from "./categorias";
 
 // Los tipos permanecen aquí; el servicio de API está escrito en JavaScript.
 export interface PaginaRecetas {
@@ -30,7 +30,8 @@ export interface RecetaResumen {
   imagen_url: string | null;
   porciones: number;
   tiempo_preparacion: number;
-  categorias: CategoriaResumen[];
+  categoria: CategoriaResumen | null;
+  subcategoria: Subcategoria | null;
   valoracion_promedio: number | null;
   cantidad_valoraciones: number;
   ingredientes_resumen: IngredienteResumen[];

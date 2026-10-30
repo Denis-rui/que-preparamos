@@ -1,4 +1,7 @@
 // Resumen compartido por Inicio y Explorar.
+
+import { CategoriaResumen } from "./categorias";
+
 // Los tipos permanecen aquí; el servicio de API está escrito en JavaScript.
 export interface PaginaRecetas {
   data: RecetaResumen[];
@@ -16,10 +19,6 @@ export interface PaginaRecetas {
   };
 }
 
-export interface CategoriaResumen {
-  id: number;
-  nombre: string;
-}
 export interface IngredienteResumen {
   ingrediente_id: number;
   nombre: string;

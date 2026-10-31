@@ -1,13 +1,9 @@
+import { Ingredientes } from "@/types/ingredientes";
 import { useEffect, useState } from "react";
 import { getIngredientes } from "../api/ingredientes";
 
-export interface IngredienteApi {
-  id: number;
-  nombre: string;
-}
-
-export const useBuscarIngredientes=(texto: string) => {
-  const [resultados, setResultados] = useState<IngredienteApi[]>([]);
+export const useBuscarIngredientes = (texto: string) => {
+  const [resultados, setResultados] = useState<Ingredientes[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,4 +38,4 @@ export const useBuscarIngredientes=(texto: string) => {
   }, [texto]);
 
   return { resultados, loading, error };
-}
+};

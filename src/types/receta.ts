@@ -62,3 +62,4 @@ export interface PaginaRecomendaciones {
     total: number;
   };
 }
+// Para un detalle completo

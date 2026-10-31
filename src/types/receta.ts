@@ -1,64 +1,45 @@
-// Resumen compartido por Inicio y Explorar.
-
-import { CategoriaResumen, Subcategoria } from "./categorias";
-
-// Los tipos permanecen aquí; el servicio de API está escrito en JavaScript.
-export interface PaginaRecetas {
-  data: RecetaResumen[];
-  links: {
-    first: string | null;
-    last: string | null;
-    prev: string | null;
-    next: string | null;
-  };
-  meta: {
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-  };
+export interface Recetas {
+  data: Data;
 }
 
-export interface IngredienteResumen {
-  ingrediente_id: number;
-  nombre: string;
-}
-export interface RecetaResumen {
+export interface Data {
   id: number;
   nombre: string;
   descripcion: string;
-  imagen_url: string | null;
+  imagen_url: string;
   porciones: number;
   tiempo_preparacion: number;
-  categoria: CategoriaResumen | null;
-  subcategoria: Subcategoria | null;
-  valoracion_promedio: number | null;
+  categoria: Categoria;
+  subcategoria: Categoria;
+  valoracion_promedio: null;
   cantidad_valoraciones: number;
-  ingredientes_resumen: IngredienteResumen[];
+  ingredientes_resumen: IngredientesResuman[];
   cantidad_ingredientes: number;
+  tips: string;
+  ingredientes: Ingrediente[];
+  pasos: Paso[];
 }
 
-// Respuesta de GET /recetas cuando se filtra por ingredientes[].
-// El backend agrega disponibles/faltantes solo con selección no vacía.
-export interface RecetaRecomendada extends RecetaResumen {
-  ingredientes_disponibles: IngredienteResumen[];
-  ingredientes_faltantes: IngredienteResumen[];
-  cantidad_coincidencias: number;
-  cantidad_faltantes: number;
+export interface Categoria {
+  id: number;
+  nombre: string;
 }
 
-export interface PaginaRecomendaciones {
-  data: RecetaRecomendada[];
-  links: {
-    first: string | null;
-    last: string | null;
-    prev: string | null;
-    next: string | null;
-  };
-  meta: {
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-  };
+export interface Ingrediente {
+  ingrediente_id: number;
+  nombre: string;
+  cantidad: number;
+  unidad: string;
+  notas: string;
+  orden: number;
+}
+
+export interface IngredientesResuman {
+  ingrediente_id: number;
+  nombre: string;
+}
+
+export interface Paso {
+  orden: number;
+  instruccion: string;
 }

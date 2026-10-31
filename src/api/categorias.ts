@@ -1,31 +1,19 @@
 import { Categoria, CategoriaSubcategorias } from "@/types/categorias";
+import { quePreparamos } from "./cliente";
 
-export async function getCategorias(
+export const getCategorias = async (
   signal?: AbortSignal,
-): Promise<Categoria[]> {
-  const URL = `${process.env.EXPO_PUBLIC_URL_API}`;
-
-  if (!URL) {
-    throw new Error("falta configurar la direccion de la API");
-  }
-
-  const respuesta = await fetch(`${URL}/categorias`, {
-    headers: {
-      // le decimos al servidor que le estamos enviando un JSON
-      Accept: "application/json",
-      "Content-Type": "application/json",
+): Promise<Categoria[]> => {
+  const respuesta = await quePreparamos.get<CategoriaSubcategorias>(
+    "/categorias",
+    {
+      signal,
     },
-    signal,
-  });
+  );
 
-  // si la respuesta no es correcta, lanzamos un error
-  if (!respuesta.ok) {
-    throw new Error("Error al obtener las categorías");
-  }
-  // convertimos la respuesta a JSON y devolvemos los datos
-  const json: CategoriaSubcategorias = await respuesta.json();
+  const json = respuesta.data;
   if (!Array.isArray(json.data)) {
-    throw new Error("el servidor devolvio un catalogo invalido");
+    throw new Error("El servidor no ha devuelto un catalogo valido");
   }
   return json.data;
-}
+};

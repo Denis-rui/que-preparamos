@@ -19,16 +19,18 @@ import { quePreparamos } from "./cliente";
 //   const json = await respuesta.json();
 //   return json.data;
 // }
-
+interface RespuestaRecetasAleatorias {
+  data: RecetaResumen[];
+}
 export const getRecetasAleatorias = async (
   signal?: AbortSignal,
 ): Promise<RecetaResumen[]> => {
-  const respuesta = await quePreparamos.get<data: RecetaResumen[]>(
+  const respuesta = await quePreparamos.get<RespuestaRecetasAleatorias>(
     "/recetas/aleatorias",
     {
       signal,
     },
   );
-
-  return respuesta.data;
+  const json = respuesta.data;
+  return json.data;
 };

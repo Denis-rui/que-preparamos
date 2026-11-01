@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { styles } from "@/styles/editar-perfil.styles";
+import type { ComponentRef } from "react";
 
 export type EditableProfile = {
   name: string;
@@ -32,7 +33,7 @@ export default function EditarPerfilModal({ profile, onClose, onSave }: Props) {
   const [photoUri, setPhotoUri] = useState(profile.photoUri);
   const [error, setError] = useState("");
   const [picking, setPicking] = useState(false);
-  const emailInput = useRef<TextInput>(null);
+  const emailInput = useRef<ComponentRef<typeof TextInput>>(null);
   const insets = useSafeAreaInsets();
 
   async function choosePhoto() {

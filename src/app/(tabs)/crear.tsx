@@ -1,8 +1,11 @@
+import AccesoCrear from "@/components/crear/accesoCrear";
 import Botones from "@/components/crear/Botones";
 import { FormIngredientes } from "@/components/crear/FormIngredientes";
 import { FormInput } from "@/components/crear/FormInput";
 import { FormSelect } from "@/components/crear/FormSelect";
 import { PasosPreparacion } from "@/components/crear/PasosPreparacion";
+import useAccesoCrear from "@/hooks/useAccesoCrear";
+import { router } from "expo-router";
 import {
   ScrollView,
   StyleSheet,
@@ -12,6 +15,28 @@ import {
 } from "react-native";
 
 export default function Crear() {
+  const { estadoAcceso, mensajeError, comprobarAcceso } = useAccesoCrear();
+
+  const abrirLogin = () => {
+    router.push({
+      pathname: "/login",
+      params: {
+        volverA: "/(tabs)/crear",
+      },
+    });
+  };
+
+  if (estadoAcceso !== "permitido") {
+    return (
+      <AccesoCrear
+        estado={estadoAcceso}
+        mensajeError={mensajeError}
+        iniciarSesion={abrirLogin}
+        reintentar={comprobarAcceso}
+      />
+    );
+  }
+
   return (
     <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
       <View style={styles.contenedor}>

@@ -1,26 +1,67 @@
-﻿import { FotoReceta } from "@/components/recetas/FotoReceta";
+﻿import { SelectorFiltro } from "@/components/selectorFiltro";
+import { useCategorias } from "@/hooks/useCategorias";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+
+import { FotoReceta } from "@/components/recetas/FotoReceta";
 import { TarjetaReceta } from "@/components/recetas/TarjetaReceta";
 import { useRecetas } from "@/hooks/useRecetas";
 import { styles } from "@/styles/explorar.styles";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Defs, Path, Text as SvgText, TextPath } from "react-native-svg";
 
-// Etiquetas del diseño: todavía no corresponden a filtros del backend.
-const filtros = ["Todas", "Rápidas", "Peruanas", "Saludables"];
-
 export default function Explorar() {
-  const { recetas, loading, error } = useRecetas();
-  const [altoLista, setAltoLista] = useState(0);
-  // Tres tarjetas y dos separaciones; conservamos un m?nimo legible en pantallas peque?as.
-  const altoTarjeta = Math.max(130, (altoLista - 28) / 3);
+  //Recibimos el ID
   const parametros = useLocalSearchParams<{
     categoriaId?: string | string[];
   }>();
+
+  const valor = Array.isArray(parametros.categoriaId)
+    ? parametros.categoriaId[0]
+    : parametros.categoriaId;
+
+  //pasamos texto a numero
+  const num = Number(valor);
+
+  const categoriaId = Number.isSafeInteger(num) && num > 0 ? num : undefined;
+
+  //Categorias y subcategorias
+  const {
+    categorias,
+    loading: cargandoCategorias,
+    error: errorCategorias,
+  } = useCategorias();
+
+  const categoria = categorias.find((item) => item.id === categoriaId);
+
+  //Guardamos la categoria
+  const [seleccionSubcategoria, setSeleccionSubcategoria] = useState<{
+    categoriaId: number;
+    id: number;
+  } | null>(null);
+
+  const subcategoriaId =
+    seleccionSubcategoria?.categoriaId === categoriaId
+      ? seleccionSubcategoria?.id
+      : undefined;
+
+  //Limpiamos filtro si llega nueva petición
+  useEffect(() => {
+    setSeleccionSubcategoria(null);
+  }, [valor]);
+
+  //Consultamos las recetas de la categoria
+  const { recetas, loading, error } = useRecetas({
+    categoriaId,
+    subcategoriaId,
+  });
+
+  const [altoLista, setAltoLista] = useState(0);
+  const altoTarjeta = Math.max(130, (altoLista - 28) / 3);
 
   return (
     <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
@@ -125,23 +166,40 @@ export default function Explorar() {
             Ingrese el título de la receta ...
           </Text>
         </View>
+
+        {/* Seleccion de categoria y subcategoria */}
         <View style={styles.filtros}>
-          {filtros.map((filtro, indice) => (
-            <View
-              key={filtro}
-              style={[styles.filtro, indice === 0 && styles.filtroActivo]}
-            >
-              <Text
-                style={[
-                  styles.textoFiltro,
-                  indice === 0 && styles.textoFiltroActivo,
-                ]}
-              >
-                {filtro}
-              </Text>
-            </View>
-          ))}
+          <SelectorFiltro
+            titulo="Categoria"
+            opciones={categorias}
+            valor={categoriaId}
+            deshabilitado={cargandoCategorias || !!errorCategorias}
+            onChange={(id) => {
+              setSeleccionSubcategoria(null);
+
+              router.setParams({
+                categoriaId: id === undefined ? "" : String(id),
+              });
+            }}
+          />
+
+          <SelectorFiltro
+            titulo="Subcategoria"
+            opciones={categoria?.subcategorias ?? []}
+            valor={subcategoriaId}
+            deshabilitado={!categoria}
+            onChange={(id) => {
+              setSeleccionSubcategoria(
+                id !== undefined && categoriaId !== undefined
+                  ? { categoriaId, id }
+                  : null,
+              );
+            }}
+          />
         </View>
+        {cargandoCategorias && <Text>Cargando Categorias...</Text>}
+
+        {errorCategorias && <Text style={styles.error}>{errorCategorias}</Text>}
       </View>
       <View
         style={styles.areaLista}

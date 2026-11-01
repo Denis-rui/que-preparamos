@@ -11,7 +11,7 @@ export function useCategorias() {
     retry: false,
   });
 
-  const sinDatos = consulta.data ?? undefined;
+  const sinDatos = consulta.data === undefined;
   const enEspera = consulta.fetchStatus === "paused";
 
   const mensajeError = obtenerMensajeError(consulta.error);
@@ -21,8 +21,8 @@ export function useCategorias() {
     enEspera: consulta.fetchStatus === "paused",
     vacio: consulta.data !== undefined && consulta.data.length === 0,
     errorOriginal: consulta.error,
-    error: !sinDatos ? mensajeError : null,
-    errorActualizacion: !sinDatos ? null : mensajeError,
+    error: sinDatos ? mensajeError : null,
+    errorActualizacion: sinDatos ? null : mensajeError,
     actualizando: consulta.isRefetching,
     actualizar: () => consulta.refetch({ cancelRefetch: false }),
   };

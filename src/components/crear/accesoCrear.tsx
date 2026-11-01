@@ -10,7 +10,7 @@ interface Props {
   reintentar: () => void;
 }
 
-const accesoCrear = ({
+const AccesoCrear = ({
   estado,
   mensajeError,
   iniciarSesion,
@@ -49,7 +49,7 @@ const accesoCrear = ({
   );
 };
 
-export default accesoCrear;
+export default AccesoCrear;
 const styles = StyleSheet.create({
   pantalla: {
     flex: 1,

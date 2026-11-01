@@ -39,7 +39,7 @@ export default function RootLayout() {
           <AnimatedSplashOverlay ready={fontsLoaded} />
           {fontsLoaded && (
             <Stack
-              initialRouteName="(auth)"
+              // initialRouteName="(auth)"
               screenOptions={{ headerShown: false }}
             >
               <Stack.Screen name="(auth)" />

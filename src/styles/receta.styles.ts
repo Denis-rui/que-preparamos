@@ -262,4 +262,7 @@ export const styles = StyleSheet.create({
     opacity: 0.6,
     transform: [{ scale: 0.95 }],
   },
+  gorroValoracion: {
+    marginTop: -8,
+  },
 });

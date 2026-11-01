@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import { styles } from "../../styles/modalValoracion.styles";
+import { IconoGorroChef } from "./IconoGorroChef";
 
 type Props = {
   visible: boolean;
@@ -40,13 +41,15 @@ export default function ModalValoracion({ visible, onClose, onCalificar }: Props
           <Text style={styles.titulo}>Califica esta receta</Text>
 
           <View style={styles.gorros}>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Pressable key={i} onPress={() => setSeleccion(i)} hitSlop={6}>
-                <MaterialCommunityIcons
-                  name="chef-hat"
-                  size={44}
-                  color={i <= seleccion ? "#FF4F0A" : "#C9C1B8"}
-                />
+            {[1,2,3,4,5].map((i)=> (
+              <Pressable
+                key={i}
+                onPress={()=> setSeleccion(i)}
+                hitSlop={6}
+                accessibilityRole="button"
+                accessibilityLabel={`Calificar con ${i} de 5 gorros`}
+              >
+                <IconoGorroChef lleno={i<= seleccion} size={44} />
               </Pressable>
             ))}
           </View>

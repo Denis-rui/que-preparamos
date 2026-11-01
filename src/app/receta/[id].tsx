@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Defs, Path, Text as SvgText, TextPath } from "react-native-svg";
 
 import { InvitarInicioSesion } from "@/components/auth/InvitarInicioSesion";
+import { IconoGorroChef } from "@/components/recetas/IconoGorroChef";
 import ModalValoracion from "@/components/recetas/ModalValoracion";
 import { BotonVolver } from "@/components/ui/botonVolver";
 import { useRecetaDetalle } from "@/hooks/useRecetaDetalle";
@@ -34,6 +35,8 @@ export default function DetalleReceta() {
   }, []);
 
   const alternarLectura = () => {
+    if (!receta?.pasos?.length) return;
+
     if (leyendo) {
       Speech.stop();
       setLeyendo(false);
@@ -158,12 +161,17 @@ export default function DetalleReceta() {
                 fill="#552714"
                 fontSize="12"
                 fontFamily="Kavoon_400Regular"
+                textAnchor="middle"
               >
-                <TextPath href="#curva">¡Califícanos!</TextPath>
+                <TextPath href="#curva" startOffset="50%">
+                  ¡Califícanos!
+                </TextPath>
               </SvgText>
             </Svg>
 
-            <View></View>
+            <View style={styles.gorroValoracion}>
+              <IconoGorroChef lleno size={38} />
+            </View>
           </Pressable>
         </View>
 

@@ -12,7 +12,6 @@ export function useCategorias() {
   });
 
   const sinDatos = consulta.data === undefined;
-  const enEspera = consulta.fetchStatus === "paused";
 
   const mensajeError = obtenerMensajeError(consulta.error);
   return {

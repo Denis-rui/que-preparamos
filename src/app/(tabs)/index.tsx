@@ -3,25 +3,60 @@ import { LogoQuePreparamos } from "@/components/LogoQuePreparamos";
 import { RecetasAleatorias } from "@/components/RecetasAleatorias";
 
 import { useCategorias } from "@/hooks/useCategorias";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
-  const { categorias, loading, error } = useCategorias();
+  const {
+    categorias,
+    loading,
+    enEspera,
+    vacio,
+    error,
+    errorActualizacion,
+    actualizando,
+    actualizar,
+  } = useCategorias();
+
+  const aviso = error ?? errorActualizacion;
 
   const cabeceraCategorias = (
     <View>
       <LogoQuePreparamos />
-      {loading ? (
+      {loading && (
         <ActivityIndicator
           size="large"
           color="#3E2723"
           style={{ marginTop: 30 }}
         />
-      ) : error ? (
-        <Text style={styles.errorText}>{error}</Text>
-      ) : (
-        <CategoriasInicio categorias={categorias}></CategoriasInicio>
+      )}
+      {aviso && (
+        <View>
+          <Text style={styles.errorText} accessibilityLiveRegion="polite">
+            {aviso}
+          </Text>
+          <TouchableOpacity
+            accessibilityRole="button"
+            disabled={loading || actualizando}
+            onPress={() => {
+              actualizar();
+            }}
+          >
+            <Text style={styles.accion}>Reintentar</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {CategoriasInicio.length > 0 && (
+        <CategoriasInicio categorias={categorias} />
+      )}
+      {vacio && !loading && !enEspera && !error && (
+        <Text style={styles.errorText}>No hay categorías disponibles</Text>
       )}
     </View>
   );
@@ -42,5 +77,10 @@ const styles = StyleSheet.create({
     color: "red",
     textAlign: "center",
     marginTop: 20,
+  },
+  accion: {
+    color: "#4CAF50",
+    textAlign: "center",
+    marginVertical: 12,
   },
 });

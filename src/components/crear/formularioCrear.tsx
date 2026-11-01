@@ -15,8 +15,14 @@ import { PasosPreparacion } from "./PasosPreparacion";
 import ClasificacionReceta from "./clasificacionReceta";
 
 const FormularioCrear = () => {
-  const { datos, actualizarTexto, cambiarCategoria, cambiarSubcategoria } =
-    useFormularioCrear();
+  const {
+    datos,
+    actualizarTexto,
+    cambiarCategoria,
+    cambiarSubcategoria,
+    agregarIngrediente,
+    quitarIngrediente,
+  } = useFormularioCrear();
 
   return (
     <SafeAreaView style={stylesCrear.pantalla} edges={["top", "left", "right"]}>
@@ -77,7 +83,11 @@ const FormularioCrear = () => {
             maxLength={50}
           />
 
-          <FormIngredientes />
+          <FormIngredientes
+            ingredientes={datos.ingredientes}
+            agregarIngrediente={agregarIngrediente}
+            quitarIngrediente={quitarIngrediente}
+          />
           <PasosPreparacion />
           <FormInput
             etiqueta="Tips o consejos (opcional)"

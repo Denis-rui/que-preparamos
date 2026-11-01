@@ -1,110 +1,202 @@
+import { Spacing, TemaFormulario } from "@/constants/theme";
+import { IngredienteFormulario } from "@/types/formularioRecetas";
+import { Ingredientes } from "@/types/ingredientes";
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { BuscadorIngredientes } from "../ingredientes/BuscadorIngredientes";
+import { AppButton } from "../ui/appButton";
 import { FormInput } from "./FormInput";
-import { FormSelect } from "./FormSelect";
 
-export const FormIngredientes = () => {
+interface Props {
+  ingredientes: IngredienteFormulario[];
+  agregarIngrediente: (ingrediente: IngredienteFormulario) => void;
+  quitarIngrediente: (id: number) => void;
+}
+
+export const FormIngredientes = ({
+  ingredientes,
+  agregarIngrediente,
+  quitarIngrediente,
+}: Props) => {
+  const [seleccionado, setSeleccionado] = useState<Ingredientes | null>(null);
+  const [cantidad, setCantidad] = useState("");
+  const [unidad, setUnidad] = useState("");
+  const [notas, setNotas] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const limpiarCampos = () => {
+    setCantidad("");
+    setUnidad("");
+    setNotas("");
+    setError(null);
+  };
+
+  const seleccionarIngrediente = (ingrediente: Ingredientes) => {
+    setSeleccionado(ingrediente);
+    limpiarCampos();
+  };
+
+  const agregar = () => {
+    if (!seleccionado) {
+      setError("Debe seleccionar un ingrediente");
+      return;
+    }
+    if (ingredientes.some((item) => item.id === seleccionado.id)) {
+      setError("El ingrediente ya ha sido agregado");
+      return;
+    }
+    const textoCantidad = cantidad.trim().replace(",", ".");
+    const formatoCantidad = /^(?:\d+(?:\.\d{0,3})?|\.\d{1,3})$/.test(
+      textoCantidad,
+    );
+
+    const numeroCantidad = Number(textoCantidad);
+    if (
+      textoCantidad !== "" &&
+      (!formatoCantidad || numeroCantidad <= 0 || numeroCantidad > 99999.999)
+    ) {
+      setError("Cantidad inválida");
+      return;
+    }
+
+    agregarIngrediente({
+      id: seleccionado.id,
+      nombre: seleccionado.nombre,
+      cantidad: textoCantidad,
+      unidad: unidad,
+      notas: notas,
+    });
+    setSeleccionado(null);
+    limpiarCampos();
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={styles.seccion}>
       <Text style={styles.titulo}>Ingredientes</Text>
 
-      {/* lista de ingredientes: esto puede ir en un componente separado cuadno conectemos con la API */}
-      <View style={styles.lista}>
-        <View style={styles.item}>
-          <Text style={styles.itemText}>🥩 Carne de res</Text>
-          <Text style={styles.itemDetail}>500 g</Text>
-          <TouchableOpacity style={styles.btnEliminar}>
-            <Ionicons name="close-circle" size={22} color="#FF6B35" />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.item}>
-          <Text style={styles.itemText}>🍋 Limón </Text>
-          <Text style={styles.itemDetail}>1 unidad</Text>
-          <TouchableOpacity style={styles.btnEliminar}>
-            <Ionicons name="close-circle" size={22} color="#FF6B35" />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.item}>
-          <Text style={styles.itemText}>🧂 Sal</Text>
-          <Text style={styles.itemDetail}>Al gusto</Text>
-          <TouchableOpacity style={styles.btnEliminar}>
-            <Ionicons name="close-circle" size={22} color="#FF6B35" />
-          </TouchableOpacity>
-        </View>
-      </View>
-      {/* formulario para agregar nuevos ingredientes */}
-      <FormSelect placeholder="Seleccione ingrediente..." />
+      {ingredientes.length === 0 && (
+        <Text style={styles.detalle}>Aún no has agregado ingredientes.</Text>
+      )}
 
-      <View style={styles.row}>
-        <View style={styles.halfWidth}>
-          <FormInput placeholder="Cantidad" />
+      {ingredientes.map((ingrediente, indice) => (
+        <View key={ingrediente.id} style={styles.fila}>
+          <View style={styles.datos}>
+            <Text style={styles.nombre}>
+              {indice + 1}. {ingrediente.nombre}
+            </Text>
+
+            <Text style={styles.detalle}>
+              {[ingrediente.cantidad, ingrediente.unidad]
+                .filter(Boolean)
+                .join(" ") || "Sin cantidad especificada"}
+            </Text>
+
+            {ingrediente.notas !== "" && (
+              <Text style={styles.detalle}>{ingrediente.notas}</Text>
+            )}
+          </View>
+
+          <Pressable
+            onPress={() => quitarIngrediente(ingrediente.id)}
+            accessibilityRole="button"
+            accessibilityLabel={`Quitar ${ingrediente.nombre}`}
+            hitSlop={8}
+          >
+            <Ionicons
+              name="close-circle-outline"
+              size={26}
+              color={TemaFormulario.colores.error}
+            />
+          </Pressable>
         </View>
-        <View style={styles.halfWidth}>
-          <FormSelect placeholder="Unidad" />
-        </View>
+      ))}
+
+      {/* Reutilizamos la búsqueda existente. */}
+      <View style={styles.busqueda}>
+        <BuscadorIngredientes
+          mostrarCategorias={false}
+          onAgregarIngrediente={seleccionarIngrediente}
+        />
       </View>
-      <FormInput placeholder="Notas (Ej: al gusto, picado fino)" />
-      <TouchableOpacity style={styles.btnAgregar}>
-        <Text style={styles.btnAgregarText}>Agregar Ingrediente</Text>
-      </TouchableOpacity>
+
+      {seleccionado && (
+        <Text style={styles.nombre}>Seleccionado: {seleccionado.nombre}</Text>
+      )}
+
+      <FormInput
+        etiqueta="Cantidad (opcional)"
+        placeholder="Ejemplo: 1,5"
+        value={cantidad}
+        onChangeText={setCantidad}
+        keyboardType="decimal-pad"
+      />
+
+      {/* La API acepta una unidad escrita como texto. */}
+      <FormInput
+        etiqueta="Unidad (opcional)"
+        placeholder="Ejemplo: gramos, tazas o unidades"
+        value={unidad}
+        onChangeText={setUnidad}
+        maxLength={50}
+      />
+
+      <FormInput
+        etiqueta="Notas (opcional)"
+        placeholder="Ejemplo: picado fino o al gusto"
+        value={notas}
+        onChangeText={setNotas}
+        maxLength={16000}
+      />
+
+      {error && (
+        <Text style={styles.error} accessibilityLiveRegion="polite">
+          {error}
+        </Text>
+      )}
+
+      <AppButton label="Agregar ingrediente" onPress={agregar} />
     </View>
   );
 };
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#FFF", // Fondo blanco para resaltar
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#E8E8E8", // Borde sutil
+  seccion: {
+    marginBottom: Spacing.four,
+    gap: Spacing.two,
+    zIndex: 1,
   },
   titulo: {
+    fontFamily: TemaFormulario.fuenteEtiqueta,
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#552414",
-    marginBottom: 15,
+    color: TemaFormulario.colores.texto,
   },
-  lista: {
-    marginBottom: 15,
-  },
-  item: {
+  fila: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
+    gap: Spacing.two,
+    paddingVertical: Spacing.two,
     borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
+    borderBottomColor: TemaFormulario.colores.borde,
   },
-  itemText: {
+  datos: {
     flex: 1,
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "500",
   },
-  itemDetail: {
-    fontSize: 16,
-    color: "#777",
-    marginRight: 15,
+  nombre: {
+    fontFamily: TemaFormulario.fuenteEtiqueta,
+    fontSize: TemaFormulario.tamanoCampo,
+    color: TemaFormulario.colores.texto,
   },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  detalle: {
+    fontFamily: TemaFormulario.fuente,
+    fontSize: TemaFormulario.tamanoAyuda,
+    color: TemaFormulario.colores.secundario,
   },
-  halfWidth: {
-    width: "48%",
+  busqueda: {
+    zIndex: 20,
+    marginBottom: Spacing.two,
   },
-  btnAgregar: {
-    backgroundColor: "#FF6B35", // Color naranja
-    padding: 15,
-    borderRadius: 20,
-    alignItems: "center",
-    marginTop: 5,
-  },
-  btnAgregarText: {
-    color: "#FFF",
-    fontWeight: "bold",
-  },
-  btnEliminar: {
-    padding: 5,
+  error: {
+    fontFamily: TemaFormulario.fuente,
+    color: TemaFormulario.colores.error,
   },
 });

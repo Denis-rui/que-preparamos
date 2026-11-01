@@ -18,11 +18,13 @@ import { ListaCategorias } from "./ListaCategorias";
 interface Props {
   onAgregarIngrediente: (ingrediente: Ingredientes) => void;
   onSeleccionarCategoria?: (categoria: Categoria) => void;
+  mostrarCategorias?: boolean;
 }
 
 export const BuscadorIngredientes = ({
   onAgregarIngrediente,
   onSeleccionarCategoria,
+  mostrarCategorias = true,
 }: Props) => {
   const { categorias, loading, error } = useCategorias();
 
@@ -111,48 +113,52 @@ export const BuscadorIngredientes = ({
         )}
       </View>
 
-      <View style={styles.categoriasWrapper}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.botonCategorias,
-            pressed && styles.pressed,
-          ]}
-          onPress={alternarCategorias}
-        >
-          <Text style={styles.botonCategoriasTexto} numberOfLines={1}>
-            {categoriaSeleccionada
-              ? categoriaSeleccionada.nombre
-              : "Categorías"}
-          </Text>
-          <MaterialCommunityIcons
-            name={categoriasVisible ? "chevron-up" : "chevron-down"}
-            size={16}
-            color="#333"
-          />
-        </Pressable>
+      {mostrarCategorias && (
+        <View style={styles.categoriasWrapper}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.botonCategorias,
+              pressed && styles.pressed,
+            ]}
+            onPress={alternarCategorias}
+          >
+            <Text style={styles.botonCategoriasTexto} numberOfLines={1}>
+              {categoriaSeleccionada
+                ? categoriaSeleccionada.nombre
+                : "Categorías"}
+            </Text>
+            <MaterialCommunityIcons
+              name={categoriasVisible ? "chevron-up" : "chevron-down"}
+              size={16}
+              color="#333"
+            />
+          </Pressable>
 
-        {categoriasVisible && (
-          <View style={styles.dropdown}>
-            {loading && (
-              <Text style={styles.dropdownMensaje}>Cargando categorías...</Text>
-            )}
+          {categoriasVisible && (
+            <View style={styles.dropdown}>
+              {loading && (
+                <Text style={styles.dropdownMensaje}>
+                  Cargando categorías...
+                </Text>
+              )}
 
-            {error && (
-              <Text style={[styles.dropdownMensaje, styles.dropdownError]}>
-                {error}
-              </Text>
-            )}
+              {error && (
+                <Text style={[styles.dropdownMensaje, styles.dropdownError]}>
+                  {error}
+                </Text>
+              )}
 
-            {!loading && !error && (
-              <ListaCategorias
-                categorias={categorias}
-                categoriaSeleccionada={categoriaSeleccionada}
-                seleccionarCategoria={seleccionarCategoria}
-              />
-            )}
-          </View>
-        )}
-      </View>
+              {!loading && !error && (
+                <ListaCategorias
+                  categorias={categorias}
+                  categoriaSeleccionada={categoriaSeleccionada}
+                  seleccionarCategoria={seleccionarCategoria}
+                />
+              )}
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 };

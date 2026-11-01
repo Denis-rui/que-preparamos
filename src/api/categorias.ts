@@ -13,7 +13,7 @@ export const getCategorias = async (
 
   const json = respuesta.data;
   if (!Array.isArray(json.data)) {
-    throw new Error("El servidor no ha devuelto un catalogo valido");
+    throw new Error("El servidor no ha devuelto categorias validas");
   }
   return json.data;
 };

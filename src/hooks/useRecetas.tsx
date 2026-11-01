@@ -16,7 +16,9 @@ export function useRecetas() {
         if (!controller.signal.aborted) setPagina(datos);
       } catch (err) {
         if (!controller.signal.aborted) {
-          setError(err instanceof Error ? err.message : "Error al cargar las recetas.");
+          setError(
+            err instanceof Error ? err.message : "Error al cargar las recetas.",
+          );
         }
       } finally {
         if (!controller.signal.aborted) setLoading(false);

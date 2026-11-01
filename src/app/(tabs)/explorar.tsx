@@ -4,6 +4,7 @@ import { useRecetas } from "@/hooks/useRecetas";
 import { styles } from "@/styles/explorar.styles";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,6 +18,10 @@ export default function Explorar() {
   const [altoLista, setAltoLista] = useState(0);
   // Tres tarjetas y dos separaciones; conservamos un m?nimo legible en pantallas peque?as.
   const altoTarjeta = Math.max(130, (altoLista - 28) / 3);
+  const parametros = useLocalSearchParams<{
+    categoriaId?: string | string[];
+  }>();
+
   return (
     <SafeAreaView style={styles.contenedor} edges={["top", "left", "right"]}>
       {/* Esta secci?n queda fuera de la lista para permanecer fija. */}
@@ -51,7 +56,11 @@ export default function Explorar() {
                   letterSpacing={-1.2}
                   textAnchor="middle"
                 >
-                  <TextPath href="#arcoExplorar" startOffset="50%" spacing="exact">
+                  <TextPath
+                    href="#arcoExplorar"
+                    startOffset="50%"
+                    spacing="exact"
+                  >
                     Exploremos
                   </TextPath>
                 </SvgText>
@@ -79,7 +88,11 @@ export default function Explorar() {
                   letterSpacing={-0.9}
                   textAnchor="middle"
                 >
-                  <TextPath href="#arcoJuntos" startOffset="50%" spacing="exact">
+                  <TextPath
+                    href="#arcoJuntos"
+                    startOffset="50%"
+                    spacing="exact"
+                  >
                     Juntos
                   </TextPath>
                 </SvgText>

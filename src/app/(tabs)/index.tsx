@@ -60,7 +60,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       )}
-      {CategoriasInicio.length > 0 && (
+      {categorias.length > 0 && (
         <CategoriasInicio
           categorias={categorias}
           seleccionarCategoria={explorarCategorias}

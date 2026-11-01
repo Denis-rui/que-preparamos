@@ -1,4 +1,8 @@
-import { DatosFormularioReceta, TextosReceta } from "@/types/formularioRecetas";
+import {
+  DatosFormularioReceta,
+  IngredienteFormulario,
+  TextosReceta,
+} from "@/types/formularioRecetas";
 import { useState } from "react";
 
 const useFormularioCrear = () => {
@@ -10,6 +14,7 @@ const useFormularioCrear = () => {
     tips: "",
     categoriaId: null,
     subcategoriaId: null,
+    ingredientes: [],
   });
 
   const actualizarTexto = (campo: keyof TextosReceta, valor: string) => {
@@ -38,11 +43,32 @@ const useFormularioCrear = () => {
     }));
   };
 
+  const agregarIngrediente = (ingrediente: IngredienteFormulario) => {
+    setDatos((actuales) => {
+      if (actuales.ingredientes.some((item) => item.id === ingrediente.id)) {
+        return actuales;
+      }
+      return {
+        ...actuales,
+        ingredientes: [...actuales.ingredientes, ingrediente],
+      };
+    });
+  };
+
+  const quitarIngrediente = (id: number) => {
+    setDatos((actuales) => ({
+      ...actuales,
+      ingredientes: actuales.ingredientes.filter((item) => item.id !== id),
+    }));
+  };
+
   return {
     datos,
     actualizarTexto,
     cambiarCategoria,
     cambiarSubcategoria,
+    agregarIngrediente,
+    quitarIngrediente,
   };
 };
 

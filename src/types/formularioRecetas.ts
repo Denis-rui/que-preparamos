@@ -1,3 +1,5 @@
+import { Ingredientes } from "./ingredientes";
+
 export interface TextosReceta {
   nombre: string;
   descripcion: string;
@@ -5,8 +7,13 @@ export interface TextosReceta {
   tiempoPreparacion: string;
   tips: string;
 }
-
+export interface IngredienteFormulario extends Ingredientes {
+  cantidad: string;
+  unidad: string;
+  notas: string;
+}
 export interface DatosFormularioReceta extends TextosReceta {
   categoriaId: number | null;
   subcategoriaId: number | null;
+  ingredientes: IngredienteFormulario[];
 }

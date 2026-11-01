@@ -54,15 +54,28 @@ export function SelectorFiltro({
             flex: 1,
             justifyContent: "center",
             padding: 24,
-            backgroundColor: "rgba(0,0,0,0.4)",
           }}
         >
+          <Pressable
+            onPress={() => setAbierto(false)}
+            accessibilityRole="button"
+            accessibilityLabel="Cerrar Selector"
+            style={{
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              left: 0,
+              right: 0,
+              backgroundColor: "rgba(0,0,0,0.4)",
+            }}
+          />
           <View
             style={{
               backgroundColor: "white",
-              padding: 20,
-              borderRadius: 20,
-              maxHeight: "70%",
+              padding: 16,
+              borderRadius: 16,
+              maxHeight: "40%",
+              width: "70%",
             }}
           >
             <Text style={{ fontSize: 18, fontWeight: "bold" }}>{titulo}</Text>

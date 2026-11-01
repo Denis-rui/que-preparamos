@@ -3,6 +3,7 @@ import { LogoQuePreparamos } from "@/components/LogoQuePreparamos";
 import { RecetasAleatorias } from "@/components/RecetasAleatorias";
 
 import { useCategorias } from "@/hooks/useCategorias";
+import { router } from "expo-router";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -23,6 +24,13 @@ export default function HomeScreen() {
     actualizando,
     actualizar,
   } = useCategorias();
+
+  const explorarCategorias = (CategoriasId: number) => {
+    router.navigate({
+      pathname: "/(tabs)/explorar",
+      params: { categoriaId: CategoriasId.toString() },
+    });
+  };
 
   const aviso = error ?? errorActualizacion;
 
@@ -53,7 +61,10 @@ export default function HomeScreen() {
         </View>
       )}
       {CategoriasInicio.length > 0 && (
-        <CategoriasInicio categorias={categorias} />
+        <CategoriasInicio
+          categorias={categorias}
+          seleccionarCategoria={explorarCategorias}
+        />
       )}
       {vacio && !loading && !enEspera && !error && (
         <Text style={styles.errorText}>No hay categorías disponibles</Text>

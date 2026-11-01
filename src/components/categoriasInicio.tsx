@@ -2,12 +2,14 @@ import { Categoria } from "@/types/categorias";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 const colores = ["#FFE8D6", "#FFD1DC", "#D4EAC8", "#D6E4FF", "#F3E8FF"];
-
+interface Props {
+  categorias: Categoria[];
+  seleccionarCategoria: (categoriaId: number) => void;
+}
 export const CategoriasInicio = ({
   categorias,
-}: {
-  categorias: Categoria[];
-}) => {
+  seleccionarCategoria,
+}: Props) => {
   // Renderiza cada categoría con un color cíclico
   const renderizarCategoria = ({
     item,
@@ -19,7 +21,12 @@ export const CategoriasInicio = ({
     const color = colores[index % colores.length]; // colores cíclicos para cada categoría
     return (
       // Tarjeta de categoría
-      <Pressable style={[styles.tarjeta, { backgroundColor: color }]}>
+      <Pressable
+        onPress={() => {
+          seleccionarCategoria(item.id);
+        }}
+        style={[styles.tarjeta, { backgroundColor: color }]}
+      >
         <Text style={styles.textoTarjeta}>{item.nombre}</Text>
       </Pressable>
     );

@@ -2,6 +2,7 @@ import { styles } from "@/styles/invitarInicioSesion.styles";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import { Modal, Pressable, Text, View } from 'react-native';
+import { IconoGorroChef } from "../recetas/IconoGorroChef";
 import { AppButton } from '../ui/appButton';
 
 interface Props {
@@ -50,7 +51,7 @@ export const InvitarInicioSesion = ({
                 </Pressable>
 
                 <View style={styles.iconoCirculo}>
-                    <MaterialCommunityIcons name="chef-hat" size={34} color="#FF4F0A" />
+                    <IconoGorroChef lleno  size={49}/>
                 </View>
 
                 <Text style={styles.titulo} accessibilityRole="header">

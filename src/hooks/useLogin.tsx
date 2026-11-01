@@ -1,20 +1,23 @@
 import { AuthError, iniciarSesion } from "@/api/auth";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import type { DatosLogin } from "@/types/auth";
 
 // El token es secreto y se guarda en SecureStore.
 import { guardarToken } from "@/storage/token";
 // AsyncStorage recuerda solo nombre y correo, nunca contraseña ni token.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export type LoginCredentials = Pick<DatosLogin, "email" | "password">;
+export type LoginCredentials = {
+  email: string;
+  password: string;
+};
 
 export function useLogin(cuentaGuardada = false) {
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [credencialesRechazadas, setCredencialesRechazadas] = useState(false);
 
-  async function ejecutarLogin({ email, password }: LoginCredentials) {
+  async function submit({ email, password }: LoginCredentials) {
+    setLoading(true);
     setError(null);
     setCredencialesRechazadas(false);
 
@@ -79,22 +82,8 @@ export function useLogin(cuentaGuardada = false) {
       );
 
       throw err;
-    }
-  }
-
-  const consulta = useMutation({
-    mutationFn: ejecutarLogin,
-    retry: false,
-    networkMode: "always",
-    // No conservamos las credenciales ni la respuesta de acceso en la caché.
-    gcTime: 0,
-  });
-
-  async function submit(credenciales: LoginCredentials) {
-    try {
-      return await consulta.mutateAsync(credenciales);
     } finally {
-      consulta.reset();
+      setLoading(false);
     }
   }
 
@@ -105,7 +94,7 @@ export function useLogin(cuentaGuardada = false) {
 
   return {
     submit,
-    loading: consulta.isPending,
+    loading,
     error,
     resetError,
     credencialesRechazadas,

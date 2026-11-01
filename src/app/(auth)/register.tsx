@@ -22,7 +22,6 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { registrarUsuario } from "../../api/auth";
-import { useMutation } from "@tanstack/react-query";
 
 type FormData = {
   nombre: string;
@@ -40,13 +39,6 @@ type FormErrors = {
 };
 
 export default function Register() {
-  const registro = useMutation({
-    mutationFn: registrarUsuario,
-    retry: false,
-    networkMode: "always",
-    // Liberamos los datos de registro al terminar, sin conservar contraseñas.
-    gcTime: 0,
-  });
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmPasswordRef = useRef<TextInput>(null);
@@ -121,7 +113,7 @@ export default function Register() {
     setIsLoading(true);
     // Integracion de api registrar
     try {
-      await registro.mutateAsync({
+      await registrarUsuario({
         name: formData.nombre,
         email: formData.email,
         password: formData.password,
@@ -147,10 +139,9 @@ export default function Register() {
         JSON.stringify(nuevasCuentas),
       );
       router.replace("/login");
-    } catch (error: unknown) {
-      setServerError(error instanceof Error ? error.message : "No pudimos registrar la cuenta.");
+    } catch (error: any) {
+      setServerError(error.message);
     } finally {
-      registro.reset();
       setIsLoading(false);
     }
   };

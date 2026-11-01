@@ -62,4 +62,9 @@ export interface PaginaRecomendaciones {
     total: number;
   };
 }
-// Para un detalle completo
+// Para los filtros
+export interface FiltrosRecetas {
+  buscar?: string;
+  categoriaId?: number;
+  subcategoriaId?: number;
+}

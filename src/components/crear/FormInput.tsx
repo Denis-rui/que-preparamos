@@ -1,36 +1,94 @@
-import { StyleSheet, TextInput, View } from "react-native";
+import { Spacing, TemaFormulario } from "@/constants/theme";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  View,
+} from "react-native";
 
-interface FormInputProps {
-  placeholder: string;
-  multiline?: boolean;
+interface FormInputProps extends TextInputProps {
+  etiqueta?: string;
+  ayuda?: string;
+  error?: string;
 }
 
-export const FormInput = ({ placeholder, multiline }: FormInputProps) => {
+export const FormInput = ({
+  etiqueta,
+  ayuda,
+  error,
+  multiline = false,
+  style,
+  accessibilityLabel,
+  placeholder,
+  placeholderTextColor,
+  ...props
+}: FormInputProps) => {
   return (
-    <View style={styles.container}>
+    <View style={styles.contenedor}>
+      <Text style={styles.etiqueta}>{etiqueta}</Text>
       <TextInput
-        style={[styles.input, multiline && styles.textArea]}
+        {...props}
         placeholder={placeholder}
         multiline={multiline}
-        placeholderTextColor="#999"
+        accessibilityLabel={accessibilityLabel ?? etiqueta ?? placeholder}
+        placeholderTextColor={
+          placeholderTextColor ?? TemaFormulario.colores.secundario
+        }
+        style={[
+          styles.campo,
+          multiline && styles.multilinea,
+          Boolean(error) && styles.campoError,
+          style,
+        ]}
       />
+      {ayuda && <Text style={styles.ayuda}>{ayuda}</Text>}
+      {error && (
+        <Text style={styles.error} accessibilityLiveRegion="polite">
+          {error}
+        </Text>
+      )}
     </View>
   );
 };
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: 15,
+  contenedor: {
+    gap: Spacing.one,
+    marginBottom: Spacing.three,
   },
-  input: {
-    backgroundColor: "#E4E4E4",
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#333",
+  etiqueta: {
+    color: TemaFormulario.colores.texto,
+    fontFamily: TemaFormulario.fuenteEtiqueta,
+    fontSize: TemaFormulario.tamanoEtiqueta,
   },
-  textArea: {
-    height: 100,
+  campo: {
+    minHeight: TemaFormulario.altoCampo,
+    backgroundColor: TemaFormulario.colores.campo,
+    borderWidth: 1,
+    borderColor: TemaFormulario.colores.borde,
+    borderRadius: TemaFormulario.radioCampo,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two + Spacing.one,
+    fontFamily: TemaFormulario.fuente,
+    fontSize: TemaFormulario.tamanoCampo,
+    color: TemaFormulario.colores.texto,
+  },
+  multilinea: {
+    // Puede crecer con el contenido o los estilos del consumidor.
+    minHeight: 120,
     textAlignVertical: "top",
+  },
+  campoError: {
+    borderColor: TemaFormulario.colores.error,
+  },
+  ayuda: {
+    fontFamily: TemaFormulario.fuente,
+    fontSize: TemaFormulario.tamanoAyuda,
+    color: TemaFormulario.colores.secundario,
+  },
+  error: {
+    fontFamily: TemaFormulario.fuente,
+    fontSize: TemaFormulario.tamanoAyuda,
+    color: TemaFormulario.colores.error,
   },
 });

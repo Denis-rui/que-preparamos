@@ -22,6 +22,9 @@ const FormularioCrear = () => {
     cambiarSubcategoria,
     agregarIngrediente,
     quitarIngrediente,
+    agregarPaso,
+    actualizarPaso,
+    quitarPaso,
   } = useFormularioCrear();
 
   return (
@@ -88,7 +91,12 @@ const FormularioCrear = () => {
             agregarIngrediente={agregarIngrediente}
             quitarIngrediente={quitarIngrediente}
           />
-          <PasosPreparacion />
+          <PasosPreparacion
+            pasos={datos.pasos}
+            actualizarPaso={actualizarPaso}
+            agregarPaso={agregarPaso}
+            quitarPaso={quitarPaso}
+          />
           <FormInput
             etiqueta="Tips o consejos (opcional)"
             placeholder="Comparte alguna recomendación para esta receta"

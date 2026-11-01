@@ -86,11 +86,16 @@ export const FormIngredientes = ({
               {indice + 1}. {ingrediente.nombre}
             </Text>
 
-            <Text style={styles.detalle}>
+            {/* <Text style={styles.detalle}>
               {[ingrediente.cantidad, ingrediente.unidad]
                 .filter(Boolean)
-                .join(" ") || "Sin cantidad especificada"}
-            </Text>
+                .join(" ")}
+            </Text> */}
+            {ingrediente.cantidad !== "" && (
+              <Text style={styles.detalle}>
+                {ingrediente.cantidad} {ingrediente.unidad}
+              </Text>
+            )}
 
             {ingrediente.notas !== "" && (
               <Text style={styles.detalle}>{ingrediente.notas}</Text>

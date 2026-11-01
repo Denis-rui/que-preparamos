@@ -3,7 +3,7 @@ import {
   IngredienteFormulario,
   TextosReceta,
 } from "@/types/formularioRecetas";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 const useFormularioCrear = () => {
   const [datos, setDatos] = useState<DatosFormularioReceta>({
@@ -15,8 +15,12 @@ const useFormularioCrear = () => {
     categoriaId: null,
     subcategoriaId: null,
     ingredientes: [],
+    pasos: [
+      { id: 1, instruccion: "" },
+      { id: 2, instruccion: "" },
+    ],
   });
-
+  const siguientePaso = useRef(3);
   const actualizarTexto = (campo: keyof TextosReceta, valor: string) => {
     setDatos((actuales) => ({
       ...actuales,
@@ -61,7 +65,41 @@ const useFormularioCrear = () => {
       ingredientes: actuales.ingredientes.filter((item) => item.id !== id),
     }));
   };
+  const agregarPaso = () => {
+    const id = siguientePaso.current;
+    siguientePaso.current += 1;
+    setDatos((actuales) => {
+      if (actuales.pasos.length >= 500) {
+        return actuales;
+      }
+      return {
+        ...actuales,
+        pasos: [...actuales.pasos, { id, instruccion: "" }],
+      };
+    });
+  };
 
+  const actualizarPaso = (id: number, instruccion: string) => {
+    setDatos((actuales) => ({
+      ...actuales,
+      pasos: actuales.pasos.map((paso) =>
+        paso.id === id ? { ...paso, instruccion } : paso,
+      ),
+    }));
+  };
+
+  const quitarPaso = (id: number) => {
+    setDatos((actuales) => {
+      if (actuales.pasos.length <= 1) {
+        return actuales;
+      }
+
+      return {
+        ...actuales,
+        pasos: actuales.pasos.filter((paso) => paso.id !== id),
+      };
+    });
+  };
   return {
     datos,
     actualizarTexto,
@@ -69,6 +107,9 @@ const useFormularioCrear = () => {
     cambiarSubcategoria,
     agregarIngrediente,
     quitarIngrediente,
+    agregarPaso,
+    actualizarPaso,
+    quitarPaso,
   };
 };
 

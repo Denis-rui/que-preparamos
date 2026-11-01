@@ -16,4 +16,9 @@ export interface DatosFormularioReceta extends TextosReceta {
   categoriaId: number | null;
   subcategoriaId: number | null;
   ingredientes: IngredienteFormulario[];
+  pasos: PasoFormulario[];
+}
+export interface PasoFormulario {
+  id: number;
+  instruccion: string;
 }

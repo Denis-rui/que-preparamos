@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   tituloCategorias: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#3E2723",
+    color: "#edc6bf",
   },
   contenedorCategorias: {
     paddingHorizontal: 20,
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   textoTarjeta: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#3E2723",
+    color: "#7c6966",
     textAlign: "center",
   },
 });

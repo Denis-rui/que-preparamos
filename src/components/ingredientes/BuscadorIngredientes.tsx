@@ -10,15 +10,13 @@ import {
 } from "react-native";
 
 import { Categoria } from "@/types/categorias";
-import {
-  useBuscarIngredientes,
-  type IngredienteApi,
-} from "../../hooks/useBuscarIngredientes";
+import { Ingredientes } from "@/types/ingredientes";
+import { useBuscarIngredientes } from "../../hooks/useBuscarIngredientes";
 import { useCategorias } from "../../hooks/useCategorias";
 import { ListaCategorias } from "./ListaCategorias";
 
 interface Props {
-  onAgregarIngrediente: (ingrediente: IngredienteApi) => void;
+  onAgregarIngrediente: (ingrediente: Ingredientes) => void;
   onSeleccionarCategoria?: (categoria: Categoria) => void;
 }
 
@@ -48,7 +46,7 @@ export const BuscadorIngredientes = ({
     onSeleccionarCategoria?.(categoria);
   };
 
-  const seleccionarIngrediente = (ingrediente: IngredienteApi) => {
+  const seleccionarIngrediente = (ingrediente: Ingredientes) => {
     onAgregarIngrediente(ingrediente);
     setTexto("");
   };

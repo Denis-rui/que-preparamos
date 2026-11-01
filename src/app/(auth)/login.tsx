@@ -1,5 +1,10 @@
 import { Image } from "expo-image";
-import { Href, router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import {
+  Href,
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+} from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   Pressable,
@@ -28,9 +33,9 @@ import LoginModal from "@/components/auth/LoginModal";
 type ModalActivo = "guardada" | "otra" | null;
 
 export default function Login() {
-  const { sesionVencida, volverA } = useLocalSearchParams<{ 
+  const { sesionVencida, volverA } = useLocalSearchParams<{
     sesionVencida?: string;
-    volverA: string;
+    volverA?: string;
   }>();
   const [notice, setNotice] = useState("");
 
@@ -154,14 +159,15 @@ export default function Login() {
       // Un fallo de almacenamiento no debe impedir entrar a la app.
     }
 
-    const destino = 
-      typeof volverA === "string" && volverA.startsWith("/receta/") 
-      ? volverA 
-      : undefined;
+    const destino =
+      typeof volverA === "string" &&
+      (volverA === "/(tabs)/crear" || volverA.startsWith("/receta/"))
+        ? volverA
+        : undefined;
 
     setNotice("");
     cerrarModal();
-    if(destino && router.canGoBack()){
+    if (destino && router.canGoBack()) {
       router.back();
       return;
     }
@@ -181,7 +187,7 @@ export default function Login() {
               deshabilitado={isLoading}
               etiqueta="Volver a la bienvenida"
             />
-            
+
             <View style={styles.brand}>
               <View
                 style={styles.logoRow}

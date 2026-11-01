@@ -1,22 +1,26 @@
 import axios from "axios";
 
+// mensajes de error para mostrar al usuario según el tipo de error recibido.
+
 export function obtenerMensajeError(error: unknown): string | null {
+  // Si no hay error o la solicitud fue cancelada, no mostramos mensaje.
   if (error == null || axios.isCancel(error)) {
     return null;
   }
+  // Si no es un error de Axios, devolvemos un mensaje genérico.
   if (!axios.isAxiosError<unknown>(error)) {
     return "No pudimos completar la operación. Inténtalo nuevamente.";
   }
-
-  // Códigos locales definidos en tu cliente Axios.
+  // si la sesion a cambiado
   if (error.code === "SESION_CAMBIADA") {
     return "La sesión cambió. Vuelve a cargar la información.";
   }
 
+  // si no existen sesion
   if (error.code === "SESION_NO_ENCONTRADA") {
     return "Inicia sesión para continuar.";
   }
-
+  // si no hay datos
   if (error.code === "NO_DATA") {
     return "El servidor devolvió información incompleta.";
   }
@@ -24,7 +28,6 @@ export function obtenerMensajeError(error: unknown): string | null {
   const estado = error.response?.status;
 
   if (estado !== undefined) {
-    // No mostramos posibles mensajes técnicos del servidor.
     if (estado >= 500) {
       return "El servidor no pudo completar la operación. Inténtalo más tarde.";
     }
@@ -33,6 +36,23 @@ export function obtenerMensajeError(error: unknown): string | null {
       return "No pudimos interpretar la respuesta del servidor.";
     }
 
+    if (estado >= 400 && estado < 500) {
+      const cuerpo = error.response?.data;
+      //
+      if (typeof cuerpo === "object" && cuerpo !== null) {
+        const mensaje = "mensaje" in cuerpo ? cuerpo.mensaje : undefined;
+        if (typeof mensaje === "string" && mensaje.trim()) {
+          return mensaje.trim();
+        }
+
+        // Si mensaje no existe o está vacío, probamos message.
+        const message = "message" in cuerpo ? cuerpo.message : undefined;
+
+        if (typeof message === "string" && message.trim()) {
+          return message.trim();
+        }
+      }
+    }
     switch (estado) {
       case 401:
         return "No pudimos verificar tu acceso.";

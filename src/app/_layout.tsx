@@ -13,6 +13,8 @@ import * as SplashScreen from "expo-splash-screen";
 import { useColorScheme } from "react-native";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
+import { clienteQuery } from "@/config/cliente-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 SplashScreen.preventAutoHideAsync();
@@ -30,20 +32,24 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <AnimatedSplashOverlay ready={fontsLoaded} />
-        {fontsLoaded && (
-          <Stack
-            initialRouteName="(auth)"
-            screenOptions={{ headerShown: false }}
-          >
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="recomendaciones" />
-            <Stack.Screen name="receta/[id]" />
-          </Stack>
-        )}
-      </ThemeProvider>
+      <QueryClientProvider client={clienteQuery}>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <AnimatedSplashOverlay ready={fontsLoaded} />
+          {fontsLoaded && (
+            <Stack
+              initialRouteName="(auth)"
+              screenOptions={{ headerShown: false }}
+            >
+              <Stack.Screen name="(auth)" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="recomendaciones" />
+              <Stack.Screen name="receta/[id]" />
+            </Stack>
+          )}
+        </ThemeProvider>
+      </QueryClientProvider>
     </SafeAreaProvider>
   );
 }

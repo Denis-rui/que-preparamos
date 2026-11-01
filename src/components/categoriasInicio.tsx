@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   tituloCategorias: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#edc6bf",
+    color: "#4A2B12",
   },
   contenedorCategorias: {
     paddingHorizontal: 20,

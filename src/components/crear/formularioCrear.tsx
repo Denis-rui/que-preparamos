@@ -1,18 +1,13 @@
 import useFormularioCrear from "@/hooks/useFormularioCrear";
 import { stylesCrear } from "@/styles/formulariocrear.styles";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Botones from "./Botones";
+import ClasificacionReceta from "./clasificacionReceta";
 import { FormIngredientes } from "./FormIngredientes";
 import { FormInput } from "./FormInput";
+import { FotoReceta } from "./FotoReceta";
 import { PasosPreparacion } from "./PasosPreparacion";
-import ClasificacionReceta from "./clasificacionReceta";
 
 const FormularioCrear = () => {
   const {
@@ -25,6 +20,10 @@ const FormularioCrear = () => {
     agregarPaso,
     actualizarPaso,
     quitarPaso,
+    seleccionarImagen,
+    quitarImagen,
+    imagenSeleccionada,
+    errorImagen,
   } = useFormularioCrear();
 
   return (
@@ -40,9 +39,13 @@ const FormularioCrear = () => {
           keyboardDismissMode="on-drag"
         >
           <Text style={stylesCrear.titulo}>Nueva Receta</Text>
-          <View style={stylesCrear.imagen}>
-            <Text style={stylesCrear.textoImagen}>Foto de la receta</Text>
-          </View>
+          <FotoReceta
+            imagen={datos.imagen}
+            seleccionando={imagenSeleccionada}
+            error={errorImagen}
+            seleccionarImagen={seleccionarImagen}
+            quitarImagen={quitarImagen}
+          />
           <FormInput
             etiqueta="Nombre de la receta"
             placeholder="Ejemplo: Arroz con pollo"

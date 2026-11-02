@@ -19,6 +19,7 @@ const useFormularioCrear = () => {
       { id: 1, instruccion: "" },
       { id: 2, instruccion: "" },
     ],
+    imagen: null,
   });
   const siguientePaso = useRef(3);
   const actualizarTexto = (campo: keyof TextosReceta, valor: string) => {

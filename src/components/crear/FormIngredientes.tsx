@@ -50,6 +50,10 @@ export const FormIngredientes = ({
     const formatoCantidad = /^(?:\d+(?:\.\d{0,3})?|\.\d{1,3})$/.test(
       textoCantidad,
     );
+    if (textoCantidad.trim() === "" && notas.trim() === "") {
+      setError("Debe ingresar una cantidad o una nota");
+      return;
+    }
 
     const numeroCantidad = Number(textoCantidad);
     if (

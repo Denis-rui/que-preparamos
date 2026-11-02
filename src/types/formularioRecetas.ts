@@ -1,3 +1,4 @@
+import { ImagePickerAsset } from "expo-image-picker";
 import { Ingredientes } from "./ingredientes";
 
 export interface TextosReceta {
@@ -13,6 +14,7 @@ export interface IngredienteFormulario extends Ingredientes {
   notas: string;
 }
 export interface DatosFormularioReceta extends TextosReceta {
+  imagen: ImagePickerAsset | null;
   categoriaId: number | null;
   subcategoriaId: number | null;
   ingredientes: IngredienteFormulario[];

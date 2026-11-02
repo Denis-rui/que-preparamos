@@ -3,6 +3,7 @@ import {
   IngredienteFormulario,
   TextosReceta,
 } from "@/types/formularioRecetas";
+import { launchImageLibraryAsync } from "expo-image-picker";
 import { useRef, useState } from "react";
 
 const useFormularioCrear = () => {
@@ -21,12 +22,85 @@ const useFormularioCrear = () => {
     ],
     imagen: null,
   });
+
   const siguientePaso = useRef(3);
+
+  const [imagenSeleccionada, setImagenSeleccionada] = useState(false);
+  const [errorImagen, setErrorImagen] = useState<string | null>(null);
+
+  const selectorImagenAbierto = useRef(false);
+  // FUNCIONES
+
   const actualizarTexto = (campo: keyof TextosReceta, valor: string) => {
     setDatos((actuales) => ({
       ...actuales,
       [campo]: valor,
     }));
+  };
+
+  const seleccionarImagen = async (): Promise<void> => {
+    if (selectorImagenAbierto.current) {
+      return;
+    }
+    selectorImagenAbierto.current = true;
+    setImagenSeleccionada(true);
+    setErrorImagen(null);
+
+    try {
+      const resultado = await launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsMultipleSelection: false,
+        allowsEditing: false,
+        base64: false,
+      });
+
+      if (resultado.canceled) {
+        return;
+      }
+      const imagen = resultado.assets[0];
+
+      if (!imagen) {
+        setErrorImagen("No se pudo obtener la imagen seleccionada");
+        return;
+      }
+
+      const tipo = (imagen.mimeType || imagen.file?.type)?.toLowerCase();
+
+      const tiposPermitidos = [
+        "image/jpeg",
+        "image/png",
+        "image/jpg",
+        "image/webp",
+      ];
+      if (tipo && !tiposPermitidos.includes(tipo)) {
+        setErrorImagen("seleccione una imagen JPG, PNG, JPEG O WEBP");
+        return;
+      }
+
+      const tamanio = imagen.fileSize ?? imagen.file?.size;
+
+      if (tamanio !== undefined && tamanio > 10 * 1024 * 1024) {
+        setErrorImagen("Imagen debe pesar menos de 10 MB");
+        return;
+      }
+      setDatos((actuales) => ({
+        ...actuales,
+        imagen,
+      }));
+    } catch (error) {
+      setErrorImagen("No pudo abrir tus fotos. Intenta nuevamente.");
+    } finally {
+      selectorImagenAbierto.current = false;
+      setImagenSeleccionada(false);
+    }
+  };
+
+  const quitarImagen = () => {
+    setDatos((actuales) => ({
+      ...actuales,
+      imagen: null,
+    }));
+    setErrorImagen(null);
   };
 
   const cambiarCategoria = (idCategoria: number | null) => {
@@ -111,6 +185,11 @@ const useFormularioCrear = () => {
     agregarPaso,
     actualizarPaso,
     quitarPaso,
+    // imagen
+    seleccionarImagen,
+    quitarImagen,
+    imagenSeleccionada,
+    errorImagen,
   };
 };
 

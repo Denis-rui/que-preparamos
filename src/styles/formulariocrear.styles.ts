@@ -15,6 +15,23 @@ export const stylesCrear = StyleSheet.create({
     fontSize: 29,
     color: TemaFormulario.colores.texto,
     marginBottom: Spacing.three,
+    textAlign: "center",
+    transform: [{ translateY: -Spacing.two }],
+  },
+  seccion: {
+    backgroundColor: TemaFormulario.colores.campo,
+    borderWidth: 1,
+    borderColor: TemaFormulario.colores.borde,
+    borderRadius: TemaFormulario.radioCampo,
+    padding: Spacing.three,
+    marginTop: Spacing.two,
+    marginBottom: Spacing.four,
+    gap: Spacing.two,
+  },
+  tituloSeccion: {
+    fontFamily: TemaFormulario.fuenteEtiqueta,
+    fontSize: 18,
+    color: TemaFormulario.colores.texto,
   },
   imagen: {
     minHeight: 160,

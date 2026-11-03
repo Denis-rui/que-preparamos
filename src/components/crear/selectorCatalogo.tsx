@@ -5,7 +5,7 @@ interface OpcionCatalogo {
   id: number;
   nombre: string;
 }
-interface Props {
+export interface PropsSelectorCatalogo {
   etiqueta: string;
   placeholder: string;
   opciones: OpcionCatalogo[];
@@ -20,7 +20,7 @@ const SelectorCatalogo = ({
   valorId,
   onSeleccionar,
   disabled,
-}: Props) => {
+}: PropsSelectorCatalogo) => {
   const valorVisible =
     valorId !== null && opciones.some((opcion) => opcion.id === valorId)
       ? valorId
@@ -36,7 +36,7 @@ const SelectorCatalogo = ({
           matchContents
           style={styles.host}
           colorScheme="light"
-          seedColor={TemaFormulario.colores.acento}
+          seedColor={TemaFormulario.colores.texto}
         >
           <Picker
             selectedValue={valorVisible}

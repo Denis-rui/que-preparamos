@@ -99,7 +99,8 @@ const FormularioCrear = () => {
 
             <FormInput
               etiqueta="Tiempo de preparacion"
-              placeholder="Ejemplo: 30 minutos"
+              placeholder="Ejemplo: 30"
+              sufijo="minutos"
               value={datos.tiempoPreparacion}
               onChangeText={(texto) =>
                 actualizarTexto("tiempoPreparacion", texto)

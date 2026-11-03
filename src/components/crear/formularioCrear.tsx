@@ -14,8 +14,10 @@ import { FormIngredientes } from "./FormIngredientes";
 import { FormInput } from "./FormInput";
 import { FotoReceta } from "./FotoReceta";
 import { PasosPreparacion } from "./PasosPreparacion";
-
-const FormularioCrear = () => {
+interface Props {
+  avisoAcceso?: string | null;
+}
+const FormularioCrear = ({ avisoAcceso }: Props) => {
   const {
     datos,
     actualizarTexto,
@@ -51,6 +53,14 @@ const FormularioCrear = () => {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         >
+          {avisoAcceso && (
+            <Text
+              style={stylesCrear.avisoAcceso}
+              accessibilityLiveRegion="polite"
+            >
+              {avisoAcceso}
+            </Text>
+          )}
           <View
             key={claveFormulario}
             pointerEvents={

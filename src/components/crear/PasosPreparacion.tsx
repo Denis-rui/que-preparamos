@@ -1,4 +1,5 @@
 import { Spacing, TemaFormulario } from "@/constants/theme";
+import { stylesCrear } from "@/styles/formulariocrear.styles";
 import { PasoFormulario } from "@/types/formularioRecetas";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -22,8 +23,8 @@ export const PasosPreparacion = ({
   quitarPaso,
 }: Props) => {
   return (
-    <View style={styles.seccion}>
-      <Text style={styles.titulo}>Preparación</Text>
+    <View style={stylesCrear.seccion}>
+      <Text style={stylesCrear.tituloSeccion}>Preparación</Text>
 
       {pasos.map((paso, indice) => (
         // Usamos un identificador estable para conservar la identidad
@@ -51,6 +52,7 @@ export const PasosPreparacion = ({
           </View>
 
           <FormInput
+            estiloContenedor={styles.campoPaso}
             placeholder="Explica qué se debe hacer..."
             accessibilityLabel={`Instrucción del paso ${indice + 1}`}
             value={paso.instruccion}
@@ -74,19 +76,13 @@ export const PasosPreparacion = ({
   );
 };
 const styles = StyleSheet.create({
-  seccion: {
-    marginBottom: Spacing.four,
-    gap: Spacing.two,
-  },
-  titulo: {
-    fontFamily: TemaFormulario.fuenteEtiqueta,
-    fontSize: 18,
-    color: TemaFormulario.colores.texto,
-  },
   encabezado: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginBottom: Spacing.one,
+  },
+  campoPaso: {
     marginBottom: Spacing.two,
   },
   etiqueta: {

@@ -72,7 +72,7 @@ export default function MiPerfil() {
           ) {
             setNotice(
               obtenerMensajeError(error) ??
-                "No pudimos cargar tu perfil. Revisa tu conexión e inténtalo nuevamente.",
+                "No pudimos cargar tu perfil. Inténtalo nuevamente.",
             );
           }
         } finally {
@@ -99,7 +99,7 @@ export default function MiPerfil() {
       await cerrarSesion();
       setProfile(null);
       setEditing(false);
-      reiniciarNavegacion("/login");
+      reiniciarNavegacion("/welcome");
     } catch {
       setNotice("No pudimos cerrar sesión. Inténtalo nuevamente.");
     } finally {

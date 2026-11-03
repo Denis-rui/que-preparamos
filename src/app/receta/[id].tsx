@@ -18,12 +18,16 @@ import { IconoGorroChef } from "@/components/recetas/IconoGorroChef";
 import ModalValoracion from "@/components/recetas/ModalValoracion";
 import { BotonVolver } from "@/components/ui/botonVolver";
 import { useRecetaDetalle } from "@/hooks/useRecetaDetalle";
+import { useValorarReceta } from "@/hooks/useValorarReceta";
 import { obtenerToken } from "@/storage/token";
 import { useEffect, useState } from "react";
 
 export default function DetalleReceta() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { receta, loading, error } = useRecetaDetalle(id);
+
+  const { valorar, guardando, error: errorValoracion, reiniciar, exito } =useValorarReceta(id);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [leyendo, setLeyendo] = useState(false);
   const [invitacionVisible, setInvitacionVisible] = useState(false);
@@ -60,6 +64,7 @@ export default function DetalleReceta() {
   const alPresionarCalificar = async () => {
     const token = await obtenerToken();
     if (token) {
+      reiniciar(); // limpia el resultado de una calificación anterior
       setModalVisible(true); // con sesión: abre la calificación
     } else {
       setInvitacionVisible(true); // invitado: lo invita a iniciar sesión
@@ -82,7 +87,7 @@ export default function DetalleReceta() {
           size={40}
           color="#9C8B7A"
         />
-        <Text style={styles.estadoTexto}>No se pudo cargar la receta.</Text>
+        <Text style={styles.estadoTexto}>{ error ?? "No se pudo cargar la receta."}</Text>
         <Pressable
           onPress={() => router.back()}
           style={styles.estadoBotonVolver}
@@ -92,6 +97,15 @@ export default function DetalleReceta() {
       </SafeAreaView>
     );
   }
+
+  const total = receta.cantidad_valoraciones;
+  const tieneValoraciones = total>0;
+
+  const textoValoraciones = total === 0 ? "Sin valoraciones" : `(${total} ${total === 1 ? "valoración" : "valoraciones"})`;
+
+  const promedio = tieneValoraciones && receta.valoracion_promedio != null ? `${Number(receta.valoracion_promedio).toFixed(1)}/5` : null;
+
+  const proporcion = tieneValoraciones && receta.valoracion_promedio != null ? Math.min(Math.max(receta.valoracion_promedio / 5, 0), 1) : 0;
 
   return (
     <SafeAreaView
@@ -139,40 +153,54 @@ export default function DetalleReceta() {
             <Text style={styles.descripcion}>{receta.descripcion}</Text>
           </View>
 
-          <View style={styles.lineaVertical} />
+          <View style={styles.encabezadoValoracion}>
+            <View style={styles.lineaVertical} />
 
-          <Pressable
-            onPress={alPresionarCalificar}
-            style={({ pressed }) => [
-              styles.valoracionBloque,
-              pressed && styles.valoracionPresionado,
-            ]}
-          >
-            <Svg
-              width={84}
-              height={30}
-              viewBox="0 0 96 34"
-              style={{ marginLeft: -4, marginTop: -35 }}
+            <Pressable
+              onPress={alPresionarCalificar}
+              style={({ pressed }) => [
+                styles.valoracionBloque,
+                pressed && styles.valoracionPresionado,
+              ]}
             >
-              <Defs>
-                <Path id="curva" d="M4 26 Q48 6 92 26" />
-              </Defs>
-              <SvgText
-                fill="#552714"
-                fontSize="12"
-                fontFamily="Kavoon_400Regular"
-                textAnchor="middle"
+              <Svg
+                width={84}
+                height={30}
+                viewBox="0 0 96 34"
+                style={{ marginLeft: -4, marginTop: -35 }}
               >
-                <TextPath href="#curva" startOffset="50%">
-                  ¡Califícanos!
-                </TextPath>
-              </SvgText>
-            </Svg>
+                <Defs>
+                  <Path id="curva" d="M4 26 Q48 6 92 26" />
+                </Defs>
+                <SvgText
+                  fill="#552714"
+                  fontSize="12"
+                  fontFamily="Kavoon_400Regular"
+                  textAnchor="middle"
+                >
+                  <TextPath href="#curva" startOffset="50%">
+                    ¡Califícanos!
+                  </TextPath>
+                </SvgText>
+              </Svg>
 
-            <View style={styles.gorroValoracion}>
-              <IconoGorroChef lleno size={38} />
-            </View>
-          </Pressable>
+              <View style={styles.valoracionFila}>
+                <View>
+                  <IconoGorroChef  proporcion={proporcion} size={38} />
+                </View>
+
+                {promedio ? (
+                  <Text style={styles.valoracionPromedio}>{promedio}</Text>
+                ) : null}
+
+              </View>
+
+              <Text style={styles.valoracionCantidad} numberOfLines={1}>
+                {textoValoraciones}
+              </Text>
+            </Pressable>
+          </View>
+
         </View>
 
         <View style={styles.metaFila}>
@@ -200,7 +228,7 @@ export default function DetalleReceta() {
         <View style={styles.ingredientesCard}>
           <Text style={styles.ingredientesTitulo}>Ingredientes</Text>
           <View style={styles.ingredientesGrid}>
-            {receta.ingredientes?.map((ing: any) => (
+            {receta.ingredientes?.map((ing) => (
               <View key={ing.ingrediente_id} style={styles.ingredienteItem}>
                 <View style={styles.ingredienteBullet} />
                 <Text style={styles.ingredienteTexto}>
@@ -225,7 +253,7 @@ export default function DetalleReceta() {
               />
             </Pressable>
           </View>
-          {receta.pasos?.map((paso: any) => (
+          {receta.pasos?.map((paso) => (
             <View key={paso.orden} style={styles.pasoFila}>
               <View style={styles.pasoNumero}>
                 <Text style={styles.pasoNumeroTexto}>{paso.orden}</Text>
@@ -253,11 +281,15 @@ export default function DetalleReceta() {
 
       <ModalValoracion
         visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onCalificar={(puntaje) => {
-          // TODO: guardar `puntaje` para la receta `id`
+        guardando={guardando}
+        exito={exito}
+        error={errorValoracion}
+        onClose={() => {
           setModalVisible(false);
         }}
+        onCalificar={(puntaje) =>
+          valorar(puntaje)
+        }
       />
 
       <InvitarInicioSesion

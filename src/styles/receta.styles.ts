@@ -63,9 +63,14 @@ export const styles = StyleSheet.create({
   },
   encabezadoFila:{
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     marginHorizontal: 6,
     marginTop: 4,
+  },
+  encabezadoValoracion:{
+    flexDirection: "row",
+    alignItems: "center",
+    height: 126,
   },
   encabezadoTextos:{
     flex:1,
@@ -255,14 +260,28 @@ export const styles = StyleSheet.create({
   valoracionBloque: {
     alignItems: "center",
     justifyContent: "center",
-    width: 84,
+    width: 100,
     overflow: "visible",
+  },
+  valoracionCantidad: {
+    marginTop: 2,
+    fontSize: 10,
+    color: "#9C8B7A",
+    textAlign: "center",
   },
   valoracionPresionado: {
     opacity: 0.6,
     transform: [{ scale: 0.95 }],
   },
-  gorroValoracion: {
+  valoracionFila: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     marginTop: -8,
+  },
+  valoracionPromedio: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#552414",
   },
 });

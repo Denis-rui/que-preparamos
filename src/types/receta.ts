@@ -68,3 +68,32 @@ export interface FiltrosRecetas {
   categoriaId?: number;
   subcategoriaId?: number;
 }
+
+// Para el detalle de la receta
+export interface IngredienteDetalle {
+  ingrediente_id: number;
+  nombre: string;
+  cantidad: number | null;
+  unidad: string | null;
+  notas: string | null;
+  orden: number;
+}
+
+export interface PasoReceta {
+  orden: number;
+  instruccion: string;
+}
+
+export interface RecetaDetalle extends RecetaResumen {
+  tips: string | null;
+  ingredientes: IngredienteDetalle[];
+  pasos: PasoReceta[];
+}
+
+// Respuesta de PUT /recetas/{id}/valoracion
+export interface ValoracionReceta {
+  receta_id: number;
+  puntuacion: number | null;
+  valoracion_promedio: number | null;
+  cantidad_valoraciones: number;
+}

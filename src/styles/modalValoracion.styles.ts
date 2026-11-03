@@ -49,4 +49,25 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
   },
+  error: {
+    color: "#C0392B",
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: -16,
+    marginBottom: 12,
+  },
+  iconoGracias: {
+    marginBottom: 16,
+  },
+  tituloGracias: {
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  mensajeGracias: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#756B64",
+    textAlign: "center",
+    marginBottom: 28,
+  },
 });

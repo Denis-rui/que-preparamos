@@ -1,7 +1,7 @@
 import { actualizarPerfil, actualizarFotoPerfil, prepararFotoPerfil, obtenerPerfil } from "@/api/perfil";
 import { CLAVE_SESION } from "@/config/cliente-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { obtenerToken } from "@/storage/token";
+import { obtenerToken, recordarPerfil } from "@/storage/token";
 import type { DatosActualizarPerfil, FotoPerfil, Perfil } from "@/types/perfil";
 import { obtenerMensajeError } from "@/utils/mensajeError";
 import { AxiosError } from "axios";
@@ -32,6 +32,7 @@ export function useActualizarPerfil() {
         ? await actualizarPerfil(datos)
         : await obtenerPerfil();
       await comprobarSesion();
+      await recordarPerfil(usuario, token);
       clienteQuery.setQueryData(CLAVE_SESION, usuario);
       if (cuerpo) {
         try {
@@ -39,6 +40,7 @@ export function useActualizarPerfil() {
           const url = await actualizarFotoPerfil(cuerpo);
           await comprobarSesion();
           usuario = { ...usuario, foto_perfil_url: url };
+          await recordarPerfil(usuario, token);
         } catch (error) {
           await comprobarSesion();
           throw new PerfilGuardadoParcialError(

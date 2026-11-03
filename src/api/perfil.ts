@@ -1,5 +1,5 @@
 ﻿import { CLAVE_SESION, clienteQuery } from "@/config/cliente-query";
-import { obtenerToken } from "@/storage/token";
+import { obtenerToken, recordarPerfil } from "@/storage/token";
 import type {
   DatosActualizarPerfil,
   FotoPerfil,
@@ -62,6 +62,7 @@ export const obtenerPerfil = async (signal?: AbortSignal): Promise<Perfil> => {
     );
   }
   const perfil = normalizarPerfil(usuario);
+  await recordarPerfil(perfil, tokenPeticion);
   clienteQuery.setQueryData<Perfil | null>(CLAVE_SESION, perfil);
   return perfil;
 };

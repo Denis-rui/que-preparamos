@@ -1,7 +1,9 @@
 import { obtenerPerfil } from "@/api/perfil";
 import { cerrarSesion } from "@/api/sesion";
 import { AppButton } from "@/components/ui/appButton";
-import { obtenerToken } from "@/storage/token";
+import { obtenerToken, obtenerPerfilRecordado } from "@/storage/token";
+import { esFalloDeConexion } from "@/hooks/useConexion";
+import { getNetworkStateAsync } from "expo-network";
 import { styles } from "@/styles/welcome.styles";
 import { obtenerMensajeError } from "@/utils/mensajeError";
 import { isAxiosError } from "axios";
@@ -20,11 +22,26 @@ export default function Welcome() {
     let activo = true;
     async function restaurarSesion() {
       try {
-        if (!(await obtenerToken()) || !activo) return;
+        const token = await obtenerToken();
+        if (!token || !activo) return;
+        const red = await getNetworkStateAsync();
+        if (red.isConnected === false || red.isInternetReachable === false) {
+          // La copia identifica la cuenta local; no autoriza operaciones del servidor.
+          if (await obtenerPerfilRecordado()) {
+            if (activo && (await obtenerToken()) === token) router.replace("/(tabs)");
+          } else if (activo) {
+            setAviso("Conéctate para comprobar esta sesión por primera vez.");
+          }
+          return;
+        }
         // Tener un token guardado no demuestra que siga siendo válido.
         await obtenerPerfil();
         if (activo) router.replace("/(tabs)");
       } catch (error) {
+        if (esFalloDeConexion(error) && await obtenerPerfilRecordado()) {
+          if (activo) router.replace("/(tabs)");
+          return;
+        }
         // El cliente compartido ya redirige los 401. Los demás errores
         // conservan el token, porque no demuestran que haya vencido.
         if (

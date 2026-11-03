@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 // El token es secreto y se guarda en SecureStore.
-import { guardarToken, obtenerToken } from "@/storage/token";
+import { guardarToken, obtenerToken, recordarPerfil } from "@/storage/token";
 // AsyncStorage recuerda solo nombre y correo, nunca contraseña ni token.
 import { CLAVE_SESION } from "@/config/cliente-query";
 import { Perfil } from "@/types/perfil";
@@ -68,6 +68,7 @@ export function useLogin(cuentaGuardada = false) {
 
       // Guardamos el token de forma segura
       await guardarToken(respuesta.token);
+      await recordarPerfil(usuario, respuesta.token);
       if ((await obtenerToken()) !== respuesta.token) {
         throw new Error("La sesión cambió. Inténtalo nuevamente.");
       }

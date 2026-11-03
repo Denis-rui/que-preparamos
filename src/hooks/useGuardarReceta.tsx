@@ -78,12 +78,12 @@ const useGuardarReceta = (
             }
           }
         }
-        setErrorGuardando(
-          detalle ??
-            obtenerMensajeError(error) ??
-            "No se pudo confirmar el guardado de la receta",
-        );
       }
+      setErrorGuardando(
+        detalle ??
+          obtenerMensajeError(error) ??
+          "No se pudo confirmar el guardado de la receta",
+      );
     } finally {
       bloqueo.current = false;
       mutacion.reset();

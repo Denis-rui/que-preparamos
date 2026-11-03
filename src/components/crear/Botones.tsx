@@ -26,7 +26,7 @@ export default function Botones({
       <AppButton
         label="Guardar Privada"
         onPress={guardarRecetaPri}
-        loading={guardando}
+        loading={guardando || bloqueado}
         loadingLabel={guardando ? "Guardando..." : "Esperando foto..."}
       />
     </View>

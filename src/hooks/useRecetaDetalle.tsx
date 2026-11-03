@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 export function useRecetaDetalle(id: string){
   const consulta = useQuery({
-    queryKey: ["recetas, detalle", id],
+    queryKey: ["recetas", "detalle", id],
     queryFn: ({ signal }) => getRecetaPorId(id, signal),
     enabled: !!id,
     staleTime: 1000 * 60*5, // 5 minutos

@@ -6,6 +6,8 @@ import { IconoGorroChef } from "./IconoGorroChef";
 
 type Props = {
   visible: boolean;
+  editando?: boolean;
+  puntuacionActual?: number | null;
   guardando?: boolean;
   exito?: boolean;
   error?: string | null;
@@ -15,6 +17,8 @@ type Props = {
 
 export default function ModalValoracion({
   visible,
+  editando = false,
+  puntuacionActual = null,
   guardando = false,
   exito = false,
   error = null,
@@ -24,8 +28,11 @@ export default function ModalValoracion({
   const [seleccion, setSeleccion] = useState(0);
 
   useEffect(() => {
-    if (!visible) setSeleccion(0);
-  }, [visible]);
+    setSeleccion(visible ? (puntuacionActual ?? 0): 0);
+  }, [visible, puntuacionActual]);
+
+  const sinCambios = editando && seleccion === puntuacionActual;
+  const deshabilitado = seleccion === 0 || guardando || sinCambios;
 
   return (
     <Modal
@@ -45,7 +52,7 @@ export default function ModalValoracion({
               </View>
 
               <Text style={[styles.titulo, styles.tituloGracias]}>
-                ¡Gracias por tu calificación!
+                {editando ? "¡Calificación actualizada!" : "¡Gracias por tu calificación!"}
               </Text>
 
               <Text style={styles.mensajeGracias}>
@@ -63,7 +70,7 @@ export default function ModalValoracion({
                 <MaterialCommunityIcons name="close" size={28} color="#756B64" />
               </Pressable>
 
-              <Text style={styles.titulo}>Califica esta receta</Text>
+              <Text style={styles.titulo}>{editando ? "Edita tu calificación" : "Califica esta receta"}</Text>
 
               <View style={styles.gorros}>
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -84,14 +91,11 @@ export default function ModalValoracion({
 
               <Pressable
                 onPress={() => onCalificar(seleccion)}
-                disabled={seleccion === 0 || guardando}
-                style={[
-                  styles.boton,
-                  (seleccion === 0 || guardando) && styles.botonDeshabilitado,
-                ]}
+                disabled={deshabilitado}
+                style={[styles.boton, deshabilitado && styles.botonDeshabilitado]}
               >
                 <Text style={styles.botonTexto}>
-                  {guardando ? "Guardando..." : "Calificar"}
+                  {guardando ? "Guardando..." : editando ? "Actualizar" : "Calificar"}
                 </Text>
               </Pressable>
             </>

@@ -17,10 +17,12 @@ import { InvitarInicioSesion } from "@/components/auth/InvitarInicioSesion";
 import { IconoGorroChef } from "@/components/recetas/IconoGorroChef";
 import ModalValoracion from "@/components/recetas/ModalValoracion";
 import { BotonVolver } from "@/components/ui/botonVolver";
+import { useMiValoracion } from "@/hooks/useMiValoracion";
 import { useRecetaDetalle } from "@/hooks/useRecetaDetalle";
 import { useValorarReceta } from "@/hooks/useValorarReceta";
 import { obtenerToken } from "@/storage/token";
-import { useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 
 export default function DetalleReceta() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -31,12 +33,21 @@ export default function DetalleReceta() {
   const [modalVisible, setModalVisible] = useState(false);
   const [leyendo, setLeyendo] = useState(false);
   const [invitacionVisible, setInvitacionVisible] = useState(false);
+  const [conSesion, setConSesion] = useState(false);
+  const [editando, setEditando] = useState(false);
+  const { miPuntuacion } = useMiValoracion(id, conSesion);
 
   useEffect(() => {
     return () => {
       Speech.stop();
     };
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      obtenerToken().then((t) => setConSesion(!!t));
+    }, []),
+  );
 
   const alternarLectura = () => {
     if (!receta?.pasos?.length) return;
@@ -65,6 +76,7 @@ export default function DetalleReceta() {
     const token = await obtenerToken();
     if (token) {
       reiniciar(); // limpia el resultado de una calificación anterior
+      setEditando(miPuntuacion != null);
       setModalVisible(true); // con sesión: abre la calificación
     } else {
       setInvitacionVisible(true); // invitado: lo invita a iniciar sesión
@@ -167,7 +179,7 @@ export default function DetalleReceta() {
                 width={84}
                 height={30}
                 viewBox="0 0 96 34"
-                style={{ marginLeft: -4, marginTop: -35 }}
+                style={{ marginLeft: -4 }}
               >
                 <Defs>
                   <Path id="curva" d="M4 26 Q48 6 92 26" />
@@ -204,20 +216,46 @@ export default function DetalleReceta() {
         </View>
 
         <View style={styles.metaFila}>
-          <View style={styles.metaPill}>
+
+          {receta.categoria ? (
+            <>
+              <View style={styles.metaItem}>
+                <MaterialCommunityIcons
+                  name="tag-outline"
+                  size={18}
+                  color="#552414"
+                />
+                <View style={styles.metaCategoria}>
+                  <Text style={styles.metaTexto}>{receta.categoria.nombre}</Text>
+                  {receta.subcategoria ? (
+                    <>
+                      <MaterialCommunityIcons name="chevron-right" size={16} color="#F26A1B" />
+                      <Text style={styles.metaTexto}>{receta.subcategoria.nombre}</Text>
+                    </>
+                  ): null}
+                </View>
+              </View>
+              <View style={styles.metaSeparador}/>
+            </>
+          ) : null}
+
+          <View style={styles.metaItem}>
             <MaterialCommunityIcons
               name="clock-outline"
-              size={16}
+              size={22}
               color="#552414"
             />
             <Text style={styles.metaTexto}>
               {receta.tiempo_preparacion} min
             </Text>
           </View>
-          <View style={styles.metaPill}>
+
+          <View style={styles.metaSeparador}/>
+
+          <View style={styles.metaItem}>
             <MaterialCommunityIcons
               name="account-group-outline"
-              size={16}
+              size={22}
               color="#552414"
             />
             <Text style={styles.metaTexto}>{receta.porciones} porciones</Text>
@@ -281,6 +319,8 @@ export default function DetalleReceta() {
 
       <ModalValoracion
         visible={modalVisible}
+        editando={editando}
+        puntuacionActual={miPuntuacion}
         guardando={guardando}
         exito={exito}
         error={errorValoracion}

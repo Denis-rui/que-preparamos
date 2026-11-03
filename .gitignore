@@ -45,3 +45,6 @@ example
 /android
 .agents
 .env 
+
+# Configuraciones de IDE
+.idea/

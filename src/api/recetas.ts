@@ -2,6 +2,7 @@ import type {
   FiltrosRecetas,
   PaginaRecetas,
   PaginaRecomendaciones,
+  RecetaDetalle,
 } from "@/types/receta";
 import { quePreparamos } from "./cliente";
 
@@ -68,11 +69,9 @@ export async function getRecetaPorId(
   id: number | string,
   signal?: AbortSignal,
 ) {
-  const respuesta = await quePreparamos(
+  const respuesta = await quePreparamos.get<{ data: RecetaDetalle }>(
     `/recetas/${encodeURIComponent(String(id))}`,
-    {
-      signal,
-    },
+    {signal},
   );
-  return respuesta.data;
+  return respuesta.data.data;
 }

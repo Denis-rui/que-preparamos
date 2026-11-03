@@ -5,21 +5,29 @@ import { obtenerCantidadFavoritos } from "@/api/favoritos";
 import { obtenerPerfil } from "@/api/perfil";
 import { cerrarSesion } from "@/api/sesion";
 import { LogoQuePreparamos } from "@/components/LogoQuePreparamos";
+import {
+  PerfilGuardadoParcialError,
+  useActualizarPerfil,
+} from "@/hooks/useActualizarPerfil";
 import { obtenerToken } from "@/storage/token";
 import { reiniciarNavegacion } from "@/utils/navegacion";
+import { aPerfilEditable } from "@/utils/perfil";
+import type { EditableProfile } from "@/types/perfil";
 import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import EditarPerfilModal, {
-  type EditableProfile,
-} from "@/components/editar-perfil-modal";
+import EditarPerfilModal from "@/components/editar-perfil-modal";
 import { styles } from "@/styles/perfil.styles";
 
 export default function MiPerfil() {
+  const { guardarPerfil, guardando, limpiarEstado } = useActualizarPerfil();
   const [notice, setNotice] = useState("");
+  const [tokenFoto, setTokenFoto] = useState<string | null>(null);
+  const [versionFoto, setVersionFoto] = useState(0);
+  const [fotoNoDisponible, setFotoNoDisponible] = useState(false);
   const [profile, setProfile] = useState<EditableProfile | null>(null);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -36,6 +44,8 @@ export default function MiPerfil() {
       async function cargarPerfil() {
         setLoading(true);
         setProfile(null);
+        setTokenFoto(null);
+        setFotoNoDisponible(false);
         setCantidadGuardadas(null);
         setCargandoGuardadas(false);
         setEditing(false);
@@ -43,24 +53,23 @@ export default function MiPerfil() {
         try {
           // Un invitado no tiene token; no lo tratamos como sesión vencida.
           const token = await obtenerToken();
-          if (activo) setHaySesion(Boolean(token));
+          if (activo) {
+            setHaySesion(Boolean(token));
+            setTokenFoto(token);
+          }
           if (!token) return;
           if (!activo) return;
           const usuario = await obtenerPerfil();
           if (activo)
-            setProfile({
-              name: usuario.name,
-              email: usuario.email,
-              photoUri: usuario.foto_perfil_url ?? undefined,
-            });
+            setProfile(aPerfilEditable(usuario));
           if (!activo) return;
           setCargandoGuardadas(true);
           try {
             const cantidad = await obtenerCantidadFavoritos();
             if (activo) setCantidadGuardadas(cantidad);
           } catch {
-            // Un fallo del contador no debe ocultar el perfil ni mostrar un cero falso.
-            // El cliente compartido sigue gestionando los 401 de esta consulta.
+            // Si falla el contador de favoritos, mantenemos visible el perfil    e  indicamos que la cantidad no está disponible.
+            // Si la sesión venció (401), Axios solicita iniciar sesión nuevamente
           } finally {
             if (activo) setCargandoGuardadas(false);
           }
@@ -187,14 +196,35 @@ export default function MiPerfil() {
                 <View style={styles.avatarCircle}>
                   <Image
                     source={
-                      profile.photoUri
-                        ? { uri: profile.photoUri }
+                      profile.photoUri && !fotoNoDisponible
+                        ? {
+                            uri: profile.photoUri,
+                            headers: tokenFoto
+                              ? { Authorization: `Bearer ${tokenFoto}` }
+                              : undefined,
+                          }
                         : require("../../assets/SVG/iconos/avatar_perfil.svg")
                     }
                     style={
-                      profile.photoUri ? styles.profilePhoto : styles.avatar
+                      profile.photoUri && !fotoNoDisponible
+                        ? styles.profilePhoto
+                        : styles.avatar
                     }
-                    contentFit={profile.photoUri ? "cover" : "contain"}
+                    contentFit={
+                      profile.photoUri && !fotoNoDisponible
+                        ? "cover"
+                        : "contain"
+                    }
+                    // La ruta puede conservar la misma URL después de reemplazar la foto.
+                    key={`${profile.photoUri ?? "avatar"}-${versionFoto}`}
+                    cachePolicy="none"
+                    onError={() => {
+                      if (!profile.photoUri || fotoNoDisponible) return;
+                      setFotoNoDisponible(true);
+                      setNotice(
+                        "No pudimos descargar la foto del servidor. La edición puede haberse guardado; vuelve a entrar para reintentar.",
+                      );
+                    }}
                   />
                 </View>
                 <Pressable
@@ -333,14 +363,46 @@ export default function MiPerfil() {
       {editing && profile && (
         <EditarPerfilModal
           profile={profile}
-          onClose={() => setEditing(false)}
-          onSave={(updatedProfile) => {
-            setProfile(updatedProfile);
+          guardando={guardando}
+          fotoHeaders={
+            tokenFoto ? { Authorization: `Bearer ${tokenFoto}` } : undefined
+          }
+          onClose={() => {
+            if (guardando) return;
+            limpiarEstado();
             setEditing(false);
-            // La edición existente aún es local; no afirmamos guardado remoto.
-            setNotice(
-              "Cambios solo en esta pantalla; todavía no se guardan en tu cuenta.",
-            );
+          }}
+          onSave={async (updatedProfile, currentPassword, foto) => {
+            setNotice("");
+            try {
+              const usuario = await guardarPerfil({
+                ...(updatedProfile.name !== profile.name
+                  ? { name: updatedProfile.name }
+                  : {}),
+                ...(updatedProfile.email !== profile.email
+                  ? {
+                      email: updatedProfile.email,
+                      current_password: currentPassword,
+                    }
+                  : {}),
+                foto,
+              });
+              // Mostramos los datos confirmados por Laravel.
+              setProfile(aPerfilEditable(usuario));
+              setEditing(false);
+              setFotoNoDisponible(false);
+              if (foto) setVersionFoto((version) => version + 1);
+              setNotice("Perfil actualizado correctamente.");
+            } catch (error) {
+              // Si falló solo la foto, reflejamos el nombre/correo que sí se guardaron.
+              if (error instanceof PerfilGuardadoParcialError) {
+                setProfile(aPerfilEditable(error.usuario));
+              }
+              throw error;
+            } finally {
+              // El modal muestra los errores y permanece abierto si falla el envío.
+              limpiarEstado();
+            }
           }}
         />
       )}

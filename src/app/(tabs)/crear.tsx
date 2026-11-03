@@ -5,7 +5,13 @@ import { router } from "expo-router";
 import { StyleSheet } from "react-native";
 
 export default function Crear() {
-  const { estadoAcceso, mensajeError, comprobarAcceso } = useAccesoCrear();
+  const {
+    estadoAcceso,
+    mensajeError,
+    comprobarAcceso,
+    avisoAcceso,
+    usuarioId,
+  } = useAccesoCrear();
 
   const abrirLogin = () => {
     router.push({
@@ -27,7 +33,7 @@ export default function Crear() {
     );
   }
 
-  return <FormularioCrear />;
+  return <FormularioCrear key={usuarioId} avisoAcceso={avisoAcceso} />;
 }
 
 const styles = StyleSheet.create({

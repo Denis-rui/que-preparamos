@@ -33,6 +33,17 @@ export const stylesCrear = StyleSheet.create({
     fontSize: 18,
     color: TemaFormulario.colores.texto,
   },
+  avisoAcceso: {
+    fontFamily: TemaFormulario.fuente,
+    fontSize: TemaFormulario.tamanoAyuda,
+    color: TemaFormulario.colores.secundario,
+    backgroundColor: TemaFormulario.colores.campo,
+    borderWidth: 1,
+    borderColor: TemaFormulario.colores.borde,
+    borderRadius: TemaFormulario.radioCampo,
+    padding: Spacing.three,
+    marginBottom: Spacing.three,
+  },
   imagen: {
     minHeight: 160,
     justifyContent: "center",

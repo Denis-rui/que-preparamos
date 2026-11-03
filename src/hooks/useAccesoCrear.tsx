@@ -1,8 +1,12 @@
 import { obtenerPerfil } from "@/api/perfil";
+import { CLAVE_SESION } from "@/config/cliente-query";
 import { obtenerToken } from "@/storage/token";
-import axios from "axios";
-import { useFocusEffect } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { Perfil } from "@/types/perfil";
+import { obtenerMensajeError } from "@/utils/mensajeError";
+import { useQuery } from "@tanstack/react-query";
+import { CanceledError, isAxiosError } from "axios";
+import { useCallback, useEffect, useRef } from "react";
+import { AppState } from "react-native";
 
 export type EstadoAccesoCrear =
   | "comprobado"
@@ -11,61 +15,97 @@ export type EstadoAccesoCrear =
   | "error";
 
 const useAccesoCrear = () => {
-  const [estadoAcceso, setestadoAcceso] =
-    useState<EstadoAccesoCrear>("comprobado");
-  const [mensajeError, setmensajeError] = useState<string | null>(null);
-
   const controladorActual = useRef<AbortController | null>(null);
 
-  const comprobarAcceso = useCallback(async (): Promise<void> => {
-    controladorActual.current?.abort();
-    const controlador = new AbortController();
-    controladorActual.current = controlador;
-    const { signal } = controlador;
+  const consulta = useQuery<Perfil | null>({
+    queryKey: CLAVE_SESION,
 
-    setestadoAcceso("comprobado");
-    setmensajeError(null);
-
-    try {
+    queryFn: async ({ signal }) => {
       const token = await obtenerToken();
-      if (signal.aborted) return;
+
+      if (signal.aborted) {
+        throw new CanceledError();
+      }
 
       if (!token) {
-        setestadoAcceso("invitado");
-        return;
+        return null;
       }
 
-      await obtenerPerfil(signal);
-      if (signal.aborted) return;
-      setestadoAcceso("permitido");
-    } catch (error) {
-      if (signal.aborted || axios.isCancel(error)) return;
+      return obtenerPerfil(signal);
+    },
 
-      const accesoDenegado =
-        axios.isAxiosError(error) &&
-        (error.response?.status === 401 ||
-          error.code === "SESION_NO_ENCONTRADA");
+    staleTime: Infinity,
+    gcTime: Infinity,
+    retry: false,
+    networkMode: "always",
+    refetchOnMount: "always",
+    refetchOnWindowFocus: false,
+  });
+  const { refetch } = consulta;
 
-      if (accesoDenegado) {
-        setestadoAcceso("invitado");
-        return;
+  const comprobarAcceso = useCallback(async (): Promise<void> => {
+    await refetch({
+      cancelRefetch: false,
+    });
+  }, [refetch]);
+
+  useEffect(() => {
+    let estadoAnterior = AppState.currentState;
+
+    const suscripcion = AppState.addEventListener("change", (estadoActual) => {
+      const vuelveAlPrimerPlano =
+        estadoActual === "active" && estadoAnterior !== "active";
+
+      estadoAnterior = estadoActual;
+
+      if (vuelveAlPrimerPlano) {
+        void comprobarAcceso();
       }
-      setmensajeError("Error al comprobar el acceso");
-      setestadoAcceso("error");
-    }
-  }, []);
+    });
 
-  useFocusEffect(
-    useCallback(() => {
-      comprobarAcceso();
-      return () => {
-        controladorActual.current?.abort();
-      };
-    }, [comprobarAcceso]),
-  );
+    return () => {
+      suscripcion.remove();
+    };
+  }, [comprobarAcceso]);
+
+  const accesoRechazado =
+    isAxiosError(consulta.error) &&
+    (consulta.error.response?.status === 401 ||
+      consulta.error.response?.status === 403 ||
+      consulta.error.code === "SESION_NO_ENCONTRADA" ||
+      consulta.error.code === "SESION_CAMBIADA");
+
+  let estadoAcceso: EstadoAccesoCrear;
+
+  if (consulta.data === null) {
+    estadoAcceso = "invitado";
+  } else if (
+    accesoRechazado ||
+    (consulta.data === undefined && consulta.isError)
+  ) {
+    estadoAcceso = "error";
+  } else if (consulta.data === undefined) {
+    estadoAcceso = "comprobado";
+  } else {
+    estadoAcceso = "permitido";
+  }
+  const mensaje = obtenerMensajeError(consulta.error);
+
+  const mensajeError =
+    estadoAcceso === "error"
+      ? mensaje || "No pudimos comprobar tu acceso."
+      : null;
+
+  const avisoAcceso =
+    estadoAcceso === "permitido" && consulta.isError
+      ? "No pudimos actualizar la comprobación de tu sesión."
+      : null;
+
   return {
     estadoAcceso,
     mensajeError,
+    avisoAcceso,
+    usuarioId: consulta.data?.id ?? null,
     comprobarAcceso,
   };
 };

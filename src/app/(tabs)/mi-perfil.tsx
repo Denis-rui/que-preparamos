@@ -1,6 +1,4 @@
-﻿import { obtenerMensajeError } from "@/utils/mensajeError";
-import { isAxiosError } from "axios";
-
+﻿import { ApiError } from "@/api/clienteAutenticado";
 import { obtenerCantidadFavoritos } from "@/api/favoritos";
 import { obtenerPerfil } from "@/api/perfil";
 import { cerrarSesion } from "@/api/sesion";
@@ -66,13 +64,11 @@ export default function MiPerfil() {
           }
         } catch (error) {
           // El 401 se maneja en clienteAutenticado, sin repetir navegación aquí.
-          if (
-            activo &&
-            !(isAxiosError(error) && error.response?.status === 401)
-          ) {
+          if (activo && !(error instanceof ApiError && error.status === 401)) {
             setNotice(
-              obtenerMensajeError(error) ??
-                "No pudimos cargar tu perfil. Revisa tu conexión e inténtalo nuevamente.",
+              error instanceof ApiError
+                ? error.message
+                : "No pudimos cargar tu perfil. Revisa tu conexión e inténtalo nuevamente.",
             );
           }
         } finally {
@@ -101,7 +97,7 @@ export default function MiPerfil() {
       setEditing(false);
       reiniciarNavegacion("/login");
     } catch {
-      setNotice("No pudimos cerrar sesión. Inténtalo nuevamente.");
+      setNotice("No pudimos cerrar sesión.Intentalonuevamente. ");
     } finally {
       setSaliendo(false);
     }

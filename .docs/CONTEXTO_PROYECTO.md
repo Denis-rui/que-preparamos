@@ -105,6 +105,10 @@ La herramienta de audio, el modo de lectura y su disponibilidad sin conexión es
 
 ### 4.5. Favoritos
 
+**Primera etapa local acordada el 3 de noviembre de 2026:** se implementan listas persistentes separadas por ID de cuenta y otra para el invitado, sin sincronización con el servidor por ahora. Al guardar desde el detalle se conserva la receta completa y se descarga su imagen. La pantalla Favoritos abre esa copia sin consultar el detalle remoto y permite quitarla sin conexión. Al haber conexión, la comprobación pública de disponibilidad retira el contenido únicamente ante una eliminación explícitamente confirmada, conservando el aviso. Los favoritos del invitado no se fusionan al iniciar sesión. La recuperación entre dispositivos descrita a continuación sigue siendo un requisito futuro para cuentas, no una capacidad de esta primera etapa.
+
+Para lectura sin conexión se recuerda el perfil asociado al token en almacenamiento seguro. Si la app se inicia de nuevo con esa sesión y no hay conexión, entra al inicio del catálogo; al volver del segundo plano conserva la navegación mientras el sistema mantenga el proceso. Cerrar sesión requiere conexión y se deshabilita con aviso al detectarse su ausencia. Una sesión recordada no autoriza operaciones del servidor: estas mantienen su validación remota.
+
 **Con cuenta:** los favoritos quedarán vinculados al usuario y podrá recuperarlos al cambiar de teléfono o reinstalar la aplicación, al acceder de nuevo a su cuenta.
 
 **Sin cuenta:** los favoritos se guardarán únicamente en el dispositivo. El requisito comunicado es que no se recuperen al cambiar de equipo o reinstalar la aplicación; no se debe prometer sincronización para invitados.

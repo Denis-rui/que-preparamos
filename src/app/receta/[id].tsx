@@ -20,13 +20,17 @@ import { BotonVolver } from "@/components/ui/botonVolver";
 import { useMiValoracion } from "@/hooks/useMiValoracion";
 import { useRecetaDetalle } from "@/hooks/useRecetaDetalle";
 import { useValorarReceta } from "@/hooks/useValorarReceta";
+import { useFavoritoLocal } from "@/hooks/useFavoritoLocal";
+import { useConexion } from "@/hooks/useConexion";
 import { obtenerToken } from "@/storage/token";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 
 export default function DetalleReceta() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const { receta, loading, error } = useRecetaDetalle(id);
+  const { id, local } = useLocalSearchParams<{ id: string; local?: string }>();
+  const { receta, loading, error } = useRecetaDetalle(id, local === "1");
+  const favorito = useFavoritoLocal(id);
+  const { sinConexion } = useConexion();
 
   const { valorar, guardando, error: errorValoracion, reiniciar, exito } =useValorarReceta(id);
 
@@ -35,7 +39,7 @@ export default function DetalleReceta() {
   const [invitacionVisible, setInvitacionVisible] = useState(false);
   const [conSesion, setConSesion] = useState(false);
   const [editando, setEditando] = useState(false);
-  const { miPuntuacion } = useMiValoracion(id, conSesion);
+  const { miPuntuacion } = useMiValoracion(id, conSesion && !sinConexion && local !== "1");
 
   useEffect(() => {
     return () => {
@@ -141,9 +145,20 @@ export default function DetalleReceta() {
           />
         </View>
 
-        <Pressable onPress={() => {}} style={styles.botonCircular}>
+        <Pressable
+          onPress={async () => {
+            const quitandoCopia = local === "1" && favorito.esFavorito;
+            const guardado = await favorito.alternar(receta);
+            if (guardado && quitandoCopia) router.back();
+          }}
+          disabled={favorito.ocupado || !favorito.preparado}
+          accessibilityRole="button"
+          accessibilityLabel={favorito.esFavorito ? "Quitar de favoritos" : "Guardar en favoritos y descargar"}
+          accessibilityState={{ disabled: favorito.ocupado || !favorito.preparado, selected: favorito.esFavorito }}
+          style={[styles.botonCircular, favorito.ocupado && { opacity: 0.5 }]}
+        >
           <MaterialCommunityIcons
-            name="heart-outline"
+            name={favorito.esFavorito ? "heart" : "heart-outline"}
             size={24}
             color="#552414"
           />
@@ -151,6 +166,10 @@ export default function DetalleReceta() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
+        {local === "1" ? <Text style={styles.estadoTexto}>Copia guardada en este dispositivo.</Text> : null}
+        {favorito.ocupado ? <Text style={styles.estadoTexto}>Guardando cambios...</Text> : null}
+        {favorito.error ? <Text accessibilityRole="alert" style={styles.estadoTexto}>{favorito.error}</Text> : null}
+        {sinConexion ? <Text style={styles.estadoTexto}>Sin conexión. Las valoraciones requieren internet.</Text> : null}
         {receta.imagen_url ? (
           <Image
             source={{ uri: receta.imagen_url }}
@@ -170,6 +189,7 @@ export default function DetalleReceta() {
 
             <Pressable
               onPress={alPresionarCalificar}
+              disabled={sinConexion}
               style={({ pressed }) => [
                 styles.valoracionBloque,
                 pressed && styles.valoracionPresionado,

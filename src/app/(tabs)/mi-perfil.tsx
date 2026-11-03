@@ -1,7 +1,9 @@
 ﻿import { obtenerMensajeError } from "@/utils/mensajeError";
 import { isAxiosError } from "axios";
 
-import { obtenerCantidadFavoritos } from "@/api/favoritos";
+import { identificarListaFavoritos, leerFavoritos } from "@/storage/favoritos";
+import { obtenerPerfilRecordado } from "@/storage/token";
+import { esFalloDeConexion, useConexion } from "@/hooks/useConexion";
 import { obtenerPerfil } from "@/api/perfil";
 import { cerrarSesion } from "@/api/sesion";
 import { LogoQuePreparamos } from "@/components/LogoQuePreparamos";
@@ -23,6 +25,8 @@ import EditarPerfilModal from "@/components/editar-perfil-modal";
 import { styles } from "@/styles/perfil.styles";
 
 export default function MiPerfil() {
+  const { sinConexion } = useConexion();
+  const [modoLocal, setModoLocal] = useState(false);
   const { guardarPerfil, guardando, limpiarEstado } = useActualizarPerfil();
   const [notice, setNotice] = useState("");
   const [tokenFoto, setTokenFoto] = useState<string | null>(null);
@@ -50,6 +54,7 @@ export default function MiPerfil() {
         setCargandoGuardadas(false);
         setEditing(false);
         setNotice("");
+        setModoLocal(sinConexion);
         try {
           // Un invitado no tiene token; no lo tratamos como sesión vencida.
           const token = await obtenerToken();
@@ -57,24 +62,40 @@ export default function MiPerfil() {
             setHaySesion(Boolean(token));
             setTokenFoto(token);
           }
-          if (!token) return;
+          if (!token) {
+            const lista = await identificarListaFavoritos();
+            const cantidad = (await leerFavoritos(lista)).length;
+            if (activo) setCantidadGuardadas(cantidad);
+            return;
+          }
           if (!activo) return;
-          const usuario = await obtenerPerfil();
+          let usuario;
+          try {
+            usuario = sinConexion ? await obtenerPerfilRecordado() : await obtenerPerfil();
+          } catch (error) {
+            if (!esFalloDeConexion(error)) throw error;
+            usuario = await obtenerPerfilRecordado();
+            if (activo) setModoLocal(true);
+          }
+          if (!usuario) {
+            if (activo) setNotice("Conéctate una vez para guardar los datos de esta cuenta en el dispositivo.");
+            return;
+          }
           if (activo)
             setProfile(aPerfilEditable(usuario));
           if (!activo) return;
           setCargandoGuardadas(true);
           try {
-            const cantidad = await obtenerCantidadFavoritos();
+            const lista = await identificarListaFavoritos();
+            const cantidad = (await leerFavoritos(lista)).length;
             if (activo) setCantidadGuardadas(cantidad);
           } catch {
-            // Si falla el contador de favoritos, mantenemos visible el perfil    e  indicamos que la cantidad no está disponible.
-            // Si la sesión venció (401), Axios solicita iniciar sesión nuevamente
+            // Un fallo de lectura local no debe ocultar el perfil ni mostrar cero.
           } finally {
             if (activo) setCargandoGuardadas(false);
           }
         } catch (error) {
-          // El 401 se maneja en clienteAutenticado, sin repetir navegación aquí.
+          // El cliente Axios gestiona los 401, sin repetir navegación aquí.
           if (
             activo &&
             !(isAxiosError(error) && error.response?.status === 401)
@@ -92,11 +113,12 @@ export default function MiPerfil() {
       return () => {
         activo = false;
       };
-    }, []),
+    }, [sinConexion]),
   );
 
   async function salir() {
     if (loading || saliendo) return;
+    if (haySesion && sinConexion) return;
     // El invitado no tiene sesión que revocar: vuelve a la bienvenida.
     if (!haySesion) {
       reiniciarNavegacion("/welcome");
@@ -109,8 +131,8 @@ export default function MiPerfil() {
       setProfile(null);
       setEditing(false);
       reiniciarNavegacion("/welcome");
-    } catch {
-      setNotice("No pudimos cerrar sesión. Inténtalo nuevamente.");
+    } catch (error) {
+      setNotice(obtenerMensajeError(error) ?? "No pudimos cerrar sesión. Inténtalo nuevamente.");
     } finally {
       setSaliendo(false);
     }
@@ -140,6 +162,7 @@ export default function MiPerfil() {
             />
           </View>
           <Text style={styles.subtitle}>Tu espacio personal</Text>
+          {modoLocal ? <Text style={styles.notice}>Sin conexión. Puedes consultar tus favoritos descargados.</Text> : null}
 
           {loading ? (
             <Text style={styles.notice}>Cargando perfil...</Text>
@@ -231,6 +254,8 @@ export default function MiPerfil() {
                   accessibilityRole="button"
                   accessibilityLabel="Editar mi perfil"
                   onPress={() => setEditing(true)}
+                  disabled={modoLocal}
+                  accessibilityState={{ disabled: modoLocal }}
                   hitSlop={10}
                   style={({ pressed }) => [
                     styles.editButton,
@@ -263,6 +288,7 @@ export default function MiPerfil() {
           </Text>
           <View style={styles.options}>
             <Pressable
+              onPress={() => router.push("/favoritos")}
               accessibilityRole="button"
               style={({ pressed }) => [
                 styles.optionCard,
@@ -320,10 +346,11 @@ export default function MiPerfil() {
               style={({ pressed }) => [
                 styles.optionCard,
                 pressed && styles.pressed,
+                haySesion && sinConexion && { backgroundColor: "#E3E3E3", opacity: 0.65 },
               ]}
               onPress={salir}
-              disabled={loading || saliendo}
-              accessibilityState={{ disabled: loading || saliendo }}
+              disabled={loading || saliendo || (haySesion && sinConexion)}
+              accessibilityState={{ disabled: loading || saliendo || (haySesion && sinConexion) }}
             >
               <View style={[styles.optionCircle, styles.logoutCircle]}>
                 <Image
@@ -342,7 +369,7 @@ export default function MiPerfil() {
                 </Text>
                 <Text style={styles.optionDescription}>
                   {haySesion
-                    ? "Salir de tu cuenta actual"
+                    ? sinConexion ? "No hay conexión a internet" : "Salir de tu cuenta actual"
                     : "Elegir cómo quieres ingresar"}
                 </Text>
               </View>

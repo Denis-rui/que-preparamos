@@ -34,6 +34,9 @@ const FormularioCrear = () => {
     guardando,
     errorGuardando,
     claveFormulario,
+    publicacionSinConfirmar,
+    publicar,
+    publicando,
   } = useFormularioCrear();
 
   return (
@@ -50,7 +53,9 @@ const FormularioCrear = () => {
         >
           <View
             key={claveFormulario}
-            pointerEvents={guardando ? "none" : "auto"}
+            pointerEvents={
+              guardando || publicacionSinConfirmar ? "none" : "auto"
+            }
           >
             <Text style={stylesCrear.titulo}>Nueva Receta</Text>
             <FotoReceta
@@ -122,14 +127,16 @@ const FormularioCrear = () => {
               multiline
               maxLength={16000}
             />
-
-            <Botones
-              guardarRecetaPri={guardarRecetaPriv}
-              guardando={guardando}
-              bloqueado={imagenSeleccionada}
-              error={errorGuardando}
-            />
           </View>
+          <Botones
+            guardarRecetaPri={guardarRecetaPriv}
+            guardando={guardando}
+            bloqueado={imagenSeleccionada}
+            error={errorGuardando}
+            publicacionSinConfirmar={publicacionSinConfirmar}
+            publicar={publicar}
+            publicando={publicando}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

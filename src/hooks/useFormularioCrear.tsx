@@ -189,10 +189,14 @@ const useFormularioCrear = () => {
     setClaveFormulario((clave) => clave + 1);
   };
 
-  const { guardarRecetaPriv, guardando, errorGuardando } = useGuardarReceta(
-    datos,
-    reiniciarFormulario,
-  );
+  const {
+    guardarRecetaPriv,
+    guardando,
+    errorGuardando,
+    publicacionSinConfirmar,
+    publicar,
+    publicando,
+  } = useGuardarReceta(datos, reiniciarFormulario);
 
   return {
     datos,
@@ -213,6 +217,9 @@ const useFormularioCrear = () => {
     guardando,
     errorGuardando,
     claveFormulario,
+    publicacionSinConfirmar,
+    publicar,
+    publicando,
   };
 };
 

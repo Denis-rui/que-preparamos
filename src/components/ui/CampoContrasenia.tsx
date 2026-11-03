@@ -1,6 +1,13 @@
 import { Image } from "expo-image";
 import { Ref, forwardRef, useState } from "react";
-import { Pressable, Text, TextInput, TextInputProps, View } from "react-native";
+import {
+  Pressable,
+  Text,
+  TextInput,
+  TextInputProps,
+  View,
+  type TextInputInstance,
+} from "react-native";
 
 import { styles } from "@/styles/auth.styles";
 
@@ -30,7 +37,8 @@ function CampoContrasenaInner(
     autoComplete = "password",
     textContentType = "password",
   }: Props,
-  ref: Ref<TextInput>,
+  // TextInputInstance es el tipo del campo concreto al que se pide focus().
+  ref: Ref<TextInputInstance>,
 ) {
   const [focused, setFocused] = useState(false);
   const [mostrar, setMostrar] = useState(false);

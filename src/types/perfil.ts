@@ -6,3 +6,14 @@ export type Perfil = {
   rol: string;
   activo: boolean;
 };
+
+export interface DatosActualizadosPerfil {
+  name?: string;
+  email?: string;
+  current_password?: string;
+}
+
+export interface RespuestaActualizarPerfil {
+  mensaje: string;
+  usuario: Perfil;
+}

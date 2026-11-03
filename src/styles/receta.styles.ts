@@ -70,7 +70,6 @@ export const styles = StyleSheet.create({
   encabezadoValoracion:{
     flexDirection: "row",
     alignItems: "center",
-    height: 126,
   },
   encabezadoTextos:{
     flex:1,
@@ -100,23 +99,32 @@ export const styles = StyleSheet.create({
   },
   metaFila: {
     flexDirection: "row",
-    gap: 10,
+    flexWrap: "wrap",
+    alignItems: "center",
+    rowGap: 10,
     marginHorizontal: 16,
     marginTop: 12,
   },
-  metaPill: {
+  metaItem: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#FBEEDC",
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+  },
+  metaSeparador: {
+    width: 1,
+    height: 26,
+    backgroundColor: "#E3D9CE",
+    marginHorizontal: 14,
   },
   metaTexto: {
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 10,
+    fontWeight: "500",
     color: "#552414",
+  },
+  metaCategoria: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
   },
   ingredientesTitulo: {
     fontSize: 16,

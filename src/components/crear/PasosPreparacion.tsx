@@ -1,79 +1,102 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Spacing, TemaFormulario } from "@/constants/theme";
+import { PasoFormulario } from "@/types/formularioRecetas";
+import { Ionicons } from "@expo/vector-icons";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { AppButton } from "../ui/appButton";
 import { FormInput } from "./FormInput";
 
-export const PasosPreparacion = () => {
+interface Props {
+  // Los datos pertenecen al formulario, no a este componente.
+  pasos: PasoFormulario[];
+
+  // Recibimos las acciones del hook para modificar esos datos.
+  actualizarPaso: (id: number, instruccion: string) => void;
+  agregarPaso: () => void;
+  quitarPaso: (id: number) => void;
+}
+
+export const PasosPreparacion = ({
+  pasos,
+  actualizarPaso,
+  agregarPaso,
+  quitarPaso,
+}: Props) => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Preparación</Text>
+    <View style={styles.seccion}>
+      <Text style={styles.titulo}>Preparación</Text>
 
-      {/* por el diseño actual hay dos , pero se pueden returilizar en un solo componente */}
-      <View style={styles.pasoRow}>
-        <View style={styles.circulo}>
-          <Text style={styles.numero}>1</Text>
-        </View>
-        <View style={styles.inputContainer}>
-          <FormInput placeholder="Ingrese el paso..." multiline={true} />
-        </View>
-      </View>
+      {pasos.map((paso, indice) => (
+        // Usamos un identificador estable para conservar la identidad
+        // de cada campo cuando se elimina otro paso.
+        <View key={paso.id}>
+          <View style={styles.encabezado}>
+            {/* La numeración se calcula según la posición actual. */}
+            <Text style={styles.etiqueta}>Paso {indice + 1}</Text>
 
-      <View style={styles.pasoRow}>
-        <View style={styles.circulo}>
-          <Text style={styles.numero}>2</Text>
+            {/* Podemos quitar pasos mientras quede al menos uno. */}
+            {pasos.length > 1 && (
+              <Pressable
+                onPress={() => quitarPaso(paso.id)}
+                accessibilityRole="button"
+                accessibilityLabel={`Quitar paso ${indice + 1}`}
+                hitSlop={8}
+              >
+                <Ionicons
+                  name="close-circle-outline"
+                  size={26}
+                  color={TemaFormulario.colores.error}
+                />
+              </Pressable>
+            )}
+          </View>
+
+          <FormInput
+            placeholder="Explica qué se debe hacer..."
+            accessibilityLabel={`Instrucción del paso ${indice + 1}`}
+            value={paso.instruccion}
+            onChangeText={(texto) => actualizarPaso(paso.id, texto)}
+            multiline
+            maxLength={16000}
+          />
         </View>
-        <View style={styles.inputContainer}>
-          <FormInput placeholder="Ingrese el paso..." multiline={true} />
-        </View>
-      </View>
-      <TouchableOpacity style={styles.btnOtroPaso}>
-        <Text style={styles.btnOtroPasoText}>Agregar otro paso</Text>
-      </TouchableOpacity>
+      ))}
+
+      {pasos.length < 500 ? (
+        <AppButton
+          label="Agregar otro paso"
+          variant="secundario"
+          onPress={agregarPaso}
+        />
+      ) : (
+        <Text style={styles.ayuda}>Has alcanzado el límite de 500 pasos.</Text>
+      )}
     </View>
   );
 };
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#FFF",
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#E8E8E8",
-    borderStyle: "dashed",
+  seccion: {
+    marginBottom: Spacing.four,
+    gap: Spacing.two,
   },
-  title: {
+  titulo: {
+    fontFamily: TemaFormulario.fuenteEtiqueta,
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#552414",
-    marginBottom: 15,
+    color: TemaFormulario.colores.texto,
   },
-  pasoRow: {
+  encabezado: {
     flexDirection: "row",
-    marginBottom: 5,
-  },
-  circulo: {
-    width: 25,
-    height: 25,
-    backgroundColor: "#FF6B35",
-    borderRadius: 12.5,
-    justifyContent: "center",
     alignItems: "center",
-    marginRight: 10,
-    marginTop: 10,
+    justifyContent: "space-between",
+    marginBottom: Spacing.two,
   },
-  numero: {
-    color: "#FFF",
-    fontWeight: "bold",
-    fontSize: 12,
+  etiqueta: {
+    fontFamily: TemaFormulario.fuenteEtiqueta,
+    fontSize: TemaFormulario.tamanoEtiqueta,
+    color: TemaFormulario.colores.texto,
   },
-  inputContainer: {
-    flex: 1, // Hace que el input tome todo el espacio restante a la derecha del círculo
-  },
-  btnOtroPaso: {
-    padding: 10,
-    alignItems: "center",
-  },
-  btnOtroPasoText: {
-    color: "#6F9D67", // Verde
-    fontWeight: "bold",
+  ayuda: {
+    fontFamily: TemaFormulario.fuente,
+    fontSize: TemaFormulario.tamanoAyuda,
+    color: TemaFormulario.colores.secundario,
   },
 });

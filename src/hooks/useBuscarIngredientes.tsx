@@ -14,14 +14,15 @@ export const useBuscarIngredientes = (texto: string) => {
       setLoading(false);
       return;
     }
-
+    setLoading(true);
+    setError(null);
+    setResultados([]);
     const controller = new AbortController();
 
     const temporizador = setTimeout(async () => {
       try {
-        setLoading(true);
-        setError(null);
         const json = await getIngredientes(texto.trim(), controller.signal);
+        if (controller.signal.aborted) return;
         setResultados(json.data);
       } catch (err) {
         if (controller.signal.aborted) return;

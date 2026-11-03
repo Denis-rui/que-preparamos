@@ -8,6 +8,7 @@ interface Props {
   icon?: ReactNode;
   loading?: boolean;
   loadingLabel?: string;
+  disabled?: boolean;
 }
 
 export const AppButton = ({
@@ -17,32 +18,48 @@ export const AppButton = ({
   icon,
   loading = false,
   loadingLabel = "Cargando...",
+  disabled = false,
 }: Props) => {
   const isPrimary = variant === "primario";
-
+  const inhabilitado = loading || disabled;
   return (
     <Pressable
       style={({ pressed }) => [
         isPrimary ? styles.primaryButton : styles.secondaryButton,
         styles.content,
         pressed && styles.pressed,
-        loading && styles.disabled,
+        inhabilitado && styles.disabled,
       ]}
       onPress={onPress}
-      disabled={loading}
+      disabled={inhabilitado}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{
+        disabled: inhabilitado,
+        busy: loading,
+      }}
     >
       {loading ? (
         <>
-          <ActivityIndicator color={isPrimary ? "#fff" : "#1A1A1A"} size="small" />
-          <Text style={isPrimary ? styles.primaryButtonText : styles.secondaryButtonText}>
+          <ActivityIndicator
+            color={isPrimary ? "#fff" : "#1A1A1A"}
+            size="small"
+          />
+          <Text
+            style={
+              isPrimary ? styles.primaryButtonText : styles.secondaryButtonText
+            }
+          >
             {loadingLabel}
           </Text>
         </>
       ) : (
         <>
-          <Text style={isPrimary ? styles.primaryButtonText : styles.secondaryButtonText}>
+          <Text
+            style={
+              isPrimary ? styles.primaryButtonText : styles.secondaryButtonText
+            }
+          >
             {label}
           </Text>
           {icon}

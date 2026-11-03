@@ -1,18 +1,8 @@
 import AccesoCrear from "@/components/crear/accesoCrear";
-import Botones from "@/components/crear/Botones";
-import { FormIngredientes } from "@/components/crear/FormIngredientes";
-import { FormInput } from "@/components/crear/FormInput";
-import { FormSelect } from "@/components/crear/FormSelect";
-import { PasosPreparacion } from "@/components/crear/PasosPreparacion";
+import FormularioCrear from "@/components/crear/formularioCrear";
 import useAccesoCrear from "@/hooks/useAccesoCrear";
 import { router } from "expo-router";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet } from "react-native";
 
 export default function Crear() {
   const { estadoAcceso, mensajeError, comprobarAcceso } = useAccesoCrear();
@@ -37,32 +27,7 @@ export default function Crear() {
     );
   }
 
-  return (
-    <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-      <View style={styles.contenedor}>
-        <View style={styles.header}>
-          <Text style={styles.tituloTexto}>Nueva Receta</Text>
-        </View>
-        <TouchableOpacity style={styles.subirImagen} activeOpacity={0.8}>
-          <Text style={styles.subirImagenTexto}>Subir imagen</Text>
-        </TouchableOpacity>
-        <FormInput placeholder="Ingrese el título de la receta ..." />
-        <FormInput placeholder="Ingrese una descripción ..." multiline={true} />
-        <FormSelect placeholder="Ingrese categorías ..." />
-        <View style={styles.fila}>
-          <View style={styles.mitad}>
-            <FormInput placeholder="Porciones" />
-          </View>
-          <View style={styles.mitad}>
-            <FormInput placeholder="Tiempo de preparación" />
-          </View>
-        </View>
-        <FormIngredientes />
-        <PasosPreparacion />
-        <Botones />
-      </View>
-    </ScrollView>
-  );
+  return <FormularioCrear />;
 }
 
 const styles = StyleSheet.create({

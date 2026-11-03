@@ -7,7 +7,7 @@ export { ApiError as PerfilError } from "./clienteAutenticado";
 export const obtenerPerfil = async (signal?: AbortSignal): Promise<Perfil> => {
   const respuesta = await quePreparamos.get("/perfil", {
     autenticar: true,
-    redirigirExpiracion: false,
+    // redirigirExpiracion: false,
     signal,
   });
   const usuario = respuesta.data.data;

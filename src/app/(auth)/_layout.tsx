@@ -10,6 +10,9 @@ export default function AuthLayout(){
             <Stack.Screen name="welcome"/>
             <Stack.Screen name="login"/>
             <Stack.Screen name="register"/>
+            <Stack.Screen name="olvide-contrasenia"/>
+            <Stack.Screen name="verificar-codigo"/>
+            <Stack.Screen name="nueva-contrasenia"/>
         </Stack>
     );
 }

@@ -9,10 +9,12 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  Pressable,
   ScrollView,
   Text,
   TextInput,
   View,
+  type TextInputInstance,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -34,12 +36,20 @@ export default function LoginModal({
   const [email, setEmail] = useState("");
   const [emailFocused, setEmailFocused] = useState(false);
   const [password, setPassword] = useState("");
-  const passwordRef = useRef<TextInput>(null);
+  // TextInputInstance es el tipo del campo real al pedir focus().
+  const passwordRef = useRef<TextInputInstance | null>(null);
   const insets = useSafeAreaInsets();
   const { submit, loading, error, resetError, credencialesRechazadas } =
     useLogin(cuenta !== null);
 
   const correoAEnviar = cuenta ? cuenta.email : email.trim();
+
+  // Ir a la recuperación de contraseña: cerramos el modal para que, al
+  // regresar, no vuelva a aparecer tapando el inicio de sesión.
+  function abrirRecuperacion() {
+    onClose();
+    router.push("/olvide-contrasenia");
+  }
 
   async function handleSubmit() {
     if (loading) return;
@@ -171,9 +181,16 @@ export default function LoginModal({
                 showLabel={false}
               />
 
-              <Text style={styles.forgotPassword}>
-                ¿Olvidaste tu contraseña?
-              </Text>
+              <Pressable
+                style={({ pressed }) => [styles.forgotPasswordWrapper, pressed && styles.pressed]}
+                onPress={abrirRecuperacion}
+                accessibilityRole="button"
+                accessibilityLabel="Recuperar contraseña"
+              >
+                <Text style={styles.forgotPassword}>
+                  ¿Olvidaste tu contraseña?
+                </Text>
+              </Pressable>
 
               {error && (
                 <Text

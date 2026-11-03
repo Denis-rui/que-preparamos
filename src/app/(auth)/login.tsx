@@ -33,9 +33,10 @@ import LoginModal from "@/components/auth/LoginModal";
 type ModalActivo = "guardada" | "otra" | null;
 
 export default function Login() {
-  const { sesionVencida, volverA } = useLocalSearchParams<{
+  const { sesionVencida, volverA, restablecida } = useLocalSearchParams<{
     sesionVencida?: string;
     volverA?: string;
+    restablecida?: string;
   }>();
   const [notice, setNotice] = useState("");
 
@@ -76,6 +77,16 @@ export default function Login() {
       cargarCuentas();
     }, []),
   );
+
+  // Tras restablecer la contraseña volvemos aquí con restablecida=1:
+  // mostramos el aviso y consumimos la señal para no repetirlo.
+  useEffect(() => {
+    if (restablecida !== "1") return;
+    setNotice(
+      "Tu contraseña se actualizó. Inicia sesión con tu nueva contraseña.",
+    );
+    router.setParams({ restablecida: undefined });
+  }, [restablecida]);
 
   // La señal viene de solicitarInicioSesion; la lista de cuentas sigue
   // cargándose por separado en el useFocusEffect existente.

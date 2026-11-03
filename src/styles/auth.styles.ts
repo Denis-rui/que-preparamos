@@ -116,6 +116,9 @@ export const styles = StyleSheet.create({
     textDecorationLine: "underline",
     marginTop: -6,
   },
+  // La frase «¿Olvidaste tu contraseña?» es presionable y ocupa su renglón.
+  forgotPasswordWrapper: { alignSelf: "flex-end" },
+  pressed: { opacity: 0.7 },
   errorText: {
     color: "#FF4F0A",
     fontFamily: "Inter_400Regular",

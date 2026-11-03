@@ -58,7 +58,7 @@ export const FormIngredientes = ({
     const numeroCantidad = Number(textoCantidad);
     if (
       textoCantidad !== "" &&
-      (!formatoCantidad || numeroCantidad <= 0 || numeroCantidad > 99999.999)
+      (!formatoCantidad || numeroCantidad <= 0 || numeroCantidad > 9999999.999)
     ) {
       setError("Cantidad inválida");
       return;

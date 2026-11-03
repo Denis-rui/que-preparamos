@@ -1,44 +1,45 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Spacing, TemaFormulario } from "@/constants/theme";
+import { StyleSheet, Text, View } from "react-native";
+import { AppButton } from "../ui/appButton";
 
-export default function Botones() {
+interface Props {
+  guardarRecetaPri: () => Promise<void>;
+  guardando: boolean;
+  bloqueado: boolean;
+  error: string | null;
+}
+
+export default function Botones({
+  guardarRecetaPri,
+  guardando,
+  bloqueado,
+  error,
+}: Props) {
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.btnPrivada}>
-        <Text style={styles.btnText}>Guardar Privada</Text>
-      </TouchableOpacity>
+    <View style={styles.contenedor}>
+      {error && (
+        <Text style={styles.error} accessibilityLiveRegion="polite">
+          {error}
+        </Text>
+      )}
 
-      <TouchableOpacity style={styles.btnPublicar}>
-        <Text style={styles.btnText}>Publicar</Text>
-      </TouchableOpacity>
+      <AppButton
+        label="Guardar Privada"
+        onPress={guardarRecetaPri}
+        loading={guardando}
+        loadingLabel={guardando ? "Guardando..." : "Esperando foto..."}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 40,
+  contenedor: {
+    gap: Spacing.two,
+    marginBottom: Spacing.four,
   },
-  btnPrivada: {
-    flex: 1,
-    backgroundColor: "#327C34",
-    padding: 15,
-    borderRadius: 25,
-    marginRight: 10,
-    alignItems: "center",
-  },
-  btnPublicar: {
-    flex: 1,
-    backgroundColor: "#327C34",
-    padding: 15,
-    borderRadius: 25,
-    marginLeft: 10,
-    alignItems: "center",
-  },
-  btnText: {
-    color: "#FFF",
-    fontWeight: "bold",
-    fontSize: 16,
+  error: {
+    fontFamily: TemaFormulario.fuente,
+    color: TemaFormulario.colores.error,
   },
 });

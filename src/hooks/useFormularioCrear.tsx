@@ -5,23 +5,27 @@ import {
 } from "@/types/formularioRecetas";
 import { launchImageLibraryAsync } from "expo-image-picker";
 import { useRef, useState } from "react";
+import useGuardarReceta from "./useGuardarReceta";
+
+const crearDatosIniciales = (): DatosFormularioReceta => ({
+  nombre: "",
+  descripcion: "",
+  porciones: "",
+  tiempoPreparacion: "",
+  tips: "",
+  categoriaId: null,
+  subcategoriaId: null,
+  ingredientes: [],
+  pasos: [
+    { id: 1, instruccion: "" },
+    { id: 2, instruccion: "" },
+  ],
+  imagen: null,
+});
 
 const useFormularioCrear = () => {
-  const [datos, setDatos] = useState<DatosFormularioReceta>({
-    nombre: "",
-    descripcion: "",
-    porciones: "",
-    tiempoPreparacion: "",
-    tips: "",
-    categoriaId: null,
-    subcategoriaId: null,
-    ingredientes: [],
-    pasos: [
-      { id: 1, instruccion: "" },
-      { id: 2, instruccion: "" },
-    ],
-    imagen: null,
-  });
+  const [datos, setDatos] =
+    useState<DatosFormularioReceta>(crearDatosIniciales);
 
   const siguientePaso = useRef(3);
 
@@ -29,6 +33,8 @@ const useFormularioCrear = () => {
   const [errorImagen, setErrorImagen] = useState<string | null>(null);
 
   const selectorImagenAbierto = useRef(false);
+
+  const [claveFormulario, setClaveFormulario] = useState(0);
   // FUNCIONES
 
   const actualizarTexto = (campo: keyof TextosReceta, valor: string) => {
@@ -175,6 +181,19 @@ const useFormularioCrear = () => {
       };
     });
   };
+
+  const reiniciarFormulario = () => {
+    setDatos(crearDatosIniciales());
+    siguientePaso.current = 3;
+    setErrorImagen(null);
+    setClaveFormulario((clave) => clave + 1);
+  };
+
+  const { guardarRecetaPriv, guardando, errorGuardando } = useGuardarReceta(
+    datos,
+    reiniciarFormulario,
+  );
+
   return {
     datos,
     actualizarTexto,
@@ -190,6 +209,10 @@ const useFormularioCrear = () => {
     quitarImagen,
     imagenSeleccionada,
     errorImagen,
+    guardarRecetaPriv,
+    guardando,
+    errorGuardando,
+    claveFormulario,
   };
 };
 

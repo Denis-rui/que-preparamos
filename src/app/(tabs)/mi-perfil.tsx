@@ -1,4 +1,5 @@
-﻿import { obtenerMensajeError } from "@/utils/mensajeError";
+﻿import { guardarFotoPerfil, leerFotoPerfil } from "@/storage/fotoPerfil";
+import { obtenerMensajeError } from "@/utils/mensajeError";
 import { isAxiosError } from "axios";
 
 import { identificarListaFavoritos, leerFavoritos } from "@/storage/favoritos";
@@ -18,7 +19,7 @@ import type { EditableProfile } from "@/types/perfil";
 import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import EditarPerfilModal from "@/components/editar-perfil-modal";
@@ -45,6 +46,9 @@ export default function MiPerfil() {
   useFocusEffect(
     useCallback(() => {
       let activo = true;
+      let cierreModal: ReturnType<typeof setTimeout> | undefined;
+      const inicioCarga = Date.now();
+      let cargaSinConexion = sinConexion;
       async function cargarPerfil() {
         setLoading(true);
         setProfile(null);
@@ -74,6 +78,7 @@ export default function MiPerfil() {
             usuario = sinConexion ? await obtenerPerfilRecordado() : await obtenerPerfil();
           } catch (error) {
             if (!esFalloDeConexion(error)) throw error;
+            cargaSinConexion = true;
             usuario = await obtenerPerfilRecordado();
             if (activo) setModoLocal(true);
           }
@@ -81,8 +86,16 @@ export default function MiPerfil() {
             if (activo) setNotice("Conéctate una vez para guardar los datos de esta cuenta en el dispositivo.");
             return;
           }
-          if (activo)
-            setProfile(aPerfilEditable(usuario));
+          const fotoLocal = usuario.foto_perfil_url ? await leerFotoPerfil(usuario.id).catch(() => null) : null;
+          if (activo) setProfile({ ...aPerfilEditable(usuario), photoUri: fotoLocal ?? undefined });
+          if (!sinConexion && token) {
+            try {
+              const foto = await guardarFotoPerfil(usuario, token);
+              if (activo) setProfile({ ...aPerfilEditable(usuario), photoUri: foto ?? undefined });
+            } catch {
+              if (activo && !fotoLocal && usuario.foto_perfil_url) setNotice("No pudimos descargar tu foto. Revisa tu conexión y vuelve a entrar para reintentar.");
+            }
+          }
           if (!activo) return;
           setCargandoGuardadas(true);
           try {
@@ -106,12 +119,20 @@ export default function MiPerfil() {
             );
           }
         } finally {
-          if (activo) setLoading(false);
+          if (activo) {
+            const espera = cargaSinConexion
+              ? Math.max(0, 2000 - (Date.now() - inicioCarga))
+              : 0;
+            cierreModal = setTimeout(() => {
+              if (activo) setLoading(false);
+            }, espera);
+          }
         }
       }
       void cargarPerfil();
       return () => {
         activo = false;
+        if (cierreModal !== undefined) clearTimeout(cierreModal);
       };
     }, [sinConexion]),
   );
@@ -380,13 +401,21 @@ export default function MiPerfil() {
               />
             </Pressable>
           </View>
-          {notice ? (
-            <Text style={styles.notice} accessibilityLiveRegion="polite">
-              {notice}
-            </Text>
-          ) : null}
+
         </View>
       </ScrollView>
+      <Modal transparent animationType="fade" visible={!editing && (loading || Boolean(notice))}
+        onRequestClose={() => { if (!loading) setNotice(""); }}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.noticeModal} accessibilityViewIsModal>
+            <ActivityIndicator size="large" color="#FF5008" />
+            <Text style={styles.modalMessage} accessibilityLiveRegion="polite">{loading ? "Cargando perfil..." : notice}</Text>
+            {!loading && <Pressable accessibilityRole="button" onPress={() => setNotice("")} style={styles.modalButton}>
+              <Text style={styles.guestButtonPrimaryText}>Entendido</Text>
+            </Pressable>}
+          </View>
+        </View>
+      </Modal>
       {editing && profile && (
         <EditarPerfilModal
           profile={profile}
@@ -415,15 +444,22 @@ export default function MiPerfil() {
                 foto,
               });
               // Mostramos los datos confirmados por Laravel.
-              setProfile(aPerfilEditable(usuario));
+              let fotoLocal = usuario.foto_perfil_url ? await leerFotoPerfil(usuario.id).catch(() => null) : null;
+              let aviso = "Perfil actualizado correctamente.";
+              try {
+                if (tokenFoto) fotoLocal = await guardarFotoPerfil(usuario, tokenFoto);
+              } catch {
+                aviso = "Tu perfil se guardó, pero no pudimos descargar la foto. Conservamos la copia anterior; vuelve a entrar con conexión para reintentar.";
+              }
+              setProfile({ ...aPerfilEditable(usuario), photoUri: fotoLocal ?? undefined });
               setEditing(false);
               setFotoNoDisponible(false);
               if (foto) setVersionFoto((version) => version + 1);
-              setNotice("Perfil actualizado correctamente.");
+              setNotice(aviso);
             } catch (error) {
               // Si falló solo la foto, reflejamos el nombre/correo que sí se guardaron.
               if (error instanceof PerfilGuardadoParcialError) {
-                setProfile(aPerfilEditable(error.usuario));
+                setProfile({ ...aPerfilEditable(error.usuario), photoUri: profile.photoUri });
               }
               throw error;
             } finally {

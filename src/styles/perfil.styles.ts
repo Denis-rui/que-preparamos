@@ -1,6 +1,10 @@
 ﻿import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(40,20,10,0.4)", padding: 24 },
+  noticeModal: { width: "100%", maxWidth: 350, backgroundColor: "#FFFCF2", borderRadius: 24, padding: 24, gap: 20, alignItems: "center" },
+  modalMessage: { color: "#512013", fontFamily: "Inter_400Regular", fontSize: 15, lineHeight: 23, textAlign: "center" },
+  modalButton: { backgroundColor: "#FF5008", borderRadius: 14, padding: 14, alignSelf: "stretch", minHeight: 44 },
   container: { flex: 1, backgroundColor: "#FFFCF2" },
   content: {
     flexGrow: 1,

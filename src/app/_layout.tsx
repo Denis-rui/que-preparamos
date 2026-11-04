@@ -16,10 +16,12 @@ import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { clienteQuery } from "@/config/cliente-query";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useComprobarReconexion } from "@/hooks/useComprobarReconexion";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  useComprobarReconexion();
   const colorScheme = useColorScheme();
   const [fontsLoaded] = useFonts({
     Inter_400Regular,

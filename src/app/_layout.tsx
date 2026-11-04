@@ -1,3 +1,4 @@
+import "@/config/conectividad-query";
 import { Coiny_400Regular } from "@expo-google-fonts/coiny";
 import {
   Inter_400Regular,

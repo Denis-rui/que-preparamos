@@ -3,6 +3,7 @@ import { LogoQuePreparamos } from "@/components/LogoQuePreparamos";
 import { RecetasAleatorias } from "@/components/RecetasAleatorias";
 
 import { useCategorias } from "@/hooks/useCategorias";
+import { useConexion } from "@/hooks/useConexion";
 import { router } from "expo-router";
 import {
   ActivityIndicator,
@@ -14,6 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
+  const { sinConexion } = useConexion();
   const {
     categorias,
     loading,
@@ -32,7 +34,9 @@ export default function HomeScreen() {
     });
   };
 
-  const aviso = error ?? errorActualizacion;
+  const aviso = sinConexion
+    ? "No pudimos comunicarnos con el servidor. Revisa tu conexión."
+    : error ?? errorActualizacion;
 
   const cabeceraCategorias = (
     <View>
@@ -42,6 +46,12 @@ export default function HomeScreen() {
           size="large"
           color="#3E2723"
           style={{ marginTop: 30 }}
+        />
+      )}
+      {categorias.length > 0 && (
+        <CategoriasInicio
+          categorias={categorias}
+          seleccionarCategoria={explorarCategorias}
         />
       )}
       {aviso && (
@@ -60,12 +70,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       )}
-      {categorias.length > 0 && (
-        <CategoriasInicio
-          categorias={categorias}
-          seleccionarCategoria={explorarCategorias}
-        />
-      )}
       {vacio && !loading && !enEspera && !error && (
         <Text style={styles.errorText}>No hay categorías disponibles</Text>
       )}
@@ -74,7 +78,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <RecetasAleatorias ComponenteCabecera={cabeceraCategorias} />
+      <RecetasAleatorias ComponenteCabecera={cabeceraCategorias} avisoSinConexionVisible={sinConexion} />
     </SafeAreaView>
   );
 }

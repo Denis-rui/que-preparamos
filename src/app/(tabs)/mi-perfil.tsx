@@ -1,146 +1,106 @@
-﻿import { guardarFotoPerfil, leerFotoPerfil } from "@/storage/fotoPerfil";
+﻿import { usePerfilConsulta } from "@/hooks/usePerfilConsulta";
 import { obtenerMensajeError } from "@/utils/mensajeError";
-import { isAxiosError } from "axios";
 
-import { identificarListaFavoritos, leerFavoritos } from "@/storage/favoritos";
-import { obtenerPerfilRecordado } from "@/storage/token";
 import { esFalloDeConexion, useConexion } from "@/hooks/useConexion";
-import { obtenerPerfil } from "@/api/perfil";
+
 import { cerrarSesion } from "@/api/sesion";
 import { LogoQuePreparamos } from "@/components/LogoQuePreparamos";
 import {
   PerfilGuardadoParcialError,
   useActualizarPerfil,
 } from "@/hooks/useActualizarPerfil";
-import { obtenerToken } from "@/storage/token";
+
 import { reiniciarNavegacion } from "@/utils/navegacion";
 import { aPerfilEditable } from "@/utils/perfil";
-import type { EditableProfile } from "@/types/perfil";
+
 import { Image } from "expo-image";
-import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
-import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { router, useFocusEffect, useIsFocused } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import EditarPerfilModal from "@/components/editar-perfil-modal";
 import { styles } from "@/styles/perfil.styles";
 
 export default function MiPerfil() {
+  const enfocado = useIsFocused();
   const { sinConexion } = useConexion();
-  const [modoLocal, setModoLocal] = useState(false);
+  const {
+    consulta,
+    dispositivo,
+    token: tokenFoto,
+    actualizar,
+  } = usePerfilConsulta();
   const { guardarPerfil, guardando, limpiarEstado } = useActualizarPerfil();
   const [notice, setNotice] = useState("");
-  const [tokenFoto, setTokenFoto] = useState<string | null>(null);
   const [versionFoto, setVersionFoto] = useState(0);
   const [fotoNoDisponible, setFotoNoDisponible] = useState(false);
-  const [profile, setProfile] = useState<EditableProfile | null>(null);
   const [editing, setEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [saliendo, setSaliendo] = useState(false);
-  const [haySesion, setHaySesion] = useState(false);
-  const [cantidadGuardadas, setCantidadGuardadas] = useState<number | null>(
-    null,
-  );
-  const [cargandoGuardadas, setCargandoGuardadas] = useState(false);
+  const [avisoDesconexion, setAvisoDesconexion] = useState(false);
+  const [avisoReconexion, setAvisoReconexion] = useState(false);
+  const estabaSinConexion = useRef(sinConexion);
+  const haySesion = Boolean(tokenFoto);
+  const datos = consulta.data;
+  const profile = datos
+    ? { ...aPerfilEditable(datos.usuario), photoUri: datos.photoUri }
+    : null;
+  const modoLocal =
+    sinConexion || consulta.isPaused || esFalloDeConexion(consulta.error);
+  // Si la consulta está esperando internet, no la mostramos como si estuviera cargando.
+  const loading =
+    dispositivo.isPending ||
+    (haySesion && consulta.isPending && consulta.isFetching);
+  const cantidadGuardadas = dispositivo.data?.cantidad ?? null;
+  const cargandoGuardadas = dispositivo.isFetching;
+  const errorInicial = !datos && (consulta.isError || dispositivo.isError);
+  const esperandoConexion = haySesion && !datos && consulta.isPaused;
+  const actualizandoPerfil =
+    !sinConexion && (avisoReconexion || (Boolean(datos) && consulta.isFetching));
 
   useFocusEffect(
     useCallback(() => {
-      let activo = true;
-      let cierreModal: ReturnType<typeof setTimeout> | undefined;
-      const inicioCarga = Date.now();
-      let cargaSinConexion = sinConexion;
-      async function cargarPerfil() {
-        setLoading(true);
-        setProfile(null);
-        setTokenFoto(null);
-        setFotoNoDisponible(false);
-        setCantidadGuardadas(null);
-        setCargandoGuardadas(false);
-        setEditing(false);
-        setNotice("");
-        setModoLocal(sinConexion);
-        try {
-          // Un invitado no tiene token; no lo tratamos como sesión vencida.
-          const token = await obtenerToken();
-          if (activo) {
-            setHaySesion(Boolean(token));
-            setTokenFoto(token);
-          }
-          if (!token) {
-            const lista = await identificarListaFavoritos();
-            const cantidad = (await leerFavoritos(lista)).length;
-            if (activo) setCantidadGuardadas(cantidad);
-            return;
-          }
-          if (!activo) return;
-          let usuario;
-          try {
-            usuario = sinConexion ? await obtenerPerfilRecordado() : await obtenerPerfil();
-          } catch (error) {
-            if (!esFalloDeConexion(error)) throw error;
-            cargaSinConexion = true;
-            usuario = await obtenerPerfilRecordado();
-            if (activo) setModoLocal(true);
-          }
-          if (!usuario) {
-            if (activo) setNotice("Conéctate una vez para guardar los datos de esta cuenta en el dispositivo.");
-            return;
-          }
-          const fotoLocal = usuario.foto_perfil_url ? await leerFotoPerfil(usuario.id).catch(() => null) : null;
-          if (activo) setProfile({ ...aPerfilEditable(usuario), photoUri: fotoLocal ?? undefined });
-          if (!sinConexion && token) {
-            try {
-              const foto = await guardarFotoPerfil(usuario, token);
-              if (activo) setProfile({ ...aPerfilEditable(usuario), photoUri: foto ?? undefined });
-            } catch {
-              if (activo && !fotoLocal && usuario.foto_perfil_url) setNotice("No pudimos descargar tu foto. Revisa tu conexión y vuelve a entrar para reintentar.");
-            }
-          }
-          if (!activo) return;
-          setCargandoGuardadas(true);
-          try {
-            const lista = await identificarListaFavoritos();
-            const cantidad = (await leerFavoritos(lista)).length;
-            if (activo) setCantidadGuardadas(cantidad);
-          } catch {
-            // Un fallo de lectura local no debe ocultar el perfil ni mostrar cero.
-          } finally {
-            if (activo) setCargandoGuardadas(false);
-          }
-        } catch (error) {
-          // El cliente Axios gestiona los 401, sin repetir navegación aquí.
-          if (
-            activo &&
-            !(isAxiosError(error) && error.response?.status === 401)
-          ) {
-            setNotice(
-              obtenerMensajeError(error) ??
-                "No pudimos cargar tu perfil. Inténtalo nuevamente.",
-            );
-          }
-        } finally {
-          if (activo) {
-            const espera = cargaSinConexion
-              ? Math.max(0, 2000 - (Date.now() - inicioCarga))
-              : 0;
-            cierreModal = setTimeout(() => {
-              if (activo) setLoading(false);
-            }, espera);
-          }
-        }
+      setEditing(false);
+      setNotice("");
+      if (!sinConexion) {
+        if (!estabaSinConexion.current || !haySesion) return;
+        estabaSinConexion.current = false;
+        // Damos tiempo para leer el mensaje aunque el perfil se actualice rápido.
+        setAvisoReconexion(true);
+        const timer = setTimeout(() => setAvisoReconexion(false), 2000);
+        return () => {
+          clearTimeout(timer);
+          setAvisoReconexion(false);
+        };
       }
-      void cargarPerfil();
+      estabaSinConexion.current = true;
+      setAvisoDesconexion(true);
+      const timer = setTimeout(() => setAvisoDesconexion(false), 2000);
       return () => {
-        activo = false;
-        if (cierreModal !== undefined) clearTimeout(cierreModal);
+        clearTimeout(timer);
+        setAvisoDesconexion(false);
       };
-    }, [sinConexion]),
+    }, [sinConexion, haySesion]),
   );
+
+  useEffect(() => {
+    setFotoNoDisponible(false);
+  }, [datos?.photoUri]);
+  useEffect(() => {
+    if (datos?.avisoFoto) setNotice(datos.avisoFoto);
+  }, [datos?.avisoFoto, consulta.dataUpdatedAt]);
 
   async function salir() {
     if (loading || saliendo) return;
     if (haySesion && sinConexion) return;
-    // El invitado no tiene sesión que revocar: vuelve a la bienvenida.
+    // Si entró como invitado, solo lo llevamos de vuelta a la bienvenida.
     if (!haySesion) {
       reiniciarNavegacion("/welcome");
       return;
@@ -149,11 +109,14 @@ export default function MiPerfil() {
     setNotice("");
     try {
       await cerrarSesion();
-      setProfile(null);
+
       setEditing(false);
       reiniciarNavegacion("/welcome");
     } catch (error) {
-      setNotice(obtenerMensajeError(error) ?? "No pudimos cerrar sesión. Inténtalo nuevamente.");
+      setNotice(
+        obtenerMensajeError(error) ??
+          "No pudimos cerrar sesión. Inténtalo nuevamente.",
+      );
     } finally {
       setSaliendo(false);
     }
@@ -183,12 +146,16 @@ export default function MiPerfil() {
             />
           </View>
           <Text style={styles.subtitle}>Tu espacio personal</Text>
-          {modoLocal ? <Text style={styles.notice}>Sin conexión. Puedes consultar tus favoritos descargados.</Text> : null}
+          {modoLocal ? (
+            <Text style={styles.notice}>
+              Sin conexión. Puedes consultar tus favoritos descargados.
+            </Text>
+          ) : null}
 
           {loading ? (
             <Text style={styles.notice}>Cargando perfil...</Text>
           ) : null}
-          {!loading && !profile && !notice ? (
+          {!dispositivo.isPending && !dispositivo.isError && !haySesion ? (
             <View style={styles.guestCard}>
               <View style={styles.guestHeader}>
                 <Image
@@ -203,7 +170,7 @@ export default function MiPerfil() {
                   </Text>
                 </View>
               </View>
-              {/* La fila ocupa todo el ancho, sin comprimir botones junto al avatar. */}
+              {/* Dejamos los botones en otra fila para que no queden apretados junto a la foto. */}
               <View style={styles.guestActions}>
                 <Pressable
                   onPress={() => router.push("/login")}
@@ -234,6 +201,41 @@ export default function MiPerfil() {
               </View>
             </View>
           ) : null}
+          {esperandoConexion ? (
+            <Text style={styles.notice}>
+              Sin conexión. La consulta está en espera; conéctate una vez para
+              descargar tu perfil.
+            </Text>
+          ) : null}
+          {datos && consulta.isPaused && !sinConexion ? (
+            <Text style={styles.notice}>
+              Actualización en espera de conexión.
+            </Text>
+          ) : null}
+          {datos && consulta.isError ? (
+            <Text style={styles.notice}>
+              No se pudo actualizar el perfil. Conservamos tus datos
+              disponibles.
+            </Text>
+          ) : null}
+          {errorInicial ? (
+            <View>
+              <Text style={styles.notice}>
+                {obtenerMensajeError(consulta.error ?? dispositivo.error) ??
+                  "No pudimos cargar tu perfil."}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                style={styles.modalButton}
+                onPress={() => {
+                  if (dispositivo.isError) void dispositivo.refetch();
+                  else void consulta.refetch();
+                }}
+              >
+                <Text style={styles.guestButtonPrimaryText}>Reintentar</Text>
+              </Pressable>
+            </View>
+          ) : null}
           {profile ? (
             <View style={styles.profileCard}>
               <View style={styles.avatarWrapper}>
@@ -259,7 +261,7 @@ export default function MiPerfil() {
                         ? "cover"
                         : "contain"
                     }
-                    // La ruta puede conservar la misma URL después de reemplazar la foto.
+                    // La foto puede cambiar aunque el servidor siga usando la misma dirección.
                     key={`${profile.photoUri ?? "avatar"}-${versionFoto}`}
                     cachePolicy="none"
                     onError={() => {
@@ -367,11 +369,14 @@ export default function MiPerfil() {
               style={({ pressed }) => [
                 styles.optionCard,
                 pressed && styles.pressed,
-                haySesion && sinConexion && { backgroundColor: "#E3E3E3", opacity: 0.65 },
+                haySesion &&
+                  sinConexion && { backgroundColor: "#E3E3E3", opacity: 0.65 },
               ]}
               onPress={salir}
               disabled={loading || saliendo || (haySesion && sinConexion)}
-              accessibilityState={{ disabled: loading || saliendo || (haySesion && sinConexion) }}
+              accessibilityState={{
+                disabled: loading || saliendo || (haySesion && sinConexion),
+              }}
             >
               <View style={[styles.optionCircle, styles.logoutCircle]}>
                 <Image
@@ -390,7 +395,9 @@ export default function MiPerfil() {
                 </Text>
                 <Text style={styles.optionDescription}>
                   {haySesion
-                    ? sinConexion ? "No hay conexión a internet" : "Salir de tu cuenta actual"
+                    ? sinConexion
+                      ? "No hay conexión a internet"
+                      : "Salir de tu cuenta actual"
                     : "Elegir cómo quieres ingresar"}
                 </Text>
               </View>
@@ -401,22 +408,41 @@ export default function MiPerfil() {
               />
             </Pressable>
           </View>
-
         </View>
       </ScrollView>
-      <Modal transparent animationType="fade" visible={!editing && (loading || Boolean(notice))}
-        onRequestClose={() => { if (!loading) setNotice(""); }}>
+      <Modal
+        transparent
+        animationType="fade"
+        visible={enfocado && !editing && (loading || actualizandoPerfil || avisoDesconexion || Boolean(notice))}
+        onRequestClose={() => {
+          if (!loading && !actualizandoPerfil && !avisoDesconexion) setNotice("");
+        }}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.noticeModal} accessibilityViewIsModal>
             <ActivityIndicator size="large" color="#FF5008" />
-            <Text style={styles.modalMessage} accessibilityLiveRegion="polite">{loading ? "Cargando perfil..." : notice}</Text>
-            {!loading && <Pressable accessibilityRole="button" onPress={() => setNotice("")} style={styles.modalButton}>
-              <Text style={styles.guestButtonPrimaryText}>Entendido</Text>
-            </Pressable>}
+            <Text style={styles.modalMessage} accessibilityLiveRegion="polite">
+              {avisoDesconexion
+                ? "Sin conexión. Puedes consultar tus favoritos descargados."
+                : loading
+                  ? "Cargando perfil..."
+                  : actualizandoPerfil
+                    ? "Actualizando perfil..."
+                    : notice}
+            </Text>
+            {!loading && !actualizandoPerfil && !avisoDesconexion && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setNotice("")}
+                style={styles.modalButton}
+              >
+                <Text style={styles.guestButtonPrimaryText}>Entendido</Text>
+              </Pressable>
+            )}
           </View>
         </View>
       </Modal>
-      {editing && profile && (
+      {enfocado && editing && profile && (
         <EditarPerfilModal
           profile={profile}
           guardando={guardando}
@@ -443,27 +469,20 @@ export default function MiPerfil() {
                   : {}),
                 foto,
               });
-              // Mostramos los datos confirmados por Laravel.
-              let fotoLocal = usuario.foto_perfil_url ? await leerFotoPerfil(usuario.id).catch(() => null) : null;
-              let aviso = "Perfil actualizado correctamente.";
-              try {
-                if (tokenFoto) fotoLocal = await guardarFotoPerfil(usuario, tokenFoto);
-              } catch {
-                aviso = "Tu perfil se guardó, pero no pudimos descargar la foto. Conservamos la copia anterior; vuelve a entrar con conexión para reintentar.";
-              }
-              setProfile({ ...aPerfilEditable(usuario), photoUri: fotoLocal ?? undefined });
+              // Mostramos los datos que el servidor acaba de guardar.
+              const aviso = await actualizar(usuario);
               setEditing(false);
               setFotoNoDisponible(false);
               if (foto) setVersionFoto((version) => version + 1);
-              setNotice(aviso);
+              setNotice(aviso ?? "Perfil actualizado correctamente.");
             } catch (error) {
-              // Si falló solo la foto, reflejamos el nombre/correo que sí se guardaron.
+              // Si solo falló la foto, mostramos el nombre y el correo que sí se guardaron.
               if (error instanceof PerfilGuardadoParcialError) {
-                setProfile({ ...aPerfilEditable(error.usuario), photoUri: profile.photoUri });
+                await actualizar(error.usuario, false);
               }
               throw error;
             } finally {
-              // El modal muestra los errores y permanece abierto si falla el envío.
+              // Si algo falla al guardar, dejamos el formulario abierto con el mensaje de error.
               limpiarEstado();
             }
           }}

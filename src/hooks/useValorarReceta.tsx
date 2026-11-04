@@ -6,8 +6,10 @@ export function useValorarReceta(recetaId: string) {
   const clienteQuery = useQueryClient();
 
   const mutacion = useMutation({
+    // Si no hay internet, avisamos del error en vez de enviar la valoración después.
+    networkMode: "always",
     mutationFn: (puntuacion: number) => guardarValoracion(recetaId, puntuacion),
-    // Refresca el detalle y también los listados, que muestran el promedio en cada tarjeta.
+    // Actualizamos el detalle y las listas para que muestren el nuevo promedio.
     onSuccess: () => clienteQuery.invalidateQueries({ queryKey: ["recetas"] }),
   });
 

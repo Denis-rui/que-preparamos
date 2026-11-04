@@ -1,5 +1,6 @@
 import { Spacing, TemaFormulario } from "@/constants/theme";
 import { stylesCrear } from "@/styles/formulariocrear.styles";
+import { IngredienteEnEdicion } from "@/types/borradorReceta";
 import { IngredienteFormulario } from "@/types/formularioRecetas";
 import { Ingredientes } from "@/types/ingredientes";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,6 +14,8 @@ interface Props {
   ingredientes: IngredienteFormulario[];
   agregarIngrediente: (ingrediente: IngredienteFormulario) => void;
   quitarIngrediente: (id: number) => void;
+  edicion: IngredienteEnEdicion;
+  actualizarEdicion: (cambios: Partial<IngredienteEnEdicion>) => void;
 }
 
 const INGREDIENTES_VISIBLES = 3;
@@ -22,23 +25,30 @@ export const FormIngredientes = ({
   ingredientes,
   agregarIngrediente,
   quitarIngrediente,
+  edicion,
+  actualizarEdicion,
 }: Props) => {
-  const [seleccionado, setSeleccionado] = useState<Ingredientes | null>(null);
-  const [cantidad, setCantidad] = useState("");
-  const [unidad, setUnidad] = useState("");
-  const [notas, setNotas] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [alturasIngredientes, setAlturasIngredientes] = useState<
     Record<number, number>
   >({});
+  const { seleccionado, cantidad, unidad, notas } = edicion;
+  const setSeleccionado = (seleccionado: Ingredientes | null) =>
+    actualizarEdicion({ seleccionado });
 
+  const setCantidad = (cantidad: string) => actualizarEdicion({ cantidad });
+
+  const setUnidad = (unidad: string) => actualizarEdicion({ unidad });
+
+  const setNotas = (notas: string) => actualizarEdicion({ notas });
   // Conservar las alturas permite mostrar completas las tres primeras filas,
   // incluso cuando una fila larga cambia de posición al quitar ingredientes.
   const visibles = ingredientes.slice(0, INGREDIENTES_VISIBLES);
   const alturaLista =
     visibles.reduce(
       (altura, ingrediente) =>
-        altura + (alturasIngredientes[ingrediente.id] ?? ALTO_MINIMO_INGREDIENTE),
+        altura +
+        (alturasIngredientes[ingrediente.id] ?? ALTO_MINIMO_INGREDIENTE),
       0,
     ) +
     Math.max(0, visibles.length - 1) * Spacing.two +
@@ -139,7 +149,9 @@ export const FormIngredientes = ({
                   )}
 
                   {ingrediente.notas !== "" && (
-                    <Text style={styles.detalle}>Nota: {ingrediente.notas}</Text>
+                    <Text style={styles.detalle}>
+                      Nota: {ingrediente.notas}
+                    </Text>
                   )}
                 </View>
 
@@ -174,14 +186,19 @@ export const FormIngredientes = ({
       </View>
 
       {seleccionado && (
-        <View style={styles.ingredienteSeleccionado} accessibilityLiveRegion="polite">
+        <View
+          style={styles.ingredienteSeleccionado}
+          accessibilityLiveRegion="polite"
+        >
           <Ionicons
             name="checkmark-circle"
             size={24}
             color={TemaFormulario.colores.acento}
           />
           <View style={styles.datos}>
-            <Text style={styles.etiquetaSeleccion}>Ingrediente seleccionado</Text>
+            <Text style={styles.etiquetaSeleccion}>
+              Ingrediente seleccionado
+            </Text>
             <Text style={styles.nombre}>{seleccionado.nombre}</Text>
           </View>
         </View>

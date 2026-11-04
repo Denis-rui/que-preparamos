@@ -1,6 +1,7 @@
 import { crearRecetaPrivada } from "@/api/crearRecetaPrivada";
 import { EstadoPublicacion, publicarReceta } from "@/api/publicarReceta";
 import { obtenerToken } from "@/storage/token";
+import { PublicacionPendiente } from "@/types/borradorReceta";
 import { DatosFormularioReceta } from "@/types/formularioRecetas";
 import { obtenerMensajeError } from "@/utils/mensajeError";
 import { validarReceta } from "@/utils/validarReceta";
@@ -19,7 +20,7 @@ interface EnvioGuardado {
 
 const useGuardarReceta = (
   datos: DatosFormularioReceta,
-  alGuardar: () => void,
+  alGuardar: () => Promise<string | null>,
 ) => {
   const [errorGuardando, setErrorGuardando] = useState<string | null>(null);
   const bloqueo = useRef(false);
@@ -100,12 +101,16 @@ const useGuardarReceta = (
     try {
       const resultado = await mutacion.mutateAsync(accion);
       if (!activo.current || resultado.tipo === "interrumpida") return;
+
       setEnvioGuardado(null);
-      alGuardar();
+      const avisoBorrador = await alGuardar();
+
       if (resultado.tipo === "privada") {
         Alert.alert(
           "Receta guardada",
-          "Tu receta se ha guardado correctamente.",
+          ["Tu receta se ha guardado correctamente.", avisoBorrador]
+            .filter(Boolean)
+            .join("\n\n"),
         );
       } else {
         if (
@@ -118,7 +123,10 @@ const useGuardarReceta = (
         }
         const mensaje = mensajes[resultado.estado];
 
-        Alert.alert(mensaje.titulo, mensaje.texto);
+        Alert.alert(
+          mensaje.titulo,
+          [mensaje.texto, avisoBorrador].filter(Boolean).join("\n\n"),
+        );
       }
     } catch (error) {
       if (activo.current) {
@@ -190,12 +198,41 @@ const useGuardarReceta = (
     }
   };
 
+  const restaurarPublicacionPendiente = async (
+    pendiente: PublicacionPendiente | null,
+  ): Promise<void> => {
+    if (!pendiente) {
+      setEnvioGuardado(null);
+      return;
+    }
+    const token = await obtenerToken();
+    if (!token || !activo.current) {
+      throw new AxiosError(
+        "Inicia sesion para recuperar la publicacion pendiente",
+        "SESION_NO_ENCONTRADA",
+      );
+    }
+
+    setEnvioGuardado({
+      idReceta: pendiente.idReceta,
+      clave: pendiente.clave,
+      token,
+    });
+  };
+
   return {
     guardarRecetaPriv: () => ejecutar("privada"),
     publicar: () => ejecutar("publicar"),
     guardando: mutacion.isPending,
     publicando: mutacion.isPending && mutacion.variables === "publicar",
     publicacionSinConfirmar: envioGuardado !== null,
+    publicacionPendiente: envioGuardado
+      ? {
+          idReceta: envioGuardado.idReceta,
+          clave: envioGuardado.clave,
+        }
+      : null,
+    restaurarPublicacionPendiente,
     errorGuardando,
   };
 };

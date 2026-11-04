@@ -15,9 +15,10 @@ import { FormInput } from "./FormInput";
 import { FotoReceta } from "./FotoReceta";
 import { PasosPreparacion } from "./PasosPreparacion";
 interface Props {
+  usuarioId: number;
   avisoAcceso?: string | null;
 }
-const FormularioCrear = ({ avisoAcceso }: Props) => {
+const FormularioCrear = ({ usuarioId, avisoAcceso }: Props) => {
   const {
     datos,
     actualizarTexto,
@@ -39,7 +40,10 @@ const FormularioCrear = ({ avisoAcceso }: Props) => {
     publicacionSinConfirmar,
     publicar,
     publicando,
-  } = useFormularioCrear();
+    ingredienteEnEdicion,
+    actualizarIngredienteEdicion,
+    bloqueadoBorrador,
+  } = useFormularioCrear(usuarioId);
 
   return (
     <SafeAreaView style={stylesCrear.pantalla} edges={["top", "left", "right"]}>
@@ -64,7 +68,9 @@ const FormularioCrear = ({ avisoAcceso }: Props) => {
           <View
             key={claveFormulario}
             pointerEvents={
-              guardando || publicacionSinConfirmar ? "none" : "auto"
+              guardando || publicacionSinConfirmar || bloqueadoBorrador
+                ? "none"
+                : "auto"
             }
           >
             <Text style={stylesCrear.titulo}>Nueva Receta</Text>
@@ -123,6 +129,8 @@ const FormularioCrear = ({ avisoAcceso }: Props) => {
               ingredientes={datos.ingredientes}
               agregarIngrediente={agregarIngrediente}
               quitarIngrediente={quitarIngrediente}
+              edicion={ingredienteEnEdicion}
+              actualizarEdicion={actualizarIngredienteEdicion}
             />
             <PasosPreparacion
               pasos={datos.pasos}
@@ -142,7 +150,7 @@ const FormularioCrear = ({ avisoAcceso }: Props) => {
           <Botones
             guardarRecetaPri={guardarRecetaPriv}
             guardando={guardando}
-            bloqueado={imagenSeleccionada}
+            bloqueado={imagenSeleccionada || bloqueadoBorrador}
             error={errorGuardando}
             publicacionSinConfirmar={publicacionSinConfirmar}
             publicar={publicar}

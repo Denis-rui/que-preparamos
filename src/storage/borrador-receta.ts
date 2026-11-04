@@ -93,7 +93,6 @@ const esEdicion = (valor: unknown): valor is EstadoEdicionReceta => {
   }
 
   if (
-    typeof ingrediente.busqueda !== "string" ||
     typeof ingrediente.cantidad !== "string" ||
     typeof ingrediente.unidad !== "string" ||
     typeof ingrediente.notas !== "string" ||
@@ -118,7 +117,7 @@ const esBorrador = (
   return (
     esObjeto(valor) &&
     valor.version === 1 &&
-    valor.usurioId === usuarioId &&
+    valor.usuarioId === usuarioId &&
     typeof valor.guardadoEn === "string" &&
     esEdicion(valor.edicion)
   );

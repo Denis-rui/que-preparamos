@@ -52,13 +52,6 @@ const useBorradorReceta = (
 
   const hayCambios = huella(edicion) !== huella(base.current);
 
-  const desactivarPrecencion = usePreventRemove(
-    enfocado && hayCambios && !permitirSalida,
-    ({ repeat }) => {
-      comprobarSalida.current(repeat);
-    },
-  );
-
   const desactivarPrevencion = usePreventRemove(
     enfocado && hayCambios && !permitirSalida,
     ({ repeat }) => {

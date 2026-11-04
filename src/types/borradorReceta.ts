@@ -2,7 +2,6 @@ import type { DatosFormularioReceta } from "./formularioRecetas";
 import type { Ingredientes } from "./ingredientes";
 
 export interface IngredienteEnEdicion {
-  busqueda: string;
   seleccionado: Ingredientes | null;
   cantidad: string;
   unidad: string;

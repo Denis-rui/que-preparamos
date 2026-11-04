@@ -1,11 +1,23 @@
 import {
+  EstadoEdicionReceta,
+  IngredienteEnEdicion,
+} from "@/types/borradorReceta";
+import {
   DatosFormularioReceta,
   IngredienteFormulario,
   TextosReceta,
 } from "@/types/formularioRecetas";
 import { launchImageLibraryAsync } from "expo-image-picker";
 import { useRef, useState } from "react";
+import useBorradorReceta from "./useBorradorReceta";
 import useGuardarReceta from "./useGuardarReceta";
+
+const crearIngredienteEnEdicion = (): IngredienteEnEdicion => ({
+  seleccionado: null,
+  cantidad: "",
+  unidad: "",
+  notas: "",
+});
 
 const crearDatosIniciales = (): DatosFormularioReceta => ({
   nombre: "",
@@ -23,7 +35,7 @@ const crearDatosIniciales = (): DatosFormularioReceta => ({
   imagen: null,
 });
 
-const useFormularioCrear = () => {
+const useFormularioCrear = (usuarioId: number) => {
   const [datos, setDatos] =
     useState<DatosFormularioReceta>(crearDatosIniciales);
 
@@ -35,7 +47,20 @@ const useFormularioCrear = () => {
   const selectorImagenAbierto = useRef(false);
 
   const [claveFormulario, setClaveFormulario] = useState(0);
+
+  const [ingredienteEnEdicion, setIngredienteEnEdicion] =
+    useState<IngredienteEnEdicion>(crearIngredienteEnEdicion);
+
   // FUNCIONES
+
+  const actualizarIngredienteEdicion = (
+    cambios: Partial<IngredienteEnEdicion>,
+  ) => {
+    setIngredienteEnEdicion((actual) => ({
+      ...actual,
+      ...cambios,
+    }));
+  };
 
   const actualizarTexto = (campo: keyof TextosReceta, valor: string) => {
     setDatos((actuales) => ({
@@ -187,6 +212,7 @@ const useFormularioCrear = () => {
     siguientePaso.current = 3;
     setErrorImagen(null);
     setClaveFormulario((clave) => clave + 1);
+    setIngredienteEnEdicion(crearIngredienteEnEdicion());
   };
 
   const {
@@ -196,7 +222,50 @@ const useFormularioCrear = () => {
     publicacionSinConfirmar,
     publicar,
     publicando,
-  } = useGuardarReceta(datos, reiniciarFormulario);
+    publicacionPendiente,
+    restaurarPublicacionPendiente,
+  } = useGuardarReceta(datos, alGuardar);
+
+  async function restaurarEdicion(
+    edicion: EstadoEdicionReceta | null,
+  ): Promise<void> {
+    await restaurarPublicacionPendiente(edicion?.publicacion ?? null);
+
+    const recuperados = edicion?.datos ?? crearDatosIniciales();
+
+    setDatos(recuperados);
+
+    setIngredienteEnEdicion(
+      edicion?.ingrediente ?? crearIngredienteEnEdicion(),
+    );
+
+    siguientePaso.current =
+      Math.max(0, ...recuperados.pasos.map((paso) => paso.id)) + 1;
+
+    setErrorImagen(null);
+    setClaveFormulario((clave) => clave + 1);
+  }
+
+  const edicionActual: EstadoEdicionReceta = {
+    datos,
+    ingrediente: ingredienteEnEdicion,
+    publicacion: publicacionPendiente,
+  };
+
+  const borrador = useBorradorReceta(
+    usuarioId,
+    edicionActual,
+    restaurarEdicion,
+    guardando || imagenSeleccionada,
+  );
+
+  async function alGuardar(): Promise<string | null> {
+    const aviso = await borrador.limpiarTrasGuardado();
+
+    reiniciarFormulario();
+
+    return aviso;
+  }
 
   return {
     datos,
@@ -220,6 +289,9 @@ const useFormularioCrear = () => {
     publicacionSinConfirmar,
     publicar,
     publicando,
+    ingredienteEnEdicion,
+    actualizarIngredienteEdicion,
+    bloqueadoBorrador: borrador.bloqueado,
   };
 };
 

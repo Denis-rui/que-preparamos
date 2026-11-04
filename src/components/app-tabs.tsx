@@ -1,1 +1,1 @@
-﻿export { default } from './rounded-app-tabs';
+﻿export { default } from "./rounded-app-tabs";

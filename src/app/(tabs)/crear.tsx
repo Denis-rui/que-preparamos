@@ -32,8 +32,15 @@ export default function Crear() {
       />
     );
   }
+  if (usuarioId === null) return null;
 
-  return <FormularioCrear key={usuarioId} avisoAcceso={avisoAcceso} />;
+  return (
+    <FormularioCrear
+      key={usuarioId}
+      usuarioId={usuarioId}
+      avisoAcceso={avisoAcceso}
+    />
+  );
 }
 
 const styles = StyleSheet.create({

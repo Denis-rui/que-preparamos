@@ -7,7 +7,7 @@ export async function leerFotoPerfil(id: number): Promise<string | null> {
   return AsyncStorage.getItem(clave(id));
 }
 
-// La copia queda separada por cuenta y solo se reemplaza tras descargarla completa.
+// Guardamos una foto por cuenta. Cambiamos la anterior cuando la nueva termina de descargarse.
 export async function guardarFotoPerfil(perfil: Perfil, token: string): Promise<string | null> {
   if (!perfil.foto_perfil_url) {
     await AsyncStorage.removeItem(clave(perfil.id));

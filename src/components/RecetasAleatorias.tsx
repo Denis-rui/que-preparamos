@@ -13,8 +13,9 @@ import {
 } from "react-native";
 interface Props {
   ComponenteCabecera?: ReactElement;
+  avisoSinConexionVisible?: boolean;
 }
-export const RecetasAleatorias = ({ ComponenteCabecera }: Props) => {
+export const RecetasAleatorias = ({ ComponenteCabecera, avisoSinConexionVisible = false }: Props) => {
   const {
     recetas,
     loading,
@@ -32,9 +33,9 @@ export const RecetasAleatorias = ({ ComponenteCabecera }: Props) => {
 
   return (
     <View style={styles.contenedorSeccion}>
-      {/* cabecera de la sección de recomendaciones */}
+      {/* Encabezado de las recomendaciones. */}
 
-      {/* lista de recetas en formato de cuadrícula */}
+      {/* Mostramos las recetas en dos columnas. */}
       <FlatList
         data={recetas}
         keyExtractor={(item) => item.id.toString()}
@@ -53,17 +54,17 @@ export const RecetasAleatorias = ({ ComponenteCabecera }: Props) => {
                   router.push("/(tabs)/explorar");
                 }}
               >
-                {/* aqui falta la funcionalidad del ver todo que me lleve a la pantalla de todas las recetas */}
+                {/* Desde aquí se puede ir a explorar todas las recetas. */}
                 <Text style={styles.verTodo}>Ver todo</Text>
               </TouchableOpacity>
             </View>
 
-            {enEspera && recetas.length > 0 && (
+            {!avisoSinConexionVisible && enEspera && recetas.length > 0 && (
               <View style={styles.centro}>
                 <Text>Esperando conexion</Text>
               </View>
             )}
-            {errorActualizacion && (
+            {!avisoSinConexionVisible && errorActualizacion && (
               <View style={styles.centro}>
                 <Text
                   style={styles.textoError}
@@ -91,8 +92,8 @@ export const RecetasAleatorias = ({ ComponenteCabecera }: Props) => {
                 <Text>Cargando recomendaciones</Text>
               </>
             )}
-            {!loading && enEspera && <Text>Esperando conexión</Text>}
-            {!loading && !enEspera && error && (
+            {!avisoSinConexionVisible && !loading && enEspera && <Text>Esperando conexión</Text>}
+            {!avisoSinConexionVisible && !loading && !enEspera && error && (
               <>
                 <Text
                   style={styles.textoError}
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
     color: "#4CAF50", // Color verde
     fontWeight: "bold",
   },
-  // Estilo crucial para que haya espacio entre las dos columnas
+  // Dejamos espacio entre las dos columnas.
   filaCuadricula: {
     justifyContent: "space-between",
     paddingHorizontal: 20,

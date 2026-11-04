@@ -123,6 +123,8 @@ Si un administrador elimina una receta pública de otra persona, también perman
 
 ### 4.6. Mi perfil
 
+**Implementación del 4 de noviembre de 2026:** la conectividad de `expo-network` se comunica a `onlineManager` de TanStack Query. Mi perfil utiliza una consulta remota con `networkMode: "online"` y lecturas locales independientes: distingue carga inicial (`isPending` e `isFetching`), espera sin datos (`isPaused`), actualización con datos y fallo de actualización conservando la copia disponible. El perfil recordado y su fotografía siguen persistidos para volver a abrir la app sin internet. El modal usa componentes nativos de React Native y el aviso al perder conexión dura dos segundos. Se mantiene el flujo de restauración de sesión, navegación y cierre de sesión descrito en Favoritos; los cambios no convierten todas las pantallas al mismo manejo visual de estados.
+
 Los usuarios registrados podrán:
 
 - Consultar y editar su nombre completo.

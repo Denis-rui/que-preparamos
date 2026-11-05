@@ -96,6 +96,12 @@ export default function DetalleReceta() {
   }
 
   if (error || !receta) {
+    const mensaje = error ?? (
+      sinConexion
+        ? "No pudimos comunicarnos con el servidor. Revisa tu conexión."
+        : "No se pudo cargar la receta."
+    );
+
     return (
       <SafeAreaView style={styles.estadoContenedorError}>
         <MaterialCommunityIcons
@@ -103,7 +109,7 @@ export default function DetalleReceta() {
           size={40}
           color="#9C8B7A"
         />
-        <Text style={styles.estadoTexto}>{ error ?? "No se pudo cargar la receta."}</Text>
+        <Text style={styles.estadoTexto}>{mensaje}</Text>
         <Pressable
           onPress={() => router.back()}
           style={styles.estadoBotonVolver}

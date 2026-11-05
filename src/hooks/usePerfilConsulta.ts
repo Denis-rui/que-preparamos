@@ -4,8 +4,9 @@ import { guardarFotoPerfil, leerFotoPerfil } from "@/storage/fotoPerfil";
 import { obtenerPerfilRecordado, obtenerToken } from "@/storage/token";
 import type { Perfil } from "@/types/perfil";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useFocusEffect } from "expo-router";
-import { useCallback } from "react";
+import { useFocusEffect, useIsFocused } from "expo-router";
+import { useCallback, useEffect, useRef } from "react";
+import { AppState } from "react-native";
 
 interface PerfilVista {
   usuario: Perfil;
@@ -15,6 +16,9 @@ interface PerfilVista {
 
 export function usePerfilConsulta() {
   const cliente = useQueryClient();
+  const enfocado = useIsFocused();
+  const necesitaActualizar = useRef(true);
+  const ultimoTokenConsultado = useRef<string | null | undefined>(undefined);
   // Leemos lo que ya está guardado en el teléfono, aunque no haya internet.
   const dispositivo = useQuery({
     queryKey: ["perfil-dispositivo"],
@@ -52,6 +56,9 @@ export function usePerfilConsulta() {
     gcTime: 0,
     initialData: () => dispositivo.data?.perfil,
     initialDataUpdatedAt: 0,
+    // Cambiar de pestaña conserva la consulta; regresar a la app la renueva.
+    staleTime: Infinity,
+    refetchOnReconnect: "always",
     refetchOnWindowFocus: false,
     queryFn: async ({ signal }): Promise<PerfilVista> => {
       const usuario = await obtenerPerfil(signal);
@@ -69,9 +76,20 @@ export function usePerfilConsulta() {
   const { refetch: leerDispositivo } = dispositivo;
   const { refetch } = consulta;
   useFocusEffect(useCallback(() => { void leerDispositivo(); }, [leerDispositivo]));
-  useFocusEffect(useCallback(() => {
-    if (token) void refetch({ cancelRefetch: false });
-  }, [token, refetch]));
+  const actualizarAlRegresar = useCallback(() => {
+    if (!token || (!necesitaActualizar.current && ultimoTokenConsultado.current === token)) return;
+    necesitaActualizar.current = false;
+    ultimoTokenConsultado.current = token;
+    void refetch({ cancelRefetch: false });
+  }, [token, refetch]);
+  useFocusEffect(actualizarAlRegresar);
+  useEffect(() => {
+    const suscripcion = AppState.addEventListener("change", (estado) => {
+      if (estado === "background") necesitaActualizar.current = true;
+      if (estado === "active" && enfocado) actualizarAlRegresar();
+    });
+    return () => suscripcion.remove();
+  }, [enfocado, actualizarAlRegresar]);
 
   async function actualizar(usuario: Perfil, descargarFoto = true) {
     if (!token || await obtenerToken() !== token) return;

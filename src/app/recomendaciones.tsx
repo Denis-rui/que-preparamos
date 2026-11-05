@@ -39,10 +39,7 @@ function TarjetaRecomendacion({ item }: { item: RecetaRecomendada }) {
   const disponibles = item.ingredientes_disponibles ?? [];
 
   return (
-    <Pressable
-      style={styles.tarjeta}
-      onPress={() => router.push(`/receta/${item.id}`)}
-    >
+    <View style={styles.tarjeta}>
       <View style={styles.filaSuperior}>
         <FotoReceta uri={item.imagen_url} style={styles.imagen} />
         <View style={styles.tarjetaContenido}>
@@ -108,7 +105,36 @@ function TarjetaRecomendacion({ item }: { item: RecetaRecomendada }) {
           </View>
         </View>
       )}
-    </Pressable>
+
+      <Pressable
+        style={({ pressed }) => [
+          styles.invitacion,
+          pressed && styles.invitacionPresionada,
+        ]}
+        onPress={() => router.push(`/receta/${item.id}`)}
+        accessibilityRole="button"
+        accessibilityLabel={`Ver la receta completa de ${item.nombre}`}
+      >
+        <View style={styles.invitacionContenido}>
+          <Text style={styles.invitacionTitulo}>
+            {faltantes === 0
+              ? "¡Ya tienes todo para cocinarla!"
+              : "¿Te animas a prepararla?"}
+          </Text>
+          <Text style={styles.invitacionSubtitulo}>
+            {faltantes === 0
+              ? "Revisa la receta"
+              : "Revisa la receta para ver los ingredientes faltantes"}
+          </Text>
+        </View>
+        <MaterialCommunityIcons
+          name="chevron-right"
+          size={26}
+          color="#FF4F0A"
+          style={styles.invitacionFlecha}
+        />
+      </Pressable>
+    </View>
   );
 }
 
@@ -257,7 +283,7 @@ export default function Recomendaciones() {
             <View style={styles.cargarMasContenedor}>
               <ActivityIndicator size="small" />
             </View>
-          ) : null
+          ) : undefined
         }
         onEndReached={() => {
           if (mostrarLista && tieneMas && !cargandoMas) void cargarMas();

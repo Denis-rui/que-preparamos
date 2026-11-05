@@ -13,6 +13,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  type TextInputInstance,
   TouchableWithoutFeedback,
   View,
   useWindowDimensions,
@@ -47,9 +48,9 @@ export default function Register() {
     // Liberamos los datos de registro al terminar, sin conservar contraseñas.
     gcTime: 0,
   });
-  const emailRef = useRef<TextInput>(null);
-  const passwordRef = useRef<TextInput>(null);
-  const confirmPasswordRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextInputInstance>(null);
+  const passwordRef = useRef<TextInputInstance>(null);
+  const confirmPasswordRef = useRef<TextInputInstance>(null);
 
   const [formData, setFormData] = useState<FormData>({
     nombre: "",

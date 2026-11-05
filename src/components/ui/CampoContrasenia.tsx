@@ -22,6 +22,7 @@ type Props = {
   onSubmitEditing?: () => void;
   autoComplete?: TextInputProps["autoComplete"];
   textContentType?: TextInputProps["textContentType"];
+  editable?: boolean;
 };
 
 function CampoContrasenaInner(
@@ -36,6 +37,7 @@ function CampoContrasenaInner(
     onSubmitEditing,
     autoComplete = "password",
     textContentType = "password",
+    editable = true,
   }: Props,
   // TextInputInstance es el tipo del campo concreto al que se pide focus().
   ref: Ref<TextInputInstance>,
@@ -67,11 +69,14 @@ function CampoContrasenaInner(
           placeholderTextColor="#9D9DA7"
           secureTextEntry={!mostrar}
           autoCapitalize="none"
+          autoCorrect={false}
+          spellCheck={false}
           autoComplete={autoComplete}
           textContentType={textContentType}
           accessibilityLabel={label}
           returnKeyType={returnKeyType}
           onSubmitEditing={onSubmitEditing}
+          editable={editable}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
         />

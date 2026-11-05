@@ -1,4 +1,5 @@
 import { Ingredientes } from "@/types/ingredientes";
+import { obtenerMensajeError } from "@/utils/mensajeError";
 import { useEffect, useState } from "react";
 import { getIngredientes } from "../api/ingredientes";
 
@@ -26,7 +27,9 @@ export const useBuscarIngredientes = (texto: string) => {
         setResultados(json.data);
       } catch (err) {
         if (controller.signal.aborted) return;
-        setError(err instanceof Error ? err.message : "Error desconocido");
+        setError(
+          obtenerMensajeError(err) ?? "No se pudieron buscar ingredientes.",
+        );
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }

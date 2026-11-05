@@ -1,4 +1,7 @@
-import { restablecerContrasenia } from "@/api/recuperacion";
+import {
+  RecuperacionError,
+  restablecerContrasenia,
+} from "@/api/recuperacion";
 import { EncabezadoRecuperacion } from "@/components/auth/EncabezadoRecuperacion";
 import { CampoContrasena } from "@/components/ui/CampoContrasenia";
 import { AppButton } from "@/components/ui/appButton";
@@ -49,6 +52,9 @@ export default function NuevaContrasenia() {
   // Referencia para pasar del primer campo al segundo con la tecla "next".
   // TextInputInstance es el tipo del campo real enfocable.
   const confirmacionRef = useRef<TextInputInstance | null>(null);
+  // La autorización es de un solo uso: bloqueamos un segundo envío mientras
+  // el primero está en curso.
+  const envioEnCurso = useRef(false);
 
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -81,6 +87,9 @@ export default function NuevaContrasenia() {
   }
 
   async function manejarGuardar() {
+    // Evita que dos envíos usen la misma autorización de un solo uso.
+    if (envioEnCurso.current || restablecimiento.isPending) return;
+
     Keyboard.dismiss();
     setServerError(null);
 
@@ -94,23 +103,45 @@ export default function NuevaContrasenia() {
     }
     if (!validarFormulario()) return;
 
+    envioEnCurso.current = true;
     try {
       await restablecimiento.mutateAsync({
         token_recuperacion: codigoAutorizacion,
         password,
         password_confirmation: confirmacion,
       });
-
-      // Limpiamos los datos del formulario navegando al login; allí
-      // avisamos con el parámetro restablecida=1.
-      setPassword("");
-      setConfirmacion("");
-      router.replace("/login?restablecida=1");
     } catch (error: unknown) {
+      // El intento terminó: permitimos corregir y volver a enviar.
+      envioEnCurso.current = false;
+
+      // Si no hubo respuesta (corte de red o tiempo agotado) o el servidor
+      // falló, el cambio pudo haberse guardado igualmente. Avisamos para
+      // que la persona compruebe con la nueva contraseña antes de repetir.
+      const resultadoIncierto =
+        error instanceof RecuperacionError &&
+        (error.status === 0 || error.status >= 500);
+
       setServerError(
-        error instanceof Error
-          ? error.message
-          : "No pudimos guardar la contraseña. Inténtalo nuevamente.",
+        resultadoIncierto
+          ? "No pudimos confirmar si la contraseña se guardó. Intenta iniciar sesión con la nueva contraseña; si no funciona, vuelve a solicitar el código."
+          : error instanceof Error
+            ? error.message
+            : "No pudimos guardar la contraseña. Inténtalo nuevamente.",
+      );
+      return;
+    }
+
+    // El servidor ya guardó la contraseña. La navegación queda fuera del
+    // try/catch para no mostrar un fallo de guardado si lo que falla es
+    // volver al inicio de sesión. Mantenemos el bloqueo porque el token
+    // ya se consumió.
+    setPassword("");
+    setConfirmacion("");
+    try {
+      router.replace("/login?restablecida=1");
+    } catch {
+      setServerError(
+        "Tu contraseña se guardó, pero no pudimos volver al inicio de sesión. Cierra esta pantalla e inicia sesión con tu nueva contraseña.",
       );
     }
   }
@@ -151,26 +182,34 @@ export default function NuevaContrasenia() {
               <View style={styles.form}>
                 <CampoContrasena
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={(valor) => {
+                    setPassword(valor);
+                    if (serverError) setServerError(null);
+                  }}
                   error={errors.password}
                   placeholder="Nueva contraseña"
                   autoComplete="new-password"
                   textContentType="newPassword"
                   returnKeyType="next"
                   showLabel={false}
+                  editable={!restablecimiento.isPending}
                   onSubmitEditing={() => confirmacionRef.current?.focus()}
                 />
 
                 <CampoContrasena
                   ref={confirmacionRef}
                   value={confirmacion}
-                  onChangeText={setConfirmacion}
+                  onChangeText={(valor) => {
+                    setConfirmacion(valor);
+                    if (serverError) setServerError(null);
+                  }}
                   error={errors.confirmacion}
                   placeholder="Confirmar contraseña"
                   autoComplete="new-password"
                   textContentType="newPassword"
                   returnKeyType="done"
                   showLabel={false}
+                  editable={!restablecimiento.isPending}
                   onSubmitEditing={manejarGuardar}
                 />
 
@@ -220,6 +259,7 @@ export default function NuevaContrasenia() {
                     label="Volver"
                     variant="secundario"
                     onPress={manejarVolver}
+                    disabled={restablecimiento.isPending}
                   />
                 </View>
               </View>

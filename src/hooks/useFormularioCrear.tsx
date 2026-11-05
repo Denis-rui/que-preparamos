@@ -81,7 +81,7 @@ const useFormularioCrear = (usuarioId: number) => {
       const resultado = await launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsMultipleSelection: false,
-        allowsEditing: false,
+        allowsEditing: true,
         base64: false,
       });
 

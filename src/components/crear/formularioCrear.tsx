@@ -73,7 +73,7 @@ const FormularioCrear = ({ usuarioId, avisoAcceso }: Props) => {
                 : "auto"
             }
           >
-            <Text style={stylesCrear.titulo}>Nueva Receta</Text>
+            <Text style={stylesCrear.titulo}>Crear Receta</Text>
             <FotoReceta
               imagen={datos.imagen}
               seleccionando={imagenSeleccionada}

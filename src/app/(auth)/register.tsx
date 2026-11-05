@@ -17,7 +17,6 @@ import {
   TouchableWithoutFeedback,
   View,
   useWindowDimensions,
-  type TextInputInstance,
 } from "react-native";
 import {
   SafeAreaView,

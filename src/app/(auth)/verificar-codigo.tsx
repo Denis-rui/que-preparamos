@@ -3,7 +3,10 @@ import {
   verificarCodigoRecuperacion,
 } from "@/api/recuperacion";
 import { EncabezadoRecuperacion } from "@/components/auth/EncabezadoRecuperacion";
-import { CampoCodigo } from "@/components/ui/CampoCodigo";
+import {
+  CampoCodigo,
+  crearCodigoVacio,
+} from "@/components/ui/CampoCodigo";
 import { AppButton } from "@/components/ui/appButton";
 import { BotonVolver } from "@/components/ui/botonVolver";
 import { getRecuperacionStyles } from "@/styles/recuperacion.styles";
@@ -50,7 +53,8 @@ export default function VerificarCodigo() {
   const { email } = useLocalSearchParams<{ email?: string }>();
   const correo = typeof email === "string" ? email : "";
 
-  const [codigo, setCodigo] = useState("");
+  // Un elemento por casilla: "" cuando la casilla está vacía.
+  const [codigo, setCodigo] = useState<string[]>(crearCodigoVacio);
   const [serverError, setServerError] = useState<string | null>(null);
   const [segundosRestantes, setSegundosRestantes] = useState(
     VIGENCIA_CODIGO_SEGUNDOS,
@@ -113,7 +117,7 @@ export default function VerificarCodigo() {
       // Un envío nuevo apaga el reloj anterior y empieza de cero.
       setSegundosRestantes(VIGENCIA_CODIGO_SEGUNDOS);
       setSegundosReenvio(ESPERA_REENVIO_SEGUNDOS);
-      setCodigo("");
+      setCodigo(crearCodigoVacio());
     } catch (error: unknown) {
       setServerError(
         error instanceof Error ? error.message : "No pudimos reenviar el código.",
@@ -135,7 +139,7 @@ export default function VerificarCodigo() {
       setServerError("El código venció. Solicita uno nuevo con «Reenviar».");
       return;
     }
-    if (codigo.length !== 6) {
+    if (codigo.some((digito) => digito === "")) {
       setServerError("Escribe los 6 dígitos del código.");
       return;
     }
@@ -144,7 +148,7 @@ export default function VerificarCodigo() {
     try {
       const respuesta = await verificacion.mutateAsync({
         email: correo,
-        codigo,
+        codigo: codigo.join(""),
       });
 
       // El backend devuelve la autorización temporal de un solo uso.

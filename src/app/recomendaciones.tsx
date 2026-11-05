@@ -189,6 +189,7 @@ export default function Recomendaciones() {
     recargar,
     tieneMas,
     cargandoMas,
+    errorMas,
     cargarMas,
   } = useRecomendaciones(ids, categoriaId);
 
@@ -283,10 +284,28 @@ export default function Recomendaciones() {
             <View style={styles.cargarMasContenedor}>
               <ActivityIndicator size="small" />
             </View>
+          ) : errorMas ? (
+            <View style={styles.errorMasContenedor}>
+              <Text
+                style={styles.errorMasTexto}
+                accessibilityLiveRegion="polite"
+              >
+                {errorMas}
+              </Text>
+              <Pressable
+                style={styles.botonReintentar}
+                onPress={() => void cargarMas()}
+                accessibilityRole="button"
+              >
+                <Text style={styles.botonReintentarTexto}>Reintentar</Text>
+              </Pressable>
+            </View>
           ) : undefined
         }
         onEndReached={() => {
-          if (mostrarLista && tieneMas && !cargandoMas) void cargarMas();
+          if (mostrarLista && tieneMas && !cargandoMas && !errorMas) {
+            void cargarMas();
+          }
         }}
         onEndReachedThreshold={0.5}
         contentContainerStyle={styles.scrollContenido}

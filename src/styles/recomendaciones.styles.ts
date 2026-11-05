@@ -291,4 +291,15 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 4,
   },
+  errorMasContenedor: {
+    alignItems: "center",
+    gap: 4,
+    paddingVertical: 12,
+  },
+  errorMasTexto: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    color: "#7A6A5E",
+    textAlign: "center",
+  },
 });

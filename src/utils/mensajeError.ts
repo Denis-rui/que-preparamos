@@ -38,14 +38,33 @@ export function obtenerMensajeError(error: unknown): string | null {
 
     if (estado >= 400 && estado < 500) {
       const cuerpo = error.response?.data;
-      //
       if (typeof cuerpo === "object" && cuerpo !== null) {
         const mensaje = "mensaje" in cuerpo ? cuerpo.mensaje : undefined;
         if (typeof mensaje === "string" && mensaje.trim()) {
           return mensaje.trim();
         }
 
-        // Si mensaje no existe o está vacío, probamos message.
+        // Laravel suele mandar los detalles en errors y un message
+        // genérico. Preferimos el error de campo, que es más útil.
+        const errores =
+          "errors" in cuerpo
+            ? (cuerpo.errors as Record<string, unknown> | null)
+            : null;
+        if (errores && typeof errores === "object") {
+          for (const valor of Object.values(errores)) {
+            if (Array.isArray(valor)) {
+              const primero = valor.find(
+                (detalle) =>
+                  typeof detalle === "string" && detalle.trim() !== "",
+              );
+              if (typeof primero === "string") return primero.trim();
+            } else if (typeof valor === "string" && valor.trim()) {
+              return valor.trim();
+            }
+          }
+        }
+
+        // Si no hay errores por campo, probamos message.
         const message = "message" in cuerpo ? cuerpo.message : undefined;
 
         if (typeof message === "string" && message.trim()) {

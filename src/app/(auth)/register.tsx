@@ -1,7 +1,7 @@
 import { AppButton } from "@/components/ui/appButton";
 import { BotonVolver } from "@/components/ui/botonVolver";
 import { getRegisterStyles } from "@/styles/register.styles";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { guardarCuentaRecordada } from "@/storage/cuentas";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useRef, useState } from "react";
@@ -17,6 +17,7 @@ import {
   TouchableWithoutFeedback,
   View,
   useWindowDimensions,
+  type TextInputInstance,
 } from "react-native";
 import {
   SafeAreaView,
@@ -48,9 +49,10 @@ export default function Register() {
     // Liberamos los datos de registro al terminar, sin conservar contraseñas.
     gcTime: 0,
   });
-  const emailRef = useRef<TextInputInstance>(null);
-  const passwordRef = useRef<TextInputInstance>(null);
-  const confirmPasswordRef = useRef<TextInputInstance>(null);
+  const emailRef = useRef<TextInputInstance | null>(null);
+  const passwordRef = useRef<TextInputInstance | null>(null);
+  const confirmPasswordRef = useRef<TextInputInstance | null>(null);
+
 
   const [formData, setFormData] = useState<FormData>({
     nombre: "",
@@ -122,31 +124,14 @@ export default function Register() {
     setIsLoading(true);
     // Integracion de api registrar
     try {
-      await registro.mutateAsync({
+      const respuesta = await registro.mutateAsync({
         name: formData.nombre,
         email: formData.email,
         password: formData.password,
         password_confirmation: formData.confirmPassword,
       });
-      // nos devolvemos al login
-      //Extraemos la lista de cuentas que ya existen en el teléfono
-      const memoriaActual = await AsyncStorage.getItem("cuentasGuardadas");
-      const cuentasExistentes = memoriaActual ? JSON.parse(memoriaActual) : [];
-
-      //Preparamos los datos de la cuenta que se acaba de registrar
-      const cuentaRegistrada = {
-        name: formData.nombre,
-        email: formData.email,
-      };
-
-      //Juntamos las cuentas viejas con esta nueva en una sola lista (arreglo)
-      const nuevasCuentas = [...cuentasExistentes, cuentaRegistrada];
-
-      //Guardamos la lista completa usando la clave correcta que lee el login
-      await AsyncStorage.setItem(
-        "cuentasGuardadas",
-        JSON.stringify(nuevasCuentas),
-      );
+      // Recordamos los datos confirmados por el servidor, sin iniciar sesión.
+      await guardarCuentaRecordada(respuesta.usuario).catch(() => undefined);
       router.replace("/login");
     } catch (error: unknown) {
       setServerError(error instanceof Error ? error.message : "No pudimos registrar la cuenta.");

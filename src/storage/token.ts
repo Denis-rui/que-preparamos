@@ -1,13 +1,22 @@
 import { CLAVE_SESION, clienteQuery } from "@/config/cliente-query";
 import type { Perfil } from "@/types/perfil";
 import * as SecureStore from "expo-secure-store";
+import { guardarCuentaRecordada } from "./cuentas";
 const TOKEN_KEY = "token_sesion";
 const PERFIL_KEY = "perfil_sesion_local";
 
 // Se conserva junto a la credencial, nunca se usa para autorizar operaciones remotas.
 export async function recordarPerfil(perfil: Perfil, token: string) {
   if ((await obtenerToken()) !== token) return;
+  const anterior = await obtenerPerfilRecordado();
+  if ((await obtenerToken()) !== token) return;
   await SecureStore.setItemAsync(PERFIL_KEY, JSON.stringify({ token, perfil }));
+  // Si falla la tarjeta recordada, el perfil sigue guardado en el servidor.
+  await guardarCuentaRecordada(perfil, {
+    correoAnterior: anterior?.id === perfil.id ? anterior.email : undefined,
+    ultima: true,
+    sigueSesion: async () => await obtenerToken() === token,
+  }).catch(() => undefined);
 }
 
 export async function obtenerPerfilRecordado(): Promise<Perfil | null> {

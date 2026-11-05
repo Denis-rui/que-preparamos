@@ -1,6 +1,6 @@
 import type { FotoPerfil } from "@/types/perfil";
 
-const TAMANO_MAXIMO = 2048 * 1024;
+const TAMANO_MAXIMO = 10 * 1024 * 1024;
 const TIPOS_POR_EXTENSION: Record<string, string> = {
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
@@ -24,9 +24,10 @@ export function validarFotoPerfil(
     .pop()
     ?.toLowerCase();
   const declarado = (foto.mimeType || foto.file?.type || "").toLowerCase();
-  const tipo = declarado === "image/jpg"
-    ? "image/jpeg"
-    : declarado || TIPOS_POR_EXTENSION[extension ?? ""];
+  const tipo =
+    declarado === "image/jpg"
+      ? "image/jpeg"
+      : declarado || TIPOS_POR_EXTENSION[extension ?? ""];
 
   if ((tipo && !TIPOS_ADMITIDOS.has(tipo)) || (!tipo && exigirTipo)) {
     throw new Error("Selecciona una foto JPG, PNG o WEBP.");

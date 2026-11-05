@@ -216,12 +216,47 @@ export const styles = StyleSheet.create({
     backgroundColor: "#2E7D32",
   },
   insigniaParcial: {
-    backgroundColor: "#E65100",
+    backgroundColor: "#F26A2E",
   },
   insigniaTexto: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 11,
     color: "#FFFFFF",
+  },
+  invitacion: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: "#FBEEDC",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#F2D6B3",
+    borderLeftWidth: 4,
+    borderLeftColor: "#FF4F0A",
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+  },
+  invitacionPresionada: {
+    opacity: 0.85,
+    transform: [{ scale: 0.99 }],
+  },
+  invitacionContenido: {
+    flex: 1,
+    minWidth: 0,
+  },
+  invitacionFlecha: {
+    marginRight: -4,
+  },
+  invitacionTitulo: {
+    fontFamily: "Inter_800ExtraBold",
+    fontSize: 15,
+    color: "#552414",
+  },
+  invitacionSubtitulo: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    color: "#8A6A50",
+    marginTop: 2,
   },
   estadoContenedor: {
     alignItems: "center",

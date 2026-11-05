@@ -257,7 +257,7 @@ export default function Recomendaciones() {
             <View style={styles.cargarMasContenedor}>
               <ActivityIndicator size="small" />
             </View>
-          ) : null
+          ) : undefined
         }
         onEndReached={() => {
           if (mostrarLista && tieneMas && !cargandoMas) void cargarMas();

@@ -22,7 +22,7 @@ expo-env.d.ts
 .metro-health-check*
 
 .docs/crear.md
-
+.docs/guia2.pdf
 # debug
 npm-debug.*
 yarn-debug.*

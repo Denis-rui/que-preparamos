@@ -13,6 +13,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  type TextInputInstance,
   TouchableWithoutFeedback,
   View,
   useWindowDimensions,
@@ -51,6 +52,7 @@ export default function Register() {
   const emailRef = useRef<TextInputInstance | null>(null);
   const passwordRef = useRef<TextInputInstance | null>(null);
   const confirmPasswordRef = useRef<TextInputInstance | null>(null);
+
 
   const [formData, setFormData] = useState<FormData>({
     nombre: "",

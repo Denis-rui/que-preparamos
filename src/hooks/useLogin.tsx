@@ -5,10 +5,8 @@ import { useState } from "react";
 
 // El token es secreto y se guarda en SecureStore.
 import { guardarToken, obtenerToken, recordarPerfil } from "@/storage/token";
-// AsyncStorage recuerda solo nombre y correo, nunca contraseña ni token.
 import { CLAVE_SESION } from "@/config/cliente-query";
 import { Perfil } from "@/types/perfil";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type LoginCredentials = Pick<DatosLogin, "email" | "password">;
 
@@ -56,15 +54,6 @@ export function useLogin(cuentaGuardada = false) {
       ) {
         throw new Error("El servidor no devolvió una cuenta válida.");
       }
-
-      // Recordamos la cuenta para pedir su contraseña si la sesión vence.
-      await AsyncStorage.setItem(
-        "ultimaCuentaSesion",
-        JSON.stringify({
-          name: respuesta.usuario.name,
-          email: respuesta.usuario.email,
-        }),
-      );
 
       // Guardamos el token de forma segura
       await guardarToken(respuesta.token);

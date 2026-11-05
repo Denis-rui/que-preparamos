@@ -127,6 +127,7 @@ export default function LoginModal({
               {cuenta ? (
                 <View style={styles.accountRow}>
                   <CuentaGuardada
+                    photoUri={cuenta.photoUri}
                     name={cuenta.name}
                     email={cuenta.email}
                     size="modal"

@@ -1,12 +1,16 @@
+import { CLAVE_CUENTAS } from "@/config/cliente-query";
+import {
+  leerCuentasGuardadas,
+  leerUltimaCuenta,
+  olvidarCuenta,
+} from "@/storage/cuentas";
+import { Ionicons } from "@expo/vector-icons";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
+import { Href, router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  Href,
-  router,
-  useFocusEffect,
-  useLocalSearchParams,
-} from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import {
+  Modal,
   Pressable,
   ScrollView,
   Text,
@@ -21,7 +25,6 @@ import {
 import { BotonVolver } from "@/components/ui/botonVolver";
 import { getLoginStyles } from "@/styles/login.styles";
 import { reiniciarNavegacion } from "@/utils/navegacion";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 //Agregué aqui para abrir el modal
 import {
@@ -41,10 +44,23 @@ export default function Login() {
   const [notice, setNotice] = useState("");
 
   // const [showOterAccounts, setShowOtherAccounts] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingAccounts, setIsLoadingAccounts] = useState(true);
-
-  const [cuentasGuardadas, setCuentasGuardadas] = useState<any[]>([]);
+  const [cuentaAOlvidar, setCuentaAOlvidar] =
+    useState<CuentaGuardadaData | null>(null);
+  const olvidar = useMutation({
+    mutationFn: olvidarCuenta,
+    retry: false,
+    networkMode: "always",
+    gcTime: 0,
+    onSuccess: () => setCuentaAOlvidar(null),
+  });
+  const isLoading = olvidar.isPending;
+  const cuentas = useQuery({
+    queryKey: CLAVE_CUENTAS,
+    queryFn: leerCuentasGuardadas,
+    networkMode: "always",
+    retry: false,
+  });
+  const cuentasGuardadas = cuentas.data ?? [];
 
   //Agregue para la cuenta seleccionada
   const [modalActivo, setModalActivo] = useState<ModalActivo>(null);
@@ -62,23 +78,7 @@ export default function Login() {
       : alturaDisponible,
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      const cargarCuentas = async () => {
-        try {
-          const data = await AsyncStorage.getItem("cuentasGuardadas");
-          if (data) {
-            setCuentasGuardadas(JSON.parse(data));
-          }
-        } catch (error) {
-          console.error("Error al cargar las cuentas guardadas:", error);
-        }
-      };
-      cargarCuentas();
-    }, []),
-  );
-
-  // Tras restablecer la contraseña volvemos aquí con restablecida=1:
+  // Tras restablecer la contraseña volvemos aquí con restablecida
   // mostramos el aviso y consumimos la señal para no repetirlo.
   useEffect(() => {
     if (restablecida !== "1") return;
@@ -88,8 +88,7 @@ export default function Login() {
     router.setParams({ restablecida: undefined });
   }, [restablecida]);
 
-  // La señal viene de solicitarInicioSesion; la lista de cuentas sigue
-  // cargándose por separado en el useFocusEffect existente.
+  // Si la sesión venció, pedimos la contraseña de la última cuenta utilizada.
   useEffect(() => {
     if (sesionVencida !== "1") return;
     let activo = true;
@@ -97,14 +96,7 @@ export default function Login() {
     async function abrirIngreso() {
       let cuenta: CuentaGuardadaData | null = null;
       try {
-        const guardada = await AsyncStorage.getItem("ultimaCuentaSesion");
-        const datos = guardada ? JSON.parse(guardada) : null;
-        if (
-          typeof datos?.name === "string" &&
-          typeof datos?.email === "string"
-        ) {
-          cuenta = { name: datos.name, email: datos.email };
-        }
+        cuenta = await leerUltimaCuenta();
       } catch {
         // Sin una cuenta válida, el modal pedirá correo y contraseña.
       }
@@ -141,35 +133,15 @@ export default function Login() {
     setCuentaSeleccionada(null);
   }
 
-  // Se ejecuta cuando LoginModal logra iniciar sesión (cuenta guardada u otra cuenta)
-  async function handleLoginExitoso(respuesta: any, email: string) {
-    try {
-      if (modalActivo === "otra") {
-        // Guardamos la cuenta en el dispositivo para que aparezca en "Elegir cuenta"
-        const memoriaActual = await AsyncStorage.getItem("cuentasGuardadas");
-        const cuentasExistentes = memoriaActual
-          ? JSON.parse(memoriaActual)
-          : [];
-        const yaExiste = cuentasExistentes.some(
-          (cuenta: any) => cuenta.email === email,
-        );
-        if (!yaExiste) {
-          // La API devuelve los datos de la cuenta en "usuario".
-          const nuevaCuenta = {
-            name: respuesta?.usuario?.name ?? email,
-            email,
-          };
-          await AsyncStorage.setItem(
-            "cuentasGuardadas",
-            JSON.stringify([...cuentasExistentes, nuevaCuenta]),
-          );
-        }
-      }
-    } catch {
-      // Recordar la cuenta es opcional: en hook se guardó el token.
-      // Un fallo de almacenamiento no debe impedir entrar a la app.
-    }
+  function cancelarOlvido() {
+    if (olvidar.isPending) return;
+    setCuentaAOlvidar(null);
+    olvidar.reset();
+  }
 
+  // Se ejecuta cuando LoginModal logra iniciar sesión (cuenta guardada u otra cuenta)
+  async function handleLoginExitoso() {
+    // useLogin ya guardó la cuenta; aquí solo cerramos el modal y navegamos.
     const destino =
       typeof volverA === "string" &&
       (volverA === "/(tabs)/crear" || volverA.startsWith("/receta/"))
@@ -263,30 +235,57 @@ export default function Login() {
 
             <View style={styles.accounts}>
               {cuentasGuardadas.length > 0 ? (
-                cuentasGuardadas.map((cuenta, index) => (
-                  <Pressable
-                    key={index}
-                    style={({ pressed }) => [
-                      styles.accountCard,
-                      pressed && styles.pressed,
-                      isLoading && { opacity: 0.6 },
-                    ]}
-                    accessibilityRole="button"
-                    disabled={isLoading}
-                    onPress={() => abrirModalCuenta(cuenta)}
+                cuentasGuardadas.map((cuenta) => (
+                  <View
+                    key={cuenta.id ?? cuenta.email}
+                    style={styles.accountContainer}
                   >
-                    <CuentaGuardada
-                      name={cuenta.name}
-                      email={cuenta.email}
-                      size="lista"
-                    />
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.accountCard,
+                        pressed && styles.pressed,
+                        isLoading && { opacity: 0.6 },
+                      ]}
+                      accessibilityRole="button"
+                      disabled={isLoading}
+                      onPress={() => abrirModalCuenta(cuenta)}
+                    >
+                      <CuentaGuardada
+                        name={cuenta.name}
+                        email={cuenta.email}
+                        photoUri={cuenta.photoUri}
+                        size="lista"
+                      />
 
-                    <Image
-                      source={require("../../assets/SVG/iconos/chevron.svg")}
-                      style={styles.chevron}
-                      contentFit="contain"
-                    />
-                  </Pressable>
+                      <Image
+                        source={require("../../assets/SVG/iconos/chevron.svg")}
+                        style={styles.chevron}
+                        contentFit="contain"
+                      />
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`Olvidar la cuenta ${cuenta.email}`}
+                      disabled={isLoading}
+                      onPress={() => {
+                        olvidar.reset();
+                        setCuentaAOlvidar(cuenta);
+                      }}
+                      style={({ pressed }) => [
+                        styles.forgetAccount,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={19}
+                        color="#705D52"
+                      />
+                      <Text style={styles.forgetAccountText}>
+                        Olvidar cuenta
+                      </Text>
+                    </Pressable>
+                  </View>
                 ))
               ) : (
                 <Text
@@ -296,8 +295,11 @@ export default function Login() {
                     marginVertical: 10,
                   }}
                 >
-                  No hay cuentas guardadas. Por favor, inicia sesión con una
-                  cuenta nueva.
+                  {cuentas.isPending
+                    ? "Cargando cuentas..."
+                    : cuentas.isError
+                      ? "No pudimos leer las cuentas guardadas. Puedes usar otra cuenta."
+                      : "No hay cuentas guardadas. Por favor, inicia sesión con una cuenta nueva."}
                 </Text>
               )}
             </View>
@@ -360,6 +362,61 @@ export default function Login() {
           </View>
         </ScrollView>
       </SafeAreaView>
+
+      <Modal
+        transparent
+        animationType="fade"
+        visible={cuentaAOlvidar !== null}
+        onRequestClose={cancelarOlvido}
+      >
+        <SafeAreaView style={styles.confirmOverlay}>
+          <ScrollView contentContainerStyle={styles.confirmContent}>
+            <View style={styles.confirmCard} accessibilityViewIsModal>
+              <Ionicons name="trash-outline" size={44} color="#FF5008" />
+              <Text style={styles.confirmTitle} accessibilityRole="header">
+                ¿Olvidar esta cuenta?
+              </Text>
+              <Text style={styles.confirmEmail}>{cuentaAOlvidar?.email}</Text>
+              <Text style={styles.confirmMessage}>
+                Se quitarán de este teléfono sus datos recordados y su foto. Tu
+                cuenta y tus favoritos se conservarán.
+              </Text>
+              {olvidar.isError && (
+                <Text style={styles.confirmError} accessibilityRole="alert">
+                  No pudimos olvidar la cuenta. Inténtalo nuevamente.
+                </Text>
+              )}
+              <Pressable
+                accessibilityRole="button"
+                disabled={isLoading}
+                style={({ pressed }) => [
+                  styles.confirmButton,
+                  (pressed || isLoading) && styles.pressed,
+                ]}
+                onPress={() => {
+                  if (cuentaAOlvidar && !isLoading)
+                    olvidar.mutate(cuentaAOlvidar);
+                }}
+              >
+                <Text style={styles.confirmButtonText}>
+                  {isLoading ? "Olvidando cuenta..." : "Olvidar cuenta"}
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                disabled={isLoading}
+                onPress={cancelarOlvido}
+                style={({ pressed }) => [
+                  styles.cancelButton,
+                  (pressed || isLoading) && styles.pressed,
+                ]}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </Pressable>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
 
       {modalActivo ? (
         <LoginModal

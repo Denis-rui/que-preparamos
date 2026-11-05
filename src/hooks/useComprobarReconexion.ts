@@ -6,7 +6,8 @@ import { useEffect, useRef } from "react";
 // La lectura local no valida el token. Volvemos a comprobarlo al recuperar la red.
 export function useComprobarReconexion() {
   const red = useNetworkState();
-  const sinConexion = red.isConnected === false || red.isInternetReachable === false;
+  const sinConexion =
+    red.isConnected === false || red.isInternetReachable === false;
   const conexionDisponible = red.isConnected === true && !sinConexion;
   const desconectado = useRef(false);
   useEffect(() => {

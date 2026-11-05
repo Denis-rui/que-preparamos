@@ -14,6 +14,7 @@ import { reiniciarNavegacion } from "@/utils/navegacion";
 import { aPerfilEditable } from "@/utils/perfil";
 
 import { Image } from "expo-image";
+import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect, useIsFocused } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -40,6 +41,7 @@ export default function MiPerfil() {
   } = usePerfilConsulta();
   const { guardarPerfil, guardando, limpiarEstado } = useActualizarPerfil();
   const [notice, setNotice] = useState("");
+  const [perfilActualizado, setPerfilActualizado] = useState(false);
   const [versionFoto, setVersionFoto] = useState(0);
   const [fotoNoDisponible, setFotoNoDisponible] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -69,6 +71,7 @@ export default function MiPerfil() {
     useCallback(() => {
       setEditing(false);
       setNotice("");
+      setPerfilActualizado(false);
       if (!sinConexion) {
         if (!estabaSinConexion.current || !haySesion) return;
         estabaSinConexion.current = false;
@@ -93,6 +96,11 @@ export default function MiPerfil() {
   useEffect(() => {
     setFotoNoDisponible(false);
   }, [datos?.photoUri]);
+  useEffect(() => {
+    if (!perfilActualizado) return;
+    const timer = setTimeout(() => setPerfilActualizado(false), 2000);
+    return () => clearTimeout(timer);
+  }, [perfilActualizado]);
   useEffect(() => {
     if (datos?.avisoFoto) setNotice(datos.avisoFoto);
   }, [datos?.avisoFoto, consulta.dataUpdatedAt]);
@@ -410,6 +418,14 @@ export default function MiPerfil() {
           </View>
         </View>
       </ScrollView>
+      {enfocado && perfilActualizado && (
+        <View pointerEvents="none" style={styles.successOverlay}>
+          <View style={styles.successCard} accessibilityLiveRegion="polite" accessibilityRole="alert">
+            <Ionicons name="checkmark-circle" size={32} color="#27833E" />
+            <Text style={styles.successMessage}>Perfil actualizado correctamente</Text>
+          </View>
+        </View>
+      )}
       <Modal
         transparent
         animationType="fade"
@@ -420,7 +436,9 @@ export default function MiPerfil() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.noticeModal} accessibilityViewIsModal>
-            <ActivityIndicator size="large" color="#FF5008" />
+            {(loading || actualizandoPerfil || avisoDesconexion) && (
+              <ActivityIndicator size="large" color="#FF5008" />
+            )}
             <Text style={styles.modalMessage} accessibilityLiveRegion="polite">
               {avisoDesconexion
                 ? "Sin conexión. Puedes consultar tus favoritos descargados."
@@ -456,6 +474,7 @@ export default function MiPerfil() {
           }}
           onSave={async (updatedProfile, currentPassword, foto) => {
             setNotice("");
+            setPerfilActualizado(false);
             try {
               const usuario = await guardarPerfil({
                 ...(updatedProfile.name !== profile.name
@@ -474,7 +493,8 @@ export default function MiPerfil() {
               setEditing(false);
               setFotoNoDisponible(false);
               if (foto) setVersionFoto((version) => version + 1);
-              setNotice(aviso ?? "Perfil actualizado correctamente.");
+              if (aviso) setNotice(aviso);
+              else setPerfilActualizado(true);
             } catch (error) {
               // Si solo falló la foto, mostramos el nombre y el correo que sí se guardaron.
               if (error instanceof PerfilGuardadoParcialError) {

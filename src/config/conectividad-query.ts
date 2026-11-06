@@ -3,6 +3,8 @@ import * as Network from "expo-network";
 
 // Avisamos a TanStack Query cuando Expo detecta que se fue o volvió el internet.
 onlineManager.setEventListener((setOnline) => {
+  if (typeof window === "undefined") return;
+
   let recibido = false;
   let activo = true;
   function actualizar(red: Network.NetworkState) {

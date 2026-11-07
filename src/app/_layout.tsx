@@ -15,9 +15,9 @@ import { useColorScheme } from "react-native";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { clienteQuery } from "@/config/cliente-query";
+import { useComprobarReconexion } from "@/hooks/useComprobarReconexion";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useComprobarReconexion } from "@/hooks/useComprobarReconexion";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -49,6 +49,7 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="recomendaciones" />
               <Stack.Screen name="receta/[id]" />
+              <Stack.Screen name="mis-recetas" />
             </Stack>
           )}
         </ThemeProvider>

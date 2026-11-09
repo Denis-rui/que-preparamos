@@ -1,18 +1,19 @@
 import { useConexion } from "@/hooks/useConexion";
 import useMisRecetas from "@/hooks/useMisRecetas";
 import { obtenerMensajeError } from "@/utils/mensajeError";
+import { Ionicons } from "@expo/vector-icons";
 import { isAxiosError } from "axios";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { AppButton } from "../ui/appButton";
+import EstadoListado from "./EstadoListado";
+import ListaMisRecetas from "./ListaMisRecetas";
 interface Props {
   usuarioId: number;
 }
@@ -128,80 +129,16 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
       return <EstadoListado mensaje="Cargando tus recetas…" cargando />;
     }
     return (
-      <FlatList
+      <ListaMisRecetas
         key={`${filtro}:${busqueda}`}
-        data={recetas}
-        keyExtractor={(receta) => String(receta.id)}
-        contentContainerStyle={s.lista}
-        keyboardShouldPersistTaps="handled"
-        onEndReached={cargarAutomaticamente}
-        onEndReachedThreshold={0.4}
-        onRefresh={sinConexion ? undefined : actualizar}
-        refreshing={consulta.isRefetching && !consulta.isPaused}
-        ListHeaderComponent={
-          <View>
-            {(sinConexion || consulta.isPaused) && (
-              <Text style={s.aviso}>Sin conexión</Text>
-            )}
-
-            {consulta.isError && !consulta.isFetchNextPageError && (
-              <EstadoListado
-                mensaje="No pudimos actualizar las recetas."
-                reintentar={
-                  !sinConexion && !consulta.isPaused && !consulta.isFetching
-                    ? actualizar
-                    : undefined
-                }
-              />
-            )}
-          </View>
-        }
-        ListEmptyComponent={
-          <EstadoListado
-            mensaje={
-              busqueda
-                ? "No encontramos recetas con ese nombre."
-                : filtro === "privadas"
-                  ? "Aún no tienes recetas privadas."
-                  : "Aún no tienes recetas publicadas."
-            }
-          />
-        }
-        renderItem={({ item }) => (
-          <View style={s.tarjeta}>
-            <Text style={s.nombre}>{item.nombre}</Text>
-
-            <Text style={s.texto}>
-              {item.visibilidad === "privada" ? "Privada" : "Publicada"}
-            </Text>
-
-            {item.solicitud_pendiente && (
-              <Text style={s.revision}>
-                {item.solicitud_pendiente.tipo === "publicacion"
-                  ? "Publicación en revisión"
-                  : "Corrección en revisión"}
-              </Text>
-            )}
-          </View>
-        )}
-        ListFooterComponent={
-          <View style={s.pie}>
-            {consulta.isFetchingNextPage && !consulta.isPaused && (
-              <EstadoListado mensaje="Cargando más recetas…" cargando />
-            )}
-
-            {consulta.isFetchNextPageError && (
-              <EstadoListado
-                mensaje="No pudimos cargar más recetas."
-                reintentar={
-                  !sinConexion && !consulta.isPaused && !consulta.isFetching
-                    ? cargarMas
-                    : undefined
-                }
-              />
-            )}
-          </View>
-        }
+        recetas={recetas}
+        consulta={consulta}
+        filtro={filtro}
+        busqueda={busqueda}
+        sinConexion={sinConexion}
+        actualizar={actualizar}
+        cargarMas={cargarMas}
+        cargarAutomaticamente={cargarAutomaticamente}
       />
     );
   }
@@ -230,14 +167,17 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
           <Text style={s.nombre}>Publicadas</Text>
         </Pressable>
       </View>
-      <TextInput
-        value={texto}
-        onChangeText={setTexto}
-        placeholder="Ingrese el nombre a buscar"
-        style={s.buscador}
-        accessibilityLabel="Buscar mis recetas"
-        maxLength={100}
-      />
+      <View style={s.contenedorBuscador}>
+        <Ionicons name="search" size={20} color="#552414" style={s.icono} />
+        <TextInput
+          value={texto}
+          onChangeText={setTexto}
+          placeholder="Ingrese el nombre a buscar"
+          style={s.buscador}
+          accessibilityLabel="Buscar mis recetas"
+          maxLength={100}
+        />
+      </View>
       {preparandoBusqueda && <ActivityIndicator size="large" color="#FF5008" />}
       {mostrarContenido()}
     </View>
@@ -246,23 +186,6 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
 
 export default ListadoMisRecetas;
 
-const EstadoListado = ({
-  mensaje,
-  cargando = false,
-  reintentar,
-}: {
-  mensaje: string;
-  cargando?: boolean;
-  reintentar?: () => void;
-}) => {
-  return (
-    <View>
-      {cargando && <ActivityIndicator size="large" color="#FF5008" />}
-      <Text style={{ textAlign: "center" }}>{mensaje}</Text>
-      {reintentar && <AppButton label="Reintentar" onPress={reintentar} />}
-    </View>
-  );
-};
 const s = StyleSheet.create({
   contenedor: { flex: 1, gap: 12 },
 
@@ -277,17 +200,25 @@ const s = StyleSheet.create({
   pestanaActiva: {
     borderBottomColor: "#FF5008",
   },
-
-  buscador: {
-    backgroundColor: "#FFFFFF",
-    color: "#552414",
+  icono: {
+    marginRight: 8,
+  },
+  contenedorBuscador: {
+    flexDirection: "row", // Coloca el icono y el texto en la misma línea
+    alignItems: "center", // Centra verticalmente el icono y el texto
+    backgroundColor: "#FFFCF2", // O el color de fondo que uses
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#D9D1C7",
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontFamily: "Inter_400Regular",
+    borderColor: "#E0E0E0",
+    paddingHorizontal: 12, // Espaciado interno horizontal
+    height: 48, // Altura estándar táctil
+  },
+  buscador: {
+    flex: 1,
+    height: "100%",
     fontSize: 16,
+    color: "#000",
+    paddingVertical: 0,
   },
 
   botonLimpiar: {

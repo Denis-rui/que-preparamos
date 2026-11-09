@@ -1,4 +1,4 @@
-import ListadoMisRecetas from "@/components/mis-recetas/listadoMisRecetas";
+import ListadoMisRecetas from "@/components/mis-recetas/ListadoMisRecetas";
 import { AppButton } from "@/components/ui/appButton";
 import { BotonVolver } from "@/components/ui/botonVolver";
 import useAccesoCrear from "@/hooks/useAccesoCrear";

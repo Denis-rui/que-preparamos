@@ -1,15 +1,18 @@
+import { TemaFormulario } from "@/constants/theme";
 import { useConexion } from "@/hooks/useConexion";
 import useMisRecetas from "@/hooks/useMisRecetas";
 import { obtenerMensajeError } from "@/utils/mensajeError";
 import { Ionicons } from "@expo/vector-icons";
 import { isAxiosError } from "axios";
-import { useEffect, useState } from "react";
+import { type ComponentRef, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
 import EstadoListado from "./EstadoListado";
@@ -48,6 +51,12 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
   const puedeBuscar = !sinRecetas && !esperandoListadoInicial && !errorAcceso;
 
   const preparandoBusqueda = puedeBuscar && texto.trim() !== busqueda;
+
+  const [menuVisible, setMenuVisible] = useState(false);
+  const botonMenu = useRef<ComponentRef<typeof Pressable>>(null);
+  const { width: anchoPantalla } = useWindowDimensions();
+  const [posicionMenu, setPosicionMenu] = useState({ top: 0, right: 16 });
+
   useEffect(() => {
     if (!puedeBuscar) return;
     const temporizador = setTimeout(() => {
@@ -58,6 +67,20 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
       clearTimeout(temporizador);
     };
   }, [texto, puedeBuscar]);
+  function activarDesactivarMenu() {
+    if (menuVisible) {
+      setMenuVisible(false);
+      return;
+    }
+
+    botonMenu.current?.measureInWindow((x, y, ancho, alto) => {
+      setPosicionMenu({
+        top: y + alto + 8,
+        right: Math.max(16, anchoPantalla - x - ancho),
+      });
+      setMenuVisible(true);
+    });
+  }
   function actualizar() {
     if (sinConexion || consulta.isPaused || consulta.isFetching) return;
     void consulta.refetch();
@@ -178,6 +201,72 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
           maxLength={100}
         />
       </View>
+      <View style={s.contenedorMisSolicitudes}>
+        <Pressable>
+          <Text style={s.textoMisSolicitudes}>Mis solicitudes</Text>
+        </Pressable>
+        <View style={s.contenedorMasOpciones}>
+          <Pressable
+            ref={botonMenu}
+            collapsable={false}
+            accessibilityRole="button"
+            accessibilityLabel="Más opciones"
+            accessibilityState={{ expanded: menuVisible }}
+            style={({ pressed }) => [
+              s.botonMasOpciones,
+              (pressed || menuVisible) && s.botonMasOpcionesActivo,
+            ]}
+            onPress={activarDesactivarMenu}
+          >
+            <Ionicons
+              name="ellipsis-vertical"
+              size={22}
+              color={TemaFormulario.colores.texto}
+            />
+          </Pressable>
+          <Modal
+            visible={menuVisible}
+            transparent
+            statusBarTranslucent
+            navigationBarTranslucent
+            animationType="fade"
+            onRequestClose={() => setMenuVisible(false)}
+          >
+            <View style={s.overlay}>
+              <Pressable
+                style={StyleSheet.absoluteFill}
+                accessibilityRole="button"
+                accessibilityLabel="Cerrar opciones"
+                onPress={() => setMenuVisible(false)}
+              />
+              <View
+                accessibilityViewIsModal
+                style={[
+                  s.menu,
+                  posicionMenu,
+                  { width: Math.min(280, anchoPantalla - 32) },
+                ]}
+              >
+                <Pressable
+                  style={({ pressed }) => [
+                    s.opcion,
+                    pressed && s.opcionPresionada,
+                  ]}
+                >
+                  <View style={s.iconoOpcion}>
+                    <Ionicons
+                      name="time-outline"
+                      size={20}
+                      color={TemaFormulario.colores.texto}
+                    />
+                  </View>
+                  <Text style={s.textoOpcion}>Historial de eliminaciones</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
+        </View>
+      </View>
       {preparandoBusqueda && <ActivityIndicator size="large" color="#FF5008" />}
       {mostrarContenido()}
     </View>
@@ -188,7 +277,71 @@ export default ListadoMisRecetas;
 
 const s = StyleSheet.create({
   contenedor: { flex: 1, gap: 12 },
-
+  contenedorMisSolicitudes: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  contenedorMasOpciones: {
+    position: "relative",
+  },
+  botonMasOpciones: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  botonMasOpcionesActivo: {
+    backgroundColor: "#FFF0E5",
+  },
+  menu: {
+    position: "absolute",
+    backgroundColor: TemaFormulario.colores.campo,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: TemaFormulario.colores.borde,
+    padding: 6,
+    boxShadow: "0 6px 20px rgba(85, 36, 20, 0.14)",
+  },
+  opcion: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    minHeight: 52,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+  },
+  opcionPresionada: {
+    backgroundColor: TemaFormulario.colores.fondo,
+  },
+  iconoOpcion: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: TemaFormulario.colores.fondo,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  textoOpcion: {
+    flex: 1,
+    fontFamily: TemaFormulario.fuente,
+    fontSize: 14,
+    lineHeight: 20,
+    color: TemaFormulario.colores.texto,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(85, 36, 20, 0.04)",
+  },
+  textoMisSolicitudes: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#FF5008",
+    fontWeight: "bold",
+  },
   pestanas: { flexDirection: "row" },
   pestana: {
     flex: 1,

@@ -1,3 +1,4 @@
+import ListadoMisRecetas from "@/components/mis-recetas/listadoMisRecetas";
 import { AppButton } from "@/components/ui/appButton";
 import { BotonVolver } from "@/components/ui/botonVolver";
 import useAccesoCrear from "@/hooks/useAccesoCrear";
@@ -33,7 +34,7 @@ const MisRecetas = () => {
         </Text>
       </View>
 
-      <View style={[styles.contenido, { justifyContent: "center" }]}>
+      <View style={styles.contenido}>
         {estadoAcceso === "comprobado" && (
           <>
             <ActivityIndicator size="large" color="#FF5008" />
@@ -78,8 +79,7 @@ const MisRecetas = () => {
               </Text>
             )}
 
-            {/* Base temporal: los listados se incorporan en el paso 3. */}
-            <Text style={styles.texto}>Consulta y administra tus recetas.</Text>
+            <ListadoMisRecetas usuarioId={usuarioId} />
           </View>
         )}
       </View>
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
-    padding: 20,
+    paddingHorizontal: 20,
   },
 
   titulo: {
@@ -110,11 +110,12 @@ const styles = StyleSheet.create({
 
   contenido: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 20,
     gap: 16,
   },
 
   bloque: {
+    flex: 1,
     gap: 16,
   },
 

@@ -41,6 +41,9 @@ const useGuardarReceta = (
     mutationFn: async (accion: Accion) => {
       if (accion === "privada") {
         await crearRecetaPrivada(datos);
+        await clienteQuery.invalidateQueries({
+          queryKey: ["mis-recetas"],
+        });
         return { tipo: "privada" } as const;
       }
       let envio = envioGuardado;

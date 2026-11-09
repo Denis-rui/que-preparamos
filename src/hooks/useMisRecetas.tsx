@@ -7,7 +7,7 @@ import { AxiosError } from "axios";
 const useMisRecetas = (
   usuarioId: number,
   filtro: "privadas" | "publicadas",
-  buscar?: "",
+  buscar?: string,
 ) => {
   const cliente = useQueryClient();
 
@@ -40,9 +40,9 @@ const useMisRecetas = (
       return undefined;
     },
     networkMode: "online",
-    retry: false,
+    retry: 1,
     staleTime: 1000 * 60 * 5, // 5 minutos
-    gcTime: 1000 * 60 * 15, // 10 minutos
+    gcTime: 1000 * 60 * 15, // 15 minutos
     refetchOnMount: true,
     refetchOnReconnect: true,
     refetchOnWindowFocus: false,

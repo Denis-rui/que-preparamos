@@ -23,6 +23,7 @@ expo-env.d.ts
 
 .docs/crear.md
 .docs/guia2.pdf
+.docs/image.png
 # debug
 npm-debug.*
 yarn-debug.*

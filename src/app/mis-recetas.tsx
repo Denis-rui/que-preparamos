@@ -45,16 +45,17 @@ const MisRecetas = () => {
 
         {estadoAcceso === "invitado" && (
           <>
+            <Text></Text>
+            <Text></Text>
+            <Text></Text>
+            <Text></Text>
+            <Text></Text>
+            <Text></Text>
             <Text style={[styles.texto, { textAlign: "center" }]}>
               Inicia sesión para consultar y administrar tus recetas.
             </Text>
 
             <AppButton label="Iniciar sesión" onPress={abrirLogin} />
-            <Text></Text>
-            <Text></Text>
-            <Text></Text>
-            <Text></Text>
-            <Text></Text>
           </>
         )}
         {estadoAcceso === "error" && (

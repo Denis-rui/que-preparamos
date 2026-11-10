@@ -1,8 +1,10 @@
 import useMisRecetas from "@/hooks/useMisRecetas";
 import { FlatList, StyleSheet, Text, View } from "react-native";
+import { FotoReceta } from "../recetas/FotoReceta";
 import EstadoListado from "./EstadoListado";
 type DatosMisRecetas = ReturnType<typeof useMisRecetas>;
 interface Props {
+  cabecerasImagen: Record<string, string> | null;
   recetas: DatosMisRecetas["recetas"];
   consulta: DatosMisRecetas["consultaGuardada"];
   filtro: "privadas" | "publicadas";
@@ -14,6 +16,7 @@ interface Props {
 }
 
 const ListaMisRecetas = ({
+  cabecerasImagen,
   recetas,
   consulta,
   filtro,
@@ -66,6 +69,11 @@ const ListaMisRecetas = ({
       }
       renderItem={({ item }) => (
         <View style={s.tarjeta}>
+          <FotoReceta
+            uri={cabecerasImagen ? item.imagen_url : null}
+            cabeceras={cabecerasImagen ?? undefined}
+            style={s.imagen}
+          />
           <Text style={s.nombre}>{item.nombre}</Text>
 
           <Text style={s.texto}>
@@ -106,6 +114,12 @@ const ListaMisRecetas = ({
 export default ListaMisRecetas;
 const s = StyleSheet.create({
   contenedor: { flex: 1, gap: 12 },
+  imagen: {
+    width: "100%",
+    aspectRatio: 2.8,
+    borderRadius: 14,
+    marginBottom: 8,
+  },
 
   pestanas: { flexDirection: "row" },
   pestana: {
@@ -153,7 +167,7 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#D9D1C7",
     borderRadius: 16,
-    padding: 16,
+    padding: 10,
     gap: 8,
     marginBottom: 12,
   },

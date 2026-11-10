@@ -26,11 +26,12 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
   const [busqueda, setBusqueda] = useState("");
   const { sinConexion } = useConexion();
 
-  const { consultaGuardada: consulta, recetas } = useMisRecetas(
-    usuarioId,
-    filtro,
-    busqueda,
-  );
+  const {
+    consultaGuardada: consulta,
+    recetas,
+    cabecerasImagen,
+    errorCabeceraImagen,
+  } = useMisRecetas(usuarioId, filtro, busqueda);
 
   const errorAcceso =
     isAxiosError(consulta.error) &&
@@ -162,6 +163,7 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
         actualizar={actualizar}
         cargarMas={cargarMas}
         cargarAutomaticamente={cargarAutomaticamente}
+        cabecerasImagen={cabecerasImagen}
       />
     );
   }
@@ -268,6 +270,11 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
         </View>
       </View>
       {preparandoBusqueda && <ActivityIndicator size="large" color="#FF5008" />}
+      {errorCabeceraImagen && (
+        <Text accessibilityRole="alert" style={s.texto}>
+          {errorCabeceraImagen}
+        </Text>
+      )}
       {mostrarContenido()}
     </View>
   );

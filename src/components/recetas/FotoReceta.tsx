@@ -20,6 +20,7 @@ export function FotoReceta({
           source={{ uri, headers: cabeceras }}
           style={StyleSheet.absoluteFill}
           contentFit="cover"
+          allowDownscaling={false}
           onError={() => setUrlFallida(uri)}
         />
       ) : (

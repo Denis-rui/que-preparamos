@@ -1,20 +1,24 @@
 import { obtenerPerfil } from "@/api/perfil";
 import { cerrarSesion } from "@/api/sesion";
 import { AppButton } from "@/components/ui/appButton";
-import { obtenerToken, obtenerPerfilRecordado } from "@/storage/token";
 import { esFalloDeConexion } from "@/hooks/useConexion";
-import { getNetworkStateAsync } from "expo-network";
-import { styles } from "@/styles/welcome.styles";
+import { obtenerPerfilRecordado, obtenerToken } from "@/storage/token";
+import { calcularEscala, getWelcomeStyles } from "@/styles/welcome.styles";
 import { obtenerMensajeError } from "@/utils/mensajeError";
 import { isAxiosError } from "axios";
 import { Image } from "expo-image";
+import { getNetworkStateAsync } from "expo-network";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useEffect, useMemo, useState } from "react";
+import { Text, View, useWindowDimensions } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Path, Svg } from "react-native-svg";
 
 export default function Welcome() {
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const escala = calcularEscala(width, height - insets.top - insets.bottom);
+  const styles = useMemo(()=> getWelcomeStyles(escala), [escala]);
   const [ocupado, setOcupado] = useState(true);
   const [aviso, setAviso] = useState("");
 
@@ -107,9 +111,9 @@ export default function Welcome() {
                 </View>
               </View>
               <Svg
-                height={54}
+                height={Math.round(54*escala)}
                 viewBox="0 0 64 58"
-                width={54}
+                width={Math.round(54*escala)}
                 style={styles.taglineHeart}
               >
                 <Path

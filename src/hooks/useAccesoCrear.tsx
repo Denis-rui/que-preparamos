@@ -1,12 +1,13 @@
 import { obtenerPerfil } from "@/api/perfil";
 import { CLAVE_SESION } from "@/config/cliente-query";
-import { obtenerToken } from "@/storage/token";
+import { obtenerPerfilRecordado, obtenerToken } from "@/storage/token";
 import { Perfil } from "@/types/perfil";
 import { obtenerMensajeError } from "@/utils/mensajeError";
 import { useQuery } from "@tanstack/react-query";
 import { CanceledError, isAxiosError } from "axios";
 import { useCallback, useEffect, useRef } from "react";
 import { AppState } from "react-native";
+import { esFalloDeConexion } from "./useConexion";
 
 export type EstadoAccesoCrear =
   | "comprobado"
@@ -31,7 +32,19 @@ const useAccesoCrear = () => {
         return null;
       }
 
-      return obtenerPerfil(signal);
+      try {
+        return await obtenerPerfil(signal);
+      } catch (error) {
+        if (!esFalloDeConexion(error)) throw error;
+
+        const perfil = await obtenerPerfilRecordado();
+        const tokenActual = await obtenerToken();
+
+        if (signal.aborted || tokenActual !== token) throw new CanceledError();
+        if (perfil?.activo !== true) throw error;
+
+        return perfil;
+      }
     },
 
     staleTime: Infinity,

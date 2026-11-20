@@ -129,7 +129,7 @@ const useBorradorReceta = (
           }
           if (!vigente()) return;
 
-          if (borradorId !== undefined) {
+          if (borradorId === undefined) {
             await actual.current.restaurar(null);
             base.current = inicial.current;
           }
@@ -202,7 +202,8 @@ const useBorradorReceta = (
         Platform.OS === "android"
           ? BackHandler.addEventListener("hardwareBackPress", () => {
               comprobar.current(() => {
-                if (borradorId !== undefined) router.dismissTo("/mis-recetas");
+                if (borradorId !== undefined)
+                  router.dismissTo("/mis-recetas/index");
                 else if (router.canGoBack()) router.back();
                 else BackHandler.exitApp();
               });

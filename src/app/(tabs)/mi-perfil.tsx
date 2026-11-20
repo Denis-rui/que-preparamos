@@ -346,7 +346,7 @@ export default function MiPerfil() {
             </Pressable>
 
             <Pressable
-              onPress={() => router.push("/mis-recetas")}
+              onPress={() => router.push("/mis-recetas/index")}
               accessibilityRole="button"
               style={({ pressed }) => [
                 styles.optionCard,

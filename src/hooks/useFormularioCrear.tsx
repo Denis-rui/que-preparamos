@@ -35,7 +35,11 @@ const crearDatosIniciales = (): DatosFormularioReceta => ({
   imagen: null,
 });
 
-const useFormularioCrear = (usuarioId: number) => {
+const useFormularioCrear = (
+  usuarioId: number,
+  borradorId?: string,
+  alCompletar?: () => void,
+) => {
   const [datos, setDatos] =
     useState<DatosFormularioReceta>(crearDatosIniciales);
 
@@ -257,10 +261,11 @@ const useFormularioCrear = (usuarioId: number) => {
     edicionActual,
     restaurarEdicion,
     guardando || imagenSeleccionada,
+    borradorId,
   );
 
   async function alGuardar(): Promise<string | null> {
-    const aviso = await borrador.limpiarTrasGuardado();
+    const aviso = await borrador.limpiarTrasGuardado(alCompletar);
 
     reiniciarFormulario();
 
@@ -292,6 +297,8 @@ const useFormularioCrear = (usuarioId: number) => {
     ingredienteEnEdicion,
     actualizarIngredienteEdicion,
     bloqueadoBorrador: borrador.bloqueado,
+    cargaBorrador: borrador.carga,
+    reintentarCargaBorrador: borrador.reintentarCarga,
   };
 };
 

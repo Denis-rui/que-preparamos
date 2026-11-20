@@ -15,9 +15,9 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import Borradores from "./Borradores";
 import EstadoListado from "./EstadoListado";
 import ListaMisRecetas from "./ListaMisRecetas";
-import Borradores from "./borradores";
 interface Props {
   usuarioId: number;
 }
@@ -111,6 +111,7 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
   }
 
   function seleccionarFiltro(nuevoFiltro: "privadas" | "publicadas") {
+    setVerBorradores(false);
     if (nuevoFiltro === filtro) return;
     setFiltro(nuevoFiltro);
     setTexto("");

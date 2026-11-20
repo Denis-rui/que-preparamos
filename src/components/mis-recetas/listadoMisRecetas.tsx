@@ -191,6 +191,13 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
         >
           <Text style={s.nombre}>Publicadas</Text>
         </Pressable>
+        <Pressable
+          accessibilityRole="tab"
+          /* onPress={() => seleccionarFiltro("pubcadas")} */
+          style={[s.pestana]}
+        >
+          <Text style={s.nombre}>Borradores</Text>
+        </Pressable>
       </View>
       <View style={s.contenedorBuscador}>
         <Ionicons name="search" size={20} color="#552414" style={s.icono} />

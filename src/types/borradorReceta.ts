@@ -20,6 +20,7 @@ export interface EstadoEdicionReceta {
 }
 
 export interface BorradorReceta {
+  id: string;
   version: 1;
   usuarioId: number;
   guardadoEn: string;

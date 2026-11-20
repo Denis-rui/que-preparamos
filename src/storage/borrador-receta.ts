@@ -9,6 +9,40 @@ const clave = (usuarioId: number): string => {
   return `receta:borrador:v1:${usuarioId}`;
 };
 
+const PATRON_ID = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+
+function idAnterior(usuarioId: number): string {
+  return "anterior-" + usuarioId;
+}
+
+function claveBorrador(usuarioId: number, id: string): string {
+  const base = clave(usuarioId);
+
+  if (id === idAnterior(usuarioId)) return base;
+  if (!PATRON_ID.test(id)) throw new Error("El borrador no es válido.");
+
+  return base + ":" + id;
+}
+const escrituras = new Map<string, Promise<void>>();
+function escribirEnOrden<T>(
+  llave: string,
+  operacion: () => Promise<T>,
+): Promise<T> {
+  const resultado = (escrituras.get(llave) ?? Promise.resolve()).then(
+    operacion,
+  );
+  const fin = resultado.then(
+    () => undefined,
+    () => undefined,
+  );
+
+  escrituras.set(llave, fin);
+  void fin.then(() => {
+    if (escrituras.get(llave) === fin) escrituras.delete(llave);
+  });
+
+  return resultado;
+}
 const directorio = (usuarioId: number): Directory => {
   return new Directory(Paths.document, "borradores-receta", String(usuarioId));
 };
@@ -140,104 +174,150 @@ const limpiarFoto = (uri: string | undefined, usuarioId: number): void => {
   } catch {}
 };
 
-export const leerBorrador = async (
+export const interpretarBorrador = (
+  texto: string,
   usuarioId: number,
-): Promise<BorradorReceta | null> => {
-  const texto = await AsyncStorage.getItem(clave(usuarioId));
-
-  if (texto === null) return null;
-
+  id: string,
+): BorradorReceta => {
   const valor: unknown = JSON.parse(texto);
 
-  if (!esBorrador(valor, usuarioId))
+  if (!esBorrador(valor, usuarioId)) {
     throw new Error("El borrador guardado no es válido.");
+  }
 
   const uri = valor.edicion.datos.imagen?.uri;
-  if (uri && !esFotoPropia(uri, usuarioId))
-    throw new Error("La referencia de la foto no es valida");
+  if (uri && !esFotoPropia(uri, usuarioId)) {
+    throw new Error("La referencia de la foto no es válida.");
+  }
+  return { ...valor, id };
+};
 
-  return valor;
+export const leerBorrador = async (
+  usuarioId: number,
+  id: string,
+): Promise<BorradorReceta | null> => {
+  const texto = await AsyncStorage.getItem(claveBorrador(usuarioId, id));
+  return texto === null ? null : interpretarBorrador(texto, usuarioId, id);
+};
+
+export const listarBorradores = async (usuarioId: number) => {
+  const base = clave(usuarioId);
+  const prefijo = base + ":";
+  const claves = (await AsyncStorage.getAllKeys()).filter(
+    (llave) =>
+      llave === base ||
+      (llave.startsWith(prefijo) &&
+        PATRON_ID.test(llave.slice(prefijo.length))),
+  );
+
+  const borradores: BorradorReceta[] = [];
+  let omitidos = 0;
+
+  if (claves.length === 0) return { borradores, omitidos };
+
+  for (const [llave, texto] of await AsyncStorage.multiGet(claves)) {
+    if (texto === null) continue;
+
+    const id =
+      llave === base ? idAnterior(usuarioId) : llave.slice(prefijo.length);
+
+    try {
+      borradores.push(interpretarBorrador(texto, usuarioId, id));
+    } catch {
+      omitidos += 1;
+    }
+  }
+
+  borradores.sort((a, b) => b.guardadoEn.localeCompare(a.guardadoEn));
+  return { borradores, omitidos };
 };
 
 export const guardarBorrador = async (
   usuarioId: number,
   edicion: EstadoEdicionReceta,
+  borradorId?: string,
 ): Promise<BorradorReceta> => {
-  const anteriorBorrador = await leerBorrador(usuarioId);
-  const copia: EstadoEdicionReceta = JSON.parse(JSON.stringify(edicion));
-
-  const origen = edicion.datos.imagen;
-  let fotoNueva: string | undefined;
-  try {
-    if (origen) {
-      const tipo = origen.mimeType?.toLowerCase();
-      const extension =
-        tipo === "image/png" ? "png" : tipo === "image/webp" ? "webp" : "jpg";
-
-      let uri = origen.uri;
-
-      if (!esFotoPropia(uri, usuarioId)) {
-        const carpeta = directorio(usuarioId);
-        carpeta.create({
-          intermediates: true,
-          idempotent: true,
-        });
-
-        const archivoOrigin = new File(origen.uri);
-
-        if (!archivoOrigin.exists)
-          throw new Error("No se encontro la foto, seleccionala nuevamente");
-
-        const destino = new File(carpeta, `${randomUUID()}.${extension}`);
-
-        fotoNueva = destino.uri;
-        await archivoOrigin.copy(destino);
-        uri = destino.uri;
-      }
-      copia.datos.imagen = {
-        uri,
-        width: origen.width,
-        height: origen.height,
-        mimeType:
-          origen.mimeType ??
-          (extension === "png"
-            ? "image/png"
-            : extension === "webp"
-              ? "image/webp"
-              : "image/jpeg"),
-        fileName: origen.fileName ?? `receta.${extension}`,
-        fileSize: origen.fileSize,
-        type: "image",
-      };
+  const id = borradorId ?? randomUUID();
+  const llave = claveBorrador(usuarioId, id);
+  return escribirEnOrden(llave, async () => {
+    const anterior = await leerBorrador(usuarioId, id);
+    if (borradorId !== undefined && !anterior) {
+      throw new Error("Este borrador ya no está disponible.");
     }
+    const origen = edicion.datos.imagen;
+    const fotoAnterior = anterior?.edicion.datos.imagen?.uri;
+    let imagen: EstadoEdicionReceta["datos"]["imagen"] = null;
+    let fotoNueva: string | undefined;
+    try {
+      if (origen) {
+        const archivo = new File(origen.uri);
+        if (!archivo.exists) {
+          throw new Error("No encontramos la foto. Selecciónala nuevamente.");
+        }
+        const tipo = origen.mimeType?.toLowerCase();
+        const extension =
+          tipo === "image/png" ? "png" : tipo === "image/webp" ? "webp" : "jpg";
 
-    const borrador: BorradorReceta = {
-      version: 1,
-      usuarioId,
-      guardadoEn: new Date().toISOString(),
-      edicion: copia,
-    };
+        let uri = origen.uri;
+        if (uri !== fotoAnterior) {
+          const carpeta = directorio(usuarioId);
+          carpeta.create({ intermediates: true, idempotent: true });
+          const destino = new File(carpeta, randomUUID() + "." + extension);
 
-    await AsyncStorage.setItem(clave(usuarioId), JSON.stringify(borrador));
+          fotoNueva = destino.uri;
+          await archivo.copy(destino);
+          uri = destino.uri;
+        }
+        imagen = {
+          uri,
+          width: origen.width,
+          height: origen.height,
+          mimeType:
+            origen.mimeType ??
+            (extension === "png"
+              ? "image/png"
+              : extension === "webp"
+                ? "image/webp"
+                : "image/jpeg"),
+          fileName: origen.fileName ?? `receta.${extension}`,
+          fileSize: origen.fileSize,
+          type: "image",
+        };
+      }
 
-    const fotoAnterior = anteriorBorrador?.edicion.datos.imagen?.uri;
+      const valor: Omit<BorradorReceta, "id"> = {
+        version: 1,
+        usuarioId,
+        guardadoEn: new Date().toISOString(),
+        edicion: { ...edicion, datos: { ...edicion.datos, imagen } },
+      };
+      if (!esBorrador(valor, usuarioId)) {
+        throw new Error(
+          "No pudimos guardar este borrador. Revisa su contenido.",
+        );
+      }
 
-    if (fotoAnterior !== copia.datos.imagen?.uri)
-      limpiarFoto(fotoAnterior, usuarioId);
+      await AsyncStorage.setItem(llave, JSON.stringify(valor));
 
-    return borrador;
-  } catch (error) {
-    limpiarFoto(fotoNueva, usuarioId);
-    throw error;
-  }
+      if (fotoAnterior !== imagen?.uri) limpiarFoto(fotoAnterior, usuarioId);
+
+      return { ...valor, id };
+    } catch (error) {
+      limpiarFoto(fotoNueva, usuarioId);
+      throw error;
+    }
+  });
 };
 
-export const eliminarBorrador = async (usuarioId: number): Promise<void> => {
-  let anteriorBorrador: BorradorReceta | null = null;
-  try {
-    anteriorBorrador = await leerBorrador(usuarioId);
-  } catch (error) {}
-
-  await AsyncStorage.removeItem(clave(usuarioId));
-  limpiarFoto(anteriorBorrador?.edicion.datos.imagen?.uri, usuarioId);
+export const eliminarBorrador = async (
+  usuarioId: number,
+  id: string,
+): Promise<void> => {
+  const llave = claveBorrador(usuarioId, id);
+  return escribirEnOrden(llave, async () => {
+    const borrador = await leerBorrador(usuarioId, id);
+    if (!borrador) return;
+    await AsyncStorage.removeItem(llave);
+    limpiarFoto(borrador.edicion.datos.imagen?.uri, usuarioId);
+  });
 };

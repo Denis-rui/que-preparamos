@@ -180,7 +180,13 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
             selected: filtro === "privadas",
           }}
           onPress={() => seleccionarFiltro("privadas")}
-          style={[s.pestana, filtro === "privadas" && s.pestanaActiva]}
+          style={[
+            s.pestana,
+            filtro === "privadas" &&
+              s.pestanaActiva &&
+              !verBorradores &&
+              s.pestanaActiva,
+          ]}
         >
           <Text style={s.nombre}>Privadas</Text>
         </Pressable>
@@ -190,7 +196,13 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
             selected: filtro === "publicadas",
           }}
           onPress={() => seleccionarFiltro("publicadas")}
-          style={[s.pestana, filtro === "publicadas" && s.pestanaActiva]}
+          style={[
+            s.pestana,
+            filtro === "publicadas" &&
+              s.pestanaActiva &&
+              !verBorradores &&
+              s.pestanaActiva,
+          ]}
         >
           <Text style={s.nombre}>Publicadas</Text>
         </Pressable>

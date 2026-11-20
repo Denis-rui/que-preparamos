@@ -202,8 +202,7 @@ const useBorradorReceta = (
         Platform.OS === "android"
           ? BackHandler.addEventListener("hardwareBackPress", () => {
               comprobar.current(() => {
-                if (borradorId !== undefined)
-                  router.dismissTo("/mis-recetas/index");
+                if (borradorId !== undefined) router.dismissTo("/mis-recetas");
                 else if (router.canGoBack()) router.back();
                 else BackHandler.exitApp();
               });

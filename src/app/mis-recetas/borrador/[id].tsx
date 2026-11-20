@@ -7,7 +7,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const volver = () => router.dismissTo("/mis-recetas/index");
+const volver = () => router.dismissTo("/mis-recetas");
 
 const EditarBorrador = () => {
   const { id } = useLocalSearchParams<{ id: string }>();

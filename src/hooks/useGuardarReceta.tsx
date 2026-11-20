@@ -41,6 +41,9 @@ const useGuardarReceta = (
     mutationFn: async (accion: Accion) => {
       if (accion === "privada") {
         await crearRecetaPrivada(datos);
+        await clienteQuery.invalidateQueries({
+          queryKey: ["mis-recetas"],
+        });
         return { tipo: "privada" } as const;
       }
       let envio = envioGuardado;
@@ -132,66 +135,6 @@ const useGuardarReceta = (
       if (activo.current) {
         setErrorGuardando(mensajeError(error));
       }
-    } finally {
-      bloqueo.current = false;
-      mutacion.reset();
-    }
-  };
-
-  const guardarRecetaPriv = async (): Promise<void> => {
-    if (bloqueo.current) {
-      return;
-    }
-
-    const problema = validarReceta(datos);
-    if (problema) {
-      setErrorGuardando(problema);
-      return;
-    }
-
-    bloqueo.current = true;
-    setErrorGuardando(null);
-    Keyboard.dismiss();
-
-    try {
-      await mutacion.mutateAsync("privada");
-      if (!activo.current) {
-        return;
-      }
-
-      alGuardar();
-
-      Alert.alert("Receta guardada", "Tu receta se ha guardado correctamente.");
-    } catch (error) {
-      if (!activo.current) {
-        return;
-      }
-      let detalle: string | undefined;
-
-      if (axios.isAxiosError<{ errors?: Record<string, unknown> }>(error)) {
-        const errores = error.response?.data?.errors;
-        if (
-          error.response?.status === 422 &&
-          errores &&
-          typeof errores === "object"
-        ) {
-          for (const valor of Object.values(errores)) {
-            if (Array.isArray(valor)) {
-              detalle = valor.find(
-                (mensaje): mensaje is string => typeof mensaje === "string",
-              );
-            }
-            if (detalle) {
-              break;
-            }
-          }
-        }
-      }
-      setErrorGuardando(
-        detalle ??
-          obtenerMensajeError(error) ??
-          "No se pudo confirmar el guardado de la receta",
-      );
     } finally {
       bloqueo.current = false;
       mutacion.reset();

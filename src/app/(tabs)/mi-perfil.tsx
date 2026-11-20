@@ -13,8 +13,8 @@ import {
 import { reiniciarNavegacion } from "@/utils/navegacion";
 import { aPerfilEditable } from "@/utils/perfil";
 
-import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { router, useFocusEffect, useIsFocused } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -65,7 +65,8 @@ export default function MiPerfil() {
   const errorInicial = !datos && (consulta.isError || dispositivo.isError);
   const esperandoConexion = haySesion && !datos && consulta.isPaused;
   const actualizandoPerfil =
-    !sinConexion && (avisoReconexion || (Boolean(datos) && consulta.isFetching));
+    !sinConexion &&
+    (avisoReconexion || (Boolean(datos) && consulta.isFetching));
 
   useFocusEffect(
     useCallback(() => {
@@ -345,6 +346,7 @@ export default function MiPerfil() {
             </Pressable>
 
             <Pressable
+              onPress={() => router.push("/mis-recetas")}
               accessibilityRole="button"
               style={({ pressed }) => [
                 styles.optionCard,
@@ -420,18 +422,29 @@ export default function MiPerfil() {
       </ScrollView>
       {enfocado && perfilActualizado && (
         <View pointerEvents="none" style={styles.successOverlay}>
-          <View style={styles.successCard} accessibilityLiveRegion="polite" accessibilityRole="alert">
+          <View
+            style={styles.successCard}
+            accessibilityLiveRegion="polite"
+            accessibilityRole="alert"
+          >
             <Ionicons name="checkmark-circle" size={32} color="#27833E" />
-            <Text style={styles.successMessage}>Perfil actualizado correctamente</Text>
+            <Text style={styles.successMessage}>
+              Perfil actualizado correctamente
+            </Text>
           </View>
         </View>
       )}
       <Modal
         transparent
         animationType="fade"
-        visible={enfocado && !editing && (loading || actualizandoPerfil || avisoDesconexion || Boolean(notice))}
+        visible={
+          enfocado &&
+          !editing &&
+          (loading || actualizandoPerfil || avisoDesconexion || Boolean(notice))
+        }
         onRequestClose={() => {
-          if (!loading && !actualizandoPerfil && !avisoDesconexion) setNotice("");
+          if (!loading && !actualizandoPerfil && !avisoDesconexion)
+            setNotice("");
         }}
       >
         <View style={styles.modalOverlay}>

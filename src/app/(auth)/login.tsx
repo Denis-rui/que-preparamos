@@ -144,7 +144,9 @@ export default function Login() {
     // useLogin ya guardó la cuenta; aquí solo cerramos el modal y navegamos.
     const destino =
       typeof volverA === "string" &&
-      (volverA === "/(tabs)/crear" || volverA.startsWith("/receta/"))
+      (volverA === "/(tabs)/crear" ||
+        volverA === "/mis-recetas" ||
+        volverA.startsWith("/receta/"))
         ? volverA
         : undefined;
 

@@ -14,10 +14,11 @@ import * as SplashScreen from "expo-splash-screen";
 import { useColorScheme } from "react-native";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
+import { ProtectorSalidaProvider } from "@/components/crear/protectorSalida";
 import { clienteQuery } from "@/config/cliente-query";
+import { useComprobarReconexion } from "@/hooks/useComprobarReconexion";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useComprobarReconexion } from "@/hooks/useComprobarReconexion";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,15 +42,19 @@ export default function RootLayout() {
         >
           <AnimatedSplashOverlay ready={fontsLoaded} />
           {fontsLoaded && (
-            <Stack
-              // initialRouteName="(auth)"
-              screenOptions={{ headerShown: false }}
-            >
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="recomendaciones" />
-              <Stack.Screen name="receta/[id]" />
-            </Stack>
+            <ProtectorSalidaProvider>
+              <Stack
+                // initialRouteName="(auth)"
+                screenOptions={{ headerShown: false }}
+              >
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="recomendaciones" />
+                <Stack.Screen name="receta/[id]" />
+                <Stack.Screen name="mis-recetas/mis-recetas" />
+                <Stack.Screen name="mis-recetas/borrador/[id]" />
+              </Stack>
+            </ProtectorSalidaProvider>
           )}
         </ThemeProvider>
       </QueryClientProvider>

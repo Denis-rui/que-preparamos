@@ -5,7 +5,7 @@ import {
   guardarBorrador,
   leerBorrador,
 } from "@/storage/borrador-receta";
-import { BorradorReceta, EstadoEdicionReceta } from "@/types/borradorReceta";
+import { EstadoEdicionReceta } from "@/types/borradorReceta";
 import { Perfil } from "@/types/perfil";
 import { Platform } from "expo";
 import {
@@ -17,273 +17,155 @@ import {
 import { useCallback, useRef, useState } from "react";
 import { Alert, BackHandler } from "react-native";
 
+// TYPES
+
+type Continuar = () => void;
 type Restaurar = (edicion: EstadoEdicionReceta | null) => Promise<void>;
+type Carga =
+  | { estado: "cargando" | "lista" }
+  | { estado: "error"; mensaje: string };
+
+const huella = (edicion: EstadoEdicionReceta) => JSON.stringify(edicion);
 
 const useBorradorReceta = (
   usuarioId: number,
   edicion: EstadoEdicionReceta,
   restaurar: Restaurar,
   ocupado: boolean,
+  borradorId?: string,
 ) => {
   const { registrar } = useProtectorSalida();
   const enfocado = useIsFocused();
 
-  const inicial = useRef(copiar(edicion));
-  const actual = useRef(edicion);
-  const base = useRef(copiar(edicion));
-  const restaurarActual = useRef(restaurar);
-  const ocupadoActual = useRef(ocupado);
+  const inicial = useRef(huella(edicion));
+  const actual = useRef({ edicion, restaurar, ocupado });
+  actual.current = { edicion, restaurar, ocupado };
+  const base = useRef(inicial.current);
 
-  const guardado = useRef<BorradorReceta | null>(null);
-  const cargado = useRef(false);
-  const dialogoAbierto = useRef(false);
+  const cargado = useRef(borradorId === undefined);
+  const [carga, setCarga] = useState<Carga>({
+    estado: borradorId === undefined ? "lista" : "cargando",
+  });
 
-  const [bloqueado, setBloqueado] = useState(true);
+  const [intento, setIntento] = useState(0);
+  const [procesando, setProcesando] = useState(false);
   const [permitirSalida, setPermitirSalida] = useState(false);
-  const [actualizarRevision, setActualizarRevision] = useState(0);
-
-  actual.current = edicion;
-  restaurarActual.current = restaurar;
-  ocupadoActual.current = ocupado;
-
-  const comprobarSalida = useRef<(continuar: () => void) => void>((continuar) =>
+  const comprobar = useRef<(continuar: Continuar) => void>((continuar) =>
     continuar(),
   );
 
-  const hayCambios = huella(edicion) !== huella(base.current);
+  const mismaCuenta = useCallback(
+    () =>
+      clienteQuery.getQueryData<Perfil | null>(CLAVE_SESION)?.id === usuarioId,
+    [usuarioId],
+  );
 
+  const hayCambios =
+    carga.estado === "lista" && huella(edicion) !== base.current;
   const desactivarPrevencion = usePreventRemove(
-    enfocado && hayCambios && !permitirSalida,
-    ({ repeat }) => {
-      comprobarSalida.current(repeat);
-    },
+    enfocado && !permitirSalida && (hayCambios || ocupado || procesando),
+    ({ repeat }) => comprobar.current(repeat),
   );
 
   const desactivarActual = useRef(desactivarPrevencion);
-
   desactivarActual.current = desactivarPrevencion;
+
+  const salirSinPreguntar = useCallback((continuar: Continuar) => {
+    setPermitirSalida(true);
+    desactivarActual.current();
+    continuar();
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       let activo = true;
-      let trabajando = false;
+      let dialogoAbierto = false;
+      let procesandoSalida = false;
+      const vigente = () => activo && mismaCuenta();
 
       setPermitirSalida(false);
-      setBloqueado(true);
-      cargado.current = false;
-      dialogoAbierto.current = false;
+      setProcesando(false);
 
-      function mismaCuenta(): boolean {
-        return (
-          clienteQuery.getQueryData<Perfil | null>(CLAVE_SESION)?.id ===
-          usuarioId
-        );
-      }
-
-      function vigente(): boolean {
-        return activo && mismaCuenta();
-      }
-
-      async function aplicar(
-        estado: EstadoEdicionReceta | null,
-      ): Promise<void> {
-        await restaurarActual.current(estado);
-
-        if (!vigente()) return;
-
-        const recuperado = estado ?? inicial.current;
-
-        actual.current = recuperado;
-        base.current = copiar(recuperado);
-
-        setActualizarRevision((numero) => numero + 1);
-      }
-
-      function salir(continuar: () => void): void {
-        if (!vigente()) return;
-
-        setPermitirSalida(true);
-        desactivarActual.current();
-        continuar();
-      }
-
-      async function ejecutar(
-        operacion: () => Promise<void>,
-        despues?: () => void,
-        reintentar?: () => void,
-      ): Promise<void> {
-        if (!vigente() || trabajando) return;
-
-        trabajando = true;
-        setBloqueado(true);
+      async function cargar(id: string) {
+        setCarga({ estado: "cargando" });
 
         try {
-          await operacion();
+          const borrador = await leerBorrador(usuarioId, id);
 
           if (!vigente()) return;
+          if (!borrador)
+            throw new Error("Este borrador ya no está disponible.");
 
-          dialogoAbierto.current = false;
-          setBloqueado(false);
-          despues?.();
-        } catch (error) {
+          await actual.current.restaurar(borrador.edicion);
           if (!vigente()) return;
 
-          dialogoAbierto.current = false;
-          setBloqueado(Boolean(reintentar));
-
-          Alert.alert(
-            "No pudimos completar la acción",
-            error instanceof Error ? error.message : "Inténtalo nuevamente.",
-            [
-              {
-                text: "Aceptar",
-                onPress: reintentar,
-              },
-            ],
-          );
-        } finally {
-          trabajando = false;
-        }
-      }
-
-      function confirmarNueva(): void {
-        if (!vigente()) return;
-
-        dialogoAbierto.current = true;
-
-        Alert.alert(
-          "¿Empezar una nueva receta?",
-          "Se eliminará el borrador guardado y el formulario quedará vacío.",
-          [
-            {
-              text: "Cancelar",
-              style: "cancel",
-              onPress: () => {
-                if (guardado.current) {
-                  mostrarRegreso(guardado.current);
-                } else {
-                  void cargar();
-                }
-              },
-            },
-            {
-              text: "Nueva receta",
-              style: "destructive",
-              onPress: () => {
-                void ejecutar(
-                  async () => {
-                    await eliminarBorrador(usuarioId);
-                    guardado.current = null;
-                    await aplicar(null);
-                  },
-                  undefined,
-                  () => void cargar(),
-                );
-              },
-            },
-          ],
-          { cancelable: false },
-        );
-      }
-
-      function mostrarRegreso(borrador: BorradorReceta): void {
-        if (!vigente()) return;
-
-        dialogoAbierto.current = true;
-
-        Alert.alert(
-          "Tienes una receta pendiente",
-          "¿Quieres seguir editando el borrador o empezar una nueva receta?",
-          [
-            {
-              text: "Seguir editando",
-              onPress: () => {
-                void ejecutar(
-                  () => aplicar(borrador.edicion),
-                  undefined,
-                  () => mostrarRegreso(borrador),
-                );
-              },
-            },
-            {
-              text: "Nueva receta",
-              onPress: confirmarNueva,
-            },
-          ],
-          { cancelable: false },
-        );
-      }
-
-      async function cargar(): Promise<void> {
-        setBloqueado(true);
-        cargado.current = false;
-
-        try {
-          const borrador = await leerBorrador(usuarioId);
-
-          if (!vigente()) return;
-
-          guardado.current = borrador;
+          base.current = huella(borrador.edicion);
           cargado.current = true;
-
-          if (borrador) {
-            mostrarRegreso(borrador);
-          } else {
-            await aplicar(null);
-
-            if (vigente()) {
-              setBloqueado(false);
-            }
-          }
+          setCarga({ estado: "lista" });
         } catch (error) {
           if (!vigente()) return;
 
-          Alert.alert(
-            "No pudimos abrir el borrador",
-            error instanceof Error ? error.message : "Inténtalo nuevamente.",
-            [
-              {
-                text: "Reintentar",
-                onPress: () => void cargar(),
-              },
-              {
-                text: "Nueva receta",
-                onPress: confirmarNueva,
-              },
-            ],
-            { cancelable: false },
-          );
+          setCarga({
+            estado: "error",
+            mensaje:
+              error instanceof Error ? error.message : "Vuelve a intentarlo.",
+          });
         }
       }
 
-      comprobarSalida.current = (continuar) => {
-        // Una expiración o un cambio de cuenta no deben
-        // quedar bloqueados por el formulario anterior.
+      async function resolverSalida(guardar: boolean, continuar: Continuar) {
+        if (!vigente() || procesandoSalida) return;
+
+        procesandoSalida = true;
+        setProcesando(true);
+
+        try {
+          if (guardar) {
+            await guardarBorrador(
+              usuarioId,
+              actual.current.edicion,
+              borradorId,
+            );
+          }
+          if (!vigente()) return;
+
+          if (borradorId !== undefined) {
+            await actual.current.restaurar(null);
+            base.current = inicial.current;
+          }
+          if (vigente()) salirSinPreguntar(continuar);
+        } catch (error) {
+          if (vigente()) {
+            Alert.alert(
+              "No pudimos completar la acción",
+              error instanceof Error ? error.message : "Vuelve a intentarlo.",
+            );
+          }
+        } finally {
+          procesandoSalida = false;
+          dialogoAbierto = false;
+          if (activo) setProcesando(false);
+        }
+      }
+
+      comprobar.current = (continuar) => {
         if (!mismaCuenta()) {
-          setPermitirSalida(true);
-          desactivarActual.current();
-          continuar();
+          salirSinPreguntar(continuar);
           return;
         }
-
-        if (!activo || dialogoAbierto.current || trabajando) {
-          return;
-        }
-
-        if (ocupadoActual.current) {
+        if (!activo || dialogoAbierto || procesandoSalida) return;
+        if (actual.current.ocupado) {
           Alert.alert("Espera un momento", "Hay una operación en curso.");
           return;
         }
-
         if (
           !cargado.current ||
-          huella(actual.current) === huella(base.current)
+          huella(actual.current.edicion) === base.current
         ) {
-          salir(continuar);
+          salirSinPreguntar(continuar);
           return;
         }
-
-        dialogoAbierto.current = true;
-
+        dialogoAbierto = true;
         Alert.alert(
           "Tienes cambios sin guardar",
           "¿Qué quieres hacer antes de salir?",
@@ -291,37 +173,21 @@ const useBorradorReceta = (
             {
               text: "Guardar borrador",
               onPress: () => {
-                void ejecutar(
-                  async () => {
-                    const borrador = await guardarBorrador(
-                      usuarioId,
-                      actual.current,
-                    );
-
-                    if (!vigente()) return;
-
-                    guardado.current = borrador;
-                    await aplicar(borrador.edicion);
-                  },
-                  () => salir(continuar),
-                );
+                void resolverSalida(true, continuar);
               },
             },
             {
               text: "Descartar cambios",
               style: "destructive",
               onPress: () => {
-                void ejecutar(
-                  () => aplicar(guardado.current?.edicion ?? null),
-                  () => salir(continuar),
-                );
+                void resolverSalida(false, continuar);
               },
             },
             {
               text: "Seguir editando",
               style: "cancel",
               onPress: () => {
-                dialogoAbierto.current = false;
+                dialogoAbierto = false;
               },
             },
           ],
@@ -329,65 +195,62 @@ const useBorradorReceta = (
         );
       };
 
-      const quitarRegistro = registrar((continuar) => {
-        comprobarSalida.current(continuar);
-      });
-
-      const suscripcionAtras =
+      const desregistrar = registrar((continuar) =>
+        comprobar.current(continuar),
+      );
+      const atras =
         Platform.OS === "android"
           ? BackHandler.addEventListener("hardwareBackPress", () => {
-              comprobarSalida.current(() => {
-                if (router.canGoBack()) {
-                  router.back();
-                } else {
-                  BackHandler.exitApp();
-                }
+              comprobar.current(() => {
+                if (borradorId !== undefined) router.dismissTo("/mis-recetas");
+                else if (router.canGoBack()) router.back();
+                else BackHandler.exitApp();
               });
-
               return true;
             })
           : null;
-
-      void cargar();
-
+      if (borradorId !== undefined && !cargado.current) void cargar(borradorId);
       return () => {
         activo = false;
-        quitarRegistro();
-        suscripcionAtras?.remove();
-        dialogoAbierto.current = false;
-        comprobarSalida.current = (continuar) => continuar();
+        desregistrar();
+        atras?.remove();
+        comprobar.current = (continuar) => continuar();
       };
-    }, [usuarioId, registrar]),
+    }, [
+      borradorId,
+      intento,
+      mismaCuenta,
+      registrar,
+      salirSinPreguntar,
+      usuarioId,
+    ]),
   );
-  async function limpiarTrasGuardado(): Promise<string | null> {
-    let aviso: string | null = null;
 
-    try {
-      await eliminarBorrador(usuarioId);
-      guardado.current = null;
-    } catch {
-      aviso =
-        "La receta se guardó en tu cuenta, pero no pudimos eliminar su borrador del teléfono.";
+  async function limpiarTrasGuardado(
+    continuar?: Continuar,
+  ): Promise<string | null> {
+    let aviso: string | null = null;
+    if (borradorId !== undefined) {
+      try {
+        await eliminarBorrador(usuarioId, borradorId);
+      } catch {
+        aviso =
+          "La receta se guardó en tu cuenta, pero no pudimos eliminar su borrador del teléfono.";
+      }
     }
 
-    base.current = copiar(inicial.current);
-    setActualizarRevision((numero) => numero + 1);
+    base.current = inicial.current;
+    if (continuar && enfocado && mismaCuenta()) salirSinPreguntar(continuar);
 
     return aviso;
   }
 
   return {
-    bloqueado,
+    bloqueado: procesando || carga.estado !== "lista",
+    carga,
+    reintentarCarga: () => setIntento((numero) => numero + 1),
     limpiarTrasGuardado,
   };
 };
 
 export default useBorradorReceta;
-
-const copiar = (edicion: EstadoEdicionReceta): EstadoEdicionReceta => {
-  return JSON.parse(JSON.stringify(edicion));
-};
-
-const huella = (edicion: EstadoEdicionReceta): string => {
-  return JSON.stringify(edicion);
-};

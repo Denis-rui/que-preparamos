@@ -10,6 +10,7 @@ const useMisRecetas = (
   usuarioId: number,
   filtro: "privadas" | "publicadas",
   buscar?: string,
+  habilitado = true,
 ) => {
   const cliente = useQueryClient();
 
@@ -56,7 +57,7 @@ const useMisRecetas = (
 
   const consultaGuardada = useInfiniteQuery({
     queryKey: ["mis-recetas", usuarioId, filtro, buscar],
-    enabled: Number.isSafeInteger(usuarioId) && usuarioId > 0,
+    enabled: habilitado && Number.isSafeInteger(usuarioId) && usuarioId > 0,
     initialPageParam: 1,
     queryFn: async ({ pageParam, signal }) => {
       const comprobarCuentaActual = () => {

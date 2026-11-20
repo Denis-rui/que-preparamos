@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import EstadoListado from "./EstadoListado";
 import ListaMisRecetas from "./ListaMisRecetas";
+import Borradores from "./borradores";
 interface Props {
   usuarioId: number;
 }
@@ -25,13 +26,13 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
   const [texto, setTexto] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const { sinConexion } = useConexion();
-
+  const [verBorradores, setVerBorradores] = useState(false);
   const {
     consultaGuardada: consulta,
     recetas,
     cabecerasImagen,
     errorCabeceraImagen,
-  } = useMisRecetas(usuarioId, filtro, busqueda);
+  } = useMisRecetas(usuarioId, filtro, busqueda, !verBorradores);
 
   const errorAcceso =
     isAxiosError(consulta.error) &&
@@ -49,7 +50,8 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
   const esperandoListadoInicial =
     busqueda === "" && consulta.data === undefined;
 
-  const puedeBuscar = !sinRecetas && !esperandoListadoInicial && !errorAcceso;
+  const puedeBuscar =
+    !verBorradores && !sinRecetas && !esperandoListadoInicial && !errorAcceso;
 
   const preparandoBusqueda = puedeBuscar && texto.trim() !== busqueda;
 
@@ -193,96 +195,107 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
         </Pressable>
         <Pressable
           accessibilityRole="tab"
-          /* onPress={() => seleccionarFiltro("pubcadas")} */
-          style={[s.pestana]}
+          onPress={() => setVerBorradores(true)}
+          accessibilityState={{ selected: verBorradores }}
+          style={[s.pestana, verBorradores && s.pestanaActiva]}
         >
           <Text style={s.nombre}>Borradores</Text>
         </Pressable>
       </View>
-      <View style={s.contenedorBuscador}>
-        <Ionicons name="search" size={20} color="#552414" style={s.icono} />
-        <TextInput
-          value={texto}
-          onChangeText={setTexto}
-          placeholder="Ingrese el nombre a buscar"
-          style={s.buscador}
-          accessibilityLabel="Buscar mis recetas"
-          maxLength={100}
-        />
-      </View>
-      <View style={s.contenedorMisSolicitudes}>
-        <Pressable>
-          <Text style={s.textoMisSolicitudes}>Mis solicitudes</Text>
-        </Pressable>
-        <View style={s.contenedorMasOpciones}>
-          <Pressable
-            ref={botonMenu}
-            collapsable={false}
-            accessibilityRole="button"
-            accessibilityLabel="Más opciones"
-            accessibilityState={{ expanded: menuVisible }}
-            style={({ pressed }) => [
-              s.botonMasOpciones,
-              (pressed || menuVisible) && s.botonMasOpcionesActivo,
-            ]}
-            onPress={activarDesactivarMenu}
-          >
-            <Ionicons
-              name="ellipsis-vertical"
-              size={22}
-              color={TemaFormulario.colores.texto}
+      {verBorradores ? (
+        <Borradores usuarioId={usuarioId} />
+      ) : (
+        <>
+          <View style={s.contenedorBuscador}>
+            <Ionicons name="search" size={20} color="#552414" style={s.icono} />
+            <TextInput
+              value={texto}
+              onChangeText={setTexto}
+              placeholder="Ingrese el nombre a buscar"
+              style={s.buscador}
+              accessibilityLabel="Buscar mis recetas"
+              maxLength={100}
             />
-          </Pressable>
-          <Modal
-            visible={menuVisible}
-            transparent
-            statusBarTranslucent
-            navigationBarTranslucent
-            animationType="fade"
-            onRequestClose={() => setMenuVisible(false)}
-          >
-            <View style={s.overlay}>
+          </View>
+          <View style={s.contenedorMisSolicitudes}>
+            <Pressable>
+              <Text style={s.textoMisSolicitudes}>Mis solicitudes</Text>
+            </Pressable>
+            <View style={s.contenedorMasOpciones}>
               <Pressable
-                style={StyleSheet.absoluteFill}
+                ref={botonMenu}
+                collapsable={false}
                 accessibilityRole="button"
-                accessibilityLabel="Cerrar opciones"
-                onPress={() => setMenuVisible(false)}
-              />
-              <View
-                accessibilityViewIsModal
-                style={[
-                  s.menu,
-                  posicionMenu,
-                  { width: Math.min(280, anchoPantalla - 32) },
+                accessibilityLabel="Más opciones"
+                accessibilityState={{ expanded: menuVisible }}
+                style={({ pressed }) => [
+                  s.botonMasOpciones,
+                  (pressed || menuVisible) && s.botonMasOpcionesActivo,
                 ]}
+                onPress={activarDesactivarMenu}
               >
-                <Pressable
-                  style={({ pressed }) => [
-                    s.opcion,
-                    pressed && s.opcionPresionada,
-                  ]}
-                >
-                  <View style={s.iconoOpcion}>
-                    <Ionicons
-                      name="time-outline"
-                      size={20}
-                      color={TemaFormulario.colores.texto}
-                    />
+                <Ionicons
+                  name="ellipsis-vertical"
+                  size={22}
+                  color={TemaFormulario.colores.texto}
+                />
+              </Pressable>
+              <Modal
+                visible={menuVisible}
+                transparent
+                statusBarTranslucent
+                navigationBarTranslucent
+                animationType="fade"
+                onRequestClose={() => setMenuVisible(false)}
+              >
+                <View style={s.overlay}>
+                  <Pressable
+                    style={StyleSheet.absoluteFill}
+                    accessibilityRole="button"
+                    accessibilityLabel="Cerrar opciones"
+                    onPress={() => setMenuVisible(false)}
+                  />
+                  <View
+                    accessibilityViewIsModal
+                    style={[
+                      s.menu,
+                      posicionMenu,
+                      { width: Math.min(280, anchoPantalla - 32) },
+                    ]}
+                  >
+                    <Pressable
+                      style={({ pressed }) => [
+                        s.opcion,
+                        pressed && s.opcionPresionada,
+                      ]}
+                    >
+                      <View style={s.iconoOpcion}>
+                        <Ionicons
+                          name="time-outline"
+                          size={20}
+                          color={TemaFormulario.colores.texto}
+                        />
+                      </View>
+                      <Text style={s.textoOpcion}>
+                        Historial de eliminaciones
+                      </Text>
+                    </Pressable>
                   </View>
-                  <Text style={s.textoOpcion}>Historial de eliminaciones</Text>
-                </Pressable>
-              </View>
+                </View>
+              </Modal>
             </View>
-          </Modal>
-        </View>
-      </View>
-      {preparandoBusqueda && <ActivityIndicator size="large" color="#FF5008" />}
-      {errorCabeceraImagen && (
-        <Text accessibilityRole="alert" style={s.texto}>
-          {errorCabeceraImagen}
-        </Text>
+          </View>
+          {preparandoBusqueda && (
+            <ActivityIndicator size="large" color="#FF5008" />
+          )}
+          {errorCabeceraImagen && (
+            <Text accessibilityRole="alert" style={s.texto}>
+              {errorCabeceraImagen}
+            </Text>
+          )}
+          {mostrarContenido()}
+        </>
       )}
-      {mostrarContenido()}
     </View>
   );
 };

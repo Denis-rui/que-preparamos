@@ -17,7 +17,7 @@ import {
 import { FotoReceta } from "../recetas/FotoReceta";
 import EstadoListado from "./EstadoListado";
 
-const borradores = ({ usuarioId }: { usuarioId: number }) => {
+const Borradores = ({ usuarioId }: { usuarioId: number }) => {
   const enfocado = useIsFocused();
   const queryKey = ["borradores-receta", usuarioId] as const;
   const query = useQuery({
@@ -158,7 +158,7 @@ const borradores = ({ usuarioId }: { usuarioId: number }) => {
   );
 };
 
-export default borradores;
+export default Borradores;
 const styles = StyleSheet.create({
   fila: {
     flexDirection: "row",

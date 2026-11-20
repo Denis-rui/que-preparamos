@@ -56,6 +56,7 @@ const FormularioCrear = ({
     cargaBorrador,
     reintentarCargaBorrador,
   } = useFormularioCrear(usuarioId, borradorId, alVolver);
+  const editandoBorrador = borradorId !== undefined;
 
   return (
     <SafeAreaView style={stylesCrear.pantalla} edges={["top", "left", "right"]}>
@@ -64,12 +65,27 @@ const FormularioCrear = ({
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView
-          contentContainerStyle={stylesCrear.contenido}
+          contentContainerStyle={[
+            stylesCrear.contenido,
+            editandoBorrador && stylesCrear.contenidoBorrador,
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         >
-          {alVolver && <BotonVolver variante="blanco" onPress={alVolver} />}
+          {(editandoBorrador || alVolver) && (
+            <View style={stylesCrear.encabezadoBorrador}>
+              {alVolver && <BotonVolver variante="blanco" onPress={alVolver} />}
+              {editandoBorrador && (
+                <Text
+                  accessibilityRole="header"
+                  style={[stylesCrear.titulo, stylesCrear.tituloBorrador]}
+                >
+                  Editar borrador
+                </Text>
+              )}
+            </View>
+          )}
           {avisoAcceso && (
             <Text
               style={stylesCrear.avisoAcceso}
@@ -98,9 +114,11 @@ const FormularioCrear = ({
                     : "auto"
                 }
               >
-                <Text style={stylesCrear.titulo}>
-                  {borradorId ? "Editar borrador" : "Crear Receta"}
-                </Text>
+                {!editandoBorrador && (
+                  <Text style={[stylesCrear.titulo, stylesCrear.tituloCrear]}>
+                    Crear Receta
+                  </Text>
+                )}
                 <FotoReceta
                   imagen={datos.imagen}
                   seleccionando={imagenSeleccionada}

@@ -10,10 +10,24 @@ export const stylesCrear = StyleSheet.create({
     padding: Spacing.four,
     paddingBottom: Spacing.five,
   },
+  contenidoBorrador: {
+    paddingTop: Spacing.two,
+  },
+  encabezadoBorrador: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+    marginBottom: Spacing.three,
+  },
   titulo: {
     fontFamily: "Coiny_400Regular",
     fontSize: 29,
     color: TemaFormulario.colores.texto,
+  },
+  tituloBorrador: {
+    flex: 1,
+  },
+  tituloCrear: {
     marginBottom: Spacing.three,
     textAlign: "center",
     transform: [{ translateY: -Spacing.two }],

@@ -114,7 +114,7 @@ const Borradores = ({ usuarioId }: { usuarioId: number }) => {
           : null;
 
         return (
-          <View>
+          <View style={styles.fila}>
             <Pressable
               style={styles.abrir}
               accessibilityRole="button"

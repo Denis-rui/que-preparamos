@@ -14,14 +14,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Defs, Path, Text as SvgText, TextPath } from "react-native-svg";
 
 import { InvitarInicioSesion } from "@/components/auth/InvitarInicioSesion";
+import { ContenidoReceta } from "@/components/recetas/ContenidoReceta";
 import { IconoGorroChef } from "@/components/recetas/IconoGorroChef";
 import ModalValoracion from "@/components/recetas/ModalValoracion";
 import { BotonVolver } from "@/components/ui/botonVolver";
+import { useConexion } from "@/hooks/useConexion";
+import { useFavoritoLocal } from "@/hooks/useFavoritoLocal";
 import { useMiValoracion } from "@/hooks/useMiValoracion";
 import { useRecetaDetalle } from "@/hooks/useRecetaDetalle";
 import { useValorarReceta } from "@/hooks/useValorarReceta";
-import { useFavoritoLocal } from "@/hooks/useFavoritoLocal";
-import { useConexion } from "@/hooks/useConexion";
 import { obtenerToken } from "@/storage/token";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -32,14 +33,23 @@ export default function DetalleReceta() {
   const favorito = useFavoritoLocal(id);
   const { sinConexion } = useConexion();
 
-  const { valorar, guardando, error: errorValoracion, reiniciar, exito } =useValorarReceta(id);
+  const {
+    valorar,
+    guardando,
+    error: errorValoracion,
+    reiniciar,
+    exito,
+  } = useValorarReceta(id);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [leyendo, setLeyendo] = useState(false);
   const [invitacionVisible, setInvitacionVisible] = useState(false);
   const [conSesion, setConSesion] = useState(false);
   const [editando, setEditando] = useState(false);
-  const { miPuntuacion } = useMiValoracion(id, conSesion && !sinConexion && local !== "1");
+  const { miPuntuacion } = useMiValoracion(
+    id,
+    conSesion && !sinConexion && local !== "1",
+  );
 
   useEffect(() => {
     return () => {
@@ -96,11 +106,11 @@ export default function DetalleReceta() {
   }
 
   if (error || !receta) {
-    const mensaje = error ?? (
-      sinConexion
+    const mensaje =
+      error ??
+      (sinConexion
         ? "No pudimos comunicarnos con el servidor. Revisa tu conexión."
-        : "No se pudo cargar la receta."
-    );
+        : "No se pudo cargar la receta.");
 
     return (
       <SafeAreaView style={styles.estadoContenedorError}>
@@ -121,13 +131,22 @@ export default function DetalleReceta() {
   }
 
   const total = receta.cantidad_valoraciones;
-  const tieneValoraciones = total>0;
+  const tieneValoraciones = total > 0;
 
-  const textoValoraciones = total === 0 ? "Sin valoraciones" : `(${total} ${total === 1 ? "valoración" : "valoraciones"})`;
+  const textoValoraciones =
+    total === 0
+      ? "Sin valoraciones"
+      : `(${total} ${total === 1 ? "valoración" : "valoraciones"})`;
 
-  const promedio = tieneValoraciones && receta.valoracion_promedio != null ? `${Number(receta.valoracion_promedio).toFixed(1)}/5` : null;
+  const promedio =
+    tieneValoraciones && receta.valoracion_promedio != null
+      ? `${Number(receta.valoracion_promedio).toFixed(1)}/5`
+      : null;
 
-  const proporcion = tieneValoraciones && receta.valoracion_promedio != null ? Math.min(Math.max(receta.valoracion_promedio / 5, 0), 1) : 0;
+  const proporcion =
+    tieneValoraciones && receta.valoracion_promedio != null
+      ? Math.min(Math.max(receta.valoracion_promedio / 5, 0), 1)
+      : 0;
 
   return (
     <SafeAreaView
@@ -159,8 +178,15 @@ export default function DetalleReceta() {
           }}
           disabled={favorito.ocupado || !favorito.preparado}
           accessibilityRole="button"
-          accessibilityLabel={favorito.esFavorito ? "Quitar de favoritos" : "Guardar en favoritos y descargar"}
-          accessibilityState={{ disabled: favorito.ocupado || !favorito.preparado, selected: favorito.esFavorito }}
+          accessibilityLabel={
+            favorito.esFavorito
+              ? "Quitar de favoritos"
+              : "Guardar en favoritos y descargar"
+          }
+          accessibilityState={{
+            disabled: favorito.ocupado || !favorito.preparado,
+            selected: favorito.esFavorito,
+          }}
           style={[styles.botonCircular, favorito.ocupado && { opacity: 0.5 }]}
         >
           <MaterialCommunityIcons
@@ -172,10 +198,24 @@ export default function DetalleReceta() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {local === "1" ? <Text style={styles.estadoTexto}>Copia guardada en este dispositivo.</Text> : null}
-        {favorito.ocupado ? <Text style={styles.estadoTexto}>Guardando cambios...</Text> : null}
-        {favorito.error ? <Text accessibilityRole="alert" style={styles.estadoTexto}>{favorito.error}</Text> : null}
-        {sinConexion ? <Text style={styles.estadoTexto}>Sin conexión. Las valoraciones requieren internet.</Text> : null}
+        {local === "1" ? (
+          <Text style={styles.estadoTexto}>
+            Copia guardada en este dispositivo.
+          </Text>
+        ) : null}
+        {favorito.ocupado ? (
+          <Text style={styles.estadoTexto}>Guardando cambios...</Text>
+        ) : null}
+        {favorito.error ? (
+          <Text accessibilityRole="alert" style={styles.estadoTexto}>
+            {favorito.error}
+          </Text>
+        ) : null}
+        {sinConexion ? (
+          <Text style={styles.estadoTexto}>
+            Sin conexión. Las valoraciones requieren internet.
+          </Text>
+        ) : null}
         {receta.imagen_url ? (
           <Image
             source={{ uri: receta.imagen_url }}
@@ -224,13 +264,12 @@ export default function DetalleReceta() {
 
               <View style={styles.valoracionFila}>
                 <View>
-                  <IconoGorroChef  proporcion={proporcion} size={38} />
+                  <IconoGorroChef proporcion={proporcion} size={38} />
                 </View>
 
                 {promedio ? (
                   <Text style={styles.valoracionPromedio}>{promedio}</Text>
                 ) : null}
-
               </View>
 
               <Text style={styles.valoracionCantidad} numberOfLines={1}>
@@ -238,11 +277,9 @@ export default function DetalleReceta() {
               </Text>
             </Pressable>
           </View>
-
         </View>
 
         <View style={styles.metaFila}>
-
           {receta.categoria ? (
             <>
               <View style={styles.metaItem}>
@@ -252,16 +289,24 @@ export default function DetalleReceta() {
                   color="#552414"
                 />
                 <View style={styles.metaCategoria}>
-                  <Text style={styles.metaTexto}>{receta.categoria.nombre}</Text>
+                  <Text style={styles.metaTexto}>
+                    {receta.categoria.nombre}
+                  </Text>
                   {receta.subcategoria ? (
                     <>
-                      <MaterialCommunityIcons name="chevron-right" size={16} color="#F26A1B" />
-                      <Text style={styles.metaTexto}>{receta.subcategoria.nombre}</Text>
+                      <MaterialCommunityIcons
+                        name="chevron-right"
+                        size={16}
+                        color="#F26A1B"
+                      />
+                      <Text style={styles.metaTexto}>
+                        {receta.subcategoria.nombre}
+                      </Text>
                     </>
-                  ): null}
+                  ) : null}
                 </View>
               </View>
-              <View style={styles.metaSeparador}/>
+              <View style={styles.metaSeparador} />
             </>
           ) : null}
 
@@ -276,7 +321,7 @@ export default function DetalleReceta() {
             </Text>
           </View>
 
-          <View style={styles.metaSeparador}/>
+          <View style={styles.metaSeparador} />
 
           <View style={styles.metaItem}>
             <MaterialCommunityIcons
@@ -288,27 +333,10 @@ export default function DetalleReceta() {
           </View>
         </View>
 
-        {/* Ingredientes */}
-        <View style={styles.ingredientesCard}>
-          <Text style={styles.ingredientesTitulo}>Ingredientes</Text>
-          <View style={styles.ingredientesGrid}>
-            {receta.ingredientes?.map((ing) => (
-              <View key={ing.ingrediente_id} style={styles.ingredienteItem}>
-                <View style={styles.ingredienteBullet} />
-                <Text style={styles.ingredienteTexto}>
-                  {ing.cantidad ? `${ing.cantidad} ${ing.unidad ?? ""} ` : ""}
-                  {ing.nombre}
-                  {ing.notas ? ` (${ing.notas})` : ""}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Pasos */}
-        <View style={styles.preparacionCard}>
-          <View style={styles.preparacionHeader}>
-            <Text style={styles.preparacionTitulo}>Preparación</Text>
+        {/* Ingredientes, pasos, tips*/}
+        <ContenidoReceta
+          receta={receta}
+          accionPreparacion={
             <Pressable onPress={alternarLectura} style={styles.botonAudio}>
               <MaterialCommunityIcons
                 name={leyendo ? "pause" : "play"}
@@ -316,31 +344,8 @@ export default function DetalleReceta() {
                 color="#FF4F0A"
               />
             </Pressable>
-          </View>
-          {receta.pasos?.map((paso) => (
-            <View key={paso.orden} style={styles.pasoFila}>
-              <View style={styles.pasoNumero}>
-                <Text style={styles.pasoNumeroTexto}>{paso.orden}</Text>
-              </View>
-              <Text style={styles.pasoTexto}>{paso.instruccion}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Tips (opcional) */}
-        {receta.tips ? (
-          <View style={styles.tipsCard}>
-            <View style={styles.tipsEncabezado}>
-              <MaterialCommunityIcons
-                name="lightbulb-on-outline"
-                size={22}
-                color="#FF4F0A"
-              />
-              <Text style={styles.tipsTitulo}>Tips del chef</Text>
-            </View>
-            <Text style={styles.tipsTexto}>{receta.tips}</Text>
-          </View>
-        ) : null}
+          }
+        />
       </ScrollView>
 
       <ModalValoracion
@@ -353,9 +358,7 @@ export default function DetalleReceta() {
         onClose={() => {
           setModalVisible(false);
         }}
-        onCalificar={(puntaje) =>
-          valorar(puntaje)
-        }
+        onCalificar={(puntaje) => valorar(puntaje)}
       />
 
       <InvitarInicioSesion

@@ -1,6 +1,9 @@
 import BotonesMisRecetas from "@/components/mis-recetas/BotonesMisRecetas";
+import { ValoracionMiReceta } from "@/components/mis-recetas/ValoracionMiReceta";
+import { BotonLecturaReceta } from "@/components/recetas/BotonLecturaReceta";
 import { ContenidoReceta } from "@/components/recetas/ContenidoReceta";
 import { FotoReceta } from "@/components/recetas/FotoReceta";
+import { DatosReceta } from "@/components/recetas/InformacionReceta";
 import { AppButton } from "@/components/ui/appButton";
 import { BotonVolver } from "@/components/ui/botonVolver";
 import useAccesoCrear from "@/hooks/useAccesoCrear";
@@ -9,11 +12,15 @@ import { useConexion } from "@/hooks/useConexion";
 import useDetalleMiReceta from "@/hooks/useDetalleMiReceta";
 import { styles } from "@/styles/receta.styles";
 import { obtenerMensajeError } from "@/utils/mensajeError";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import {
   ActivityIndicator,
+  Pressable,
   RefreshControl,
   ScrollView,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -90,6 +97,7 @@ function DetalleConSesion({
   const actualizar = () => {
     void consulta.refetch({ cancelRefetch: false });
   };
+  const [gestionAbierta, setGestionAbierta] = useState(false);
 
   if (!receta) {
     if (sinConexion || consulta.isPaused) {
@@ -107,7 +115,7 @@ function DetalleConSesion({
       />
     );
   }
-
+  const publicada = receta.visibilidad === "publicada";
   const aviso =
     errorCabeceraImagen ??
     (sinConexion || consulta.isPaused
@@ -138,37 +146,90 @@ function DetalleConSesion({
         style={styles.imagen}
       />
 
-      <View style={{ marginHorizontal: 16, marginTop: 12, gap: 6 }}>
-        <Text accessibilityRole="header" style={styles.titulo}>
-          {receta.nombre}
-        </Text>
-        <Text selectable style={styles.descripcion}>
-          {receta.descripcion}
-        </Text>
-        <Text style={styles.metaTexto}>
-          {receta.visibilidad === "privada" ? "Privada" : "Publicada"}
-          {" · "}
-          {receta.tiempo_preparacion} min{" · "}
-          {receta.porciones} porciones
-        </Text>
-        {receta.categoria && (
-          <Text style={styles.metaTexto}>
-            {receta.categoria.nombre}
-            {receta.subcategoria ? " › " + receta.subcategoria.nombre : ""}
+      <View style={[styles.encabezadoFila, propia.encabezado]}>
+        <View style={styles.encabezadoTextos}>
+          <Text accessibilityRole="header" style={styles.titulo}>
+            {receta.nombre}
           </Text>
-        )}
-        {receta.solicitud_pendiente && (
-          <Text style={styles.metaTexto}>
-            {receta.visibilidad === "privada"
-              ? "Publicación en revisión"
-              : "Corrección en revisión. La versión aprobada sigue visible."}
+          <Text selectable style={styles.descripcion}>
+            {receta.descripcion}
           </Text>
+        </View>
+
+        {/* El autor puede valorar su receta cuando está publicada. */}
+        {publicada && (
+          <ValoracionMiReceta
+            id={id}
+            usuarioId={usuarioId}
+            sinConexion={sinConexion}
+          />
         )}
       </View>
 
-      {/* Usa la misma regla que la tarjeta y el estado recién consultado. */}
-      <BotonesMisRecetas receta={receta} />
-      <ContenidoReceta receta={receta} />
+      <View style={propia.estados}>
+        <View
+          style={[
+            propia.etiqueta,
+            { backgroundColor: publicada ? "#DDF3D0" : "#EEE3D7" },
+          ]}
+        >
+          <MaterialCommunityIcons
+            name={publicada ? "check-circle" : "lock"}
+            size={16}
+            color={publicada ? "#226423" : "#552414"}
+          />
+          <Text
+            style={[propia.etiquetaTexto, publicada && propia.textoPublicada]}
+          >
+            {publicada ? "Publicada" : "Privada"}
+          </Text>
+        </View>
+
+        {receta.solicitud_pendiente && (
+          <View style={[propia.etiqueta, propia.enRevision]}>
+            <MaterialCommunityIcons
+              name="clock-outline"
+              size={16}
+              color="#744900"
+            />
+            <Text style={[propia.etiquetaTexto, propia.textoRevision]}>
+              {publicada ? "Corrección en revisión" : "Publicación en revisión"}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {publicada && receta.solicitud_pendiente && (
+        <Text style={[styles.descripcion, propia.avisoRevision]}>
+          La versión aprobada sigue visible.
+        </Text>
+      )}
+
+      <DatosReceta receta={receta} />
+
+      {/* El desplegable oculta los botones y deja a la vista el estado y la receta. */}
+      <View style={propia.gestion}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: gestionAbierta }}
+          onPress={() => setGestionAbierta((abierta) => !abierta)}
+          style={propia.encabezadoGestion}
+        >
+          <Text style={propia.etiquetaTexto}>Gestionar receta</Text>
+          <MaterialCommunityIcons
+            name={gestionAbierta ? "chevron-up" : "chevron-down"}
+            size={22}
+            color="#552414"
+          />
+        </Pressable>
+
+        {gestionAbierta && <BotonesMisRecetas receta={receta} />}
+      </View>
+
+      <ContenidoReceta
+        receta={receta}
+        accionPreparacion={<BotonLecturaReceta pasos={receta.pasos} />}
+      />
     </ScrollView>
   );
 }
@@ -194,3 +255,49 @@ function Mensaje({
 }
 
 export default DetalleMiReceta;
+const propia = StyleSheet.create({
+  encabezado: {
+    marginHorizontal: 16,
+    marginTop: 12,
+  },
+  estados: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginHorizontal: 16,
+    marginTop: 8,
+  },
+  etiqueta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    maxWidth: "100%",
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  etiquetaTexto: {
+    color: "#552414",
+    fontFamily: "Inter_600SemiBold",
+    flexShrink: 1,
+  },
+  textoPublicada: { color: "#226423" },
+  enRevision: { backgroundColor: "#FFE8A3" },
+  textoRevision: { color: "#744900" },
+  avisoRevision: { marginHorizontal: 16, marginTop: 4 },
+  gestion: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E3D9CE",
+    backgroundColor: "#FFFFFF",
+  },
+  encabezadoGestion: {
+    minHeight: 48,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+  },
+});

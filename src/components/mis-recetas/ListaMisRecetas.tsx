@@ -4,15 +4,13 @@ import { MisRecetas } from "@/types/mis-recetas";
 import { Ionicons } from "@expo/vector-icons";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { FotoReceta } from "../recetas/FotoReceta";
+import {
+  obtenerAccionesReceta,
+  type ManejadoresReceta,
+} from "./BotonesMisRecetas";
 import EstadoListado from "./EstadoListado";
 type DatosMisRecetas = ReturnType<typeof useMisRecetas>;
 
-export type AccionMisRecetas =
-  | "editar"
-  | "publicar"
-  | "corregir"
-  | "ver-solicitud"
-  | "opciones";
 interface Props {
   cabecerasImagen: Record<string, string> | null;
   recetas: DatosMisRecetas["recetas"];
@@ -24,7 +22,8 @@ interface Props {
   cargarMas: () => void;
   cargarAutomaticamente: () => void;
 
-  enAccion?: (accion: AccionMisRecetas, receta: MisRecetas) => void;
+  enAbrir: (id: number) => void;
+  manejadores?: ManejadoresReceta<MisRecetas>;
   textoPublicar?: string;
 }
 
@@ -38,7 +37,8 @@ const ListaMisRecetas = ({
   actualizar,
   cargarMas,
   cargarAutomaticamente,
-  enAccion,
+  enAbrir,
+  manejadores,
   textoPublicar = "Publicar",
 }: Props) => {
   return (
@@ -85,52 +85,44 @@ const ListaMisRecetas = ({
       renderItem={({ item }) => {
         const privada = item.visibilidad === "privada";
         const solicitud = item.solicitud_pendiente;
-        const acciones: {
-          tipo: AccionMisRecetas;
-          etiqueta: string;
-          principal?: boolean;
-        }[] = solicitud
-          ? [
-              {
-                tipo: "ver-solicitud",
-                etiqueta: "Ver solicitud",
-              },
-            ]
-          : privada
-            ? [
-                {
-                  tipo: "editar",
-                  etiqueta: "Editar",
-                },
-                {
-                  tipo: "publicar",
-                  etiqueta: textoPublicar,
-                  principal: true,
-                },
-              ]
-            : [
-                {
-                  tipo: "corregir",
-                  etiqueta: "Proponer corrección",
-                },
-              ];
+        const acciones = obtenerAccionesReceta(
+          item.visibilidad,
+          Boolean(solicitud),
+          textoPublicar,
+        );
+
+        const abrirDetalle = () => enAbrir(item.id);
+        const abrirOpciones = manejadores?.opciones;
         return (
           <View style={s.tarjeta}>
             <View style={s.filaReceta}>
-              <FotoReceta
-                uri={cabecerasImagen ? item.imagen_url : null}
-                cabeceras={cabecerasImagen ?? undefined}
+              <Pressable
+                accessibilityRole="link"
+                accessibilityLabel={"Abrir detalle de " + item.nombre}
+                onPress={abrirDetalle}
                 style={s.imagen}
-              />
+              >
+                <FotoReceta
+                  uri={cabecerasImagen ? item.imagen_url : null}
+                  cabeceras={cabecerasImagen ?? undefined}
+                  style={s.foto}
+                />
+              </Pressable>
               <View style={s.informacion}>
                 <View style={s.encabezadoReceta}>
-                  <Text style={s.nombre}>{item.nombre}</Text>
+                  <Pressable
+                    accessibilityRole="link"
+                    onPress={abrirDetalle}
+                    style={s.enlaceNombre}
+                  >
+                    <Text style={s.nombre}>{item.nombre}</Text>
+                  </Pressable>
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={`Mas opciones de ${item.nombre}`}
-                    accessibilityState={{ disabled: !enAccion }}
-                    disabled={!enAccion}
-                    onPress={() => enAccion?.("opciones", item)}
+                    accessibilityState={{ disabled: !abrirOpciones }}
+                    disabled={!abrirOpciones}
+                    onPress={() => abrirOpciones?.(item)}
                     style={({ pressed }) => [
                       s.botonOpciones,
                       pressed && s.presionado,
@@ -191,31 +183,34 @@ const ListaMisRecetas = ({
             </View>
             {/* botones de acciones*/}
             <View style={s.acciones}>
-              {acciones.map((accion) => (
-                <Pressable
-                  key={accion.tipo}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${accion.etiqueta}: ${item.nombre}`}
-                  accessibilityState={{ disabled: !enAccion }}
-                  disabled={!enAccion}
-                  onPress={() => enAccion?.(accion.tipo, item)}
-                  style={({ pressed }) => [
-                    s.botonAccion,
-                    accion.principal && s.botonAccionPrincipal,
-                    pressed && s.presionado,
-                    !enAccion && s.deshabilitado,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      s.textoAccion,
-                      accion.principal && s.textoAccionPrincipal,
+              {acciones.map((accion) => {
+                const ejecutar = manejadores?.[accion.tipo];
+                return (
+                  <Pressable
+                    key={accion.tipo}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${accion.etiqueta}: ${item.nombre}`}
+                    accessibilityState={{ disabled: !ejecutar }}
+                    disabled={!ejecutar}
+                    onPress={() => ejecutar?.(item)}
+                    style={({ pressed }) => [
+                      s.botonAccion,
+                      accion.principal && s.botonAccionPrincipal,
+                      pressed && s.presionado,
+                      !ejecutar && s.deshabilitado,
                     ]}
                   >
-                    {accion.etiqueta}
-                  </Text>
-                </Pressable>
-              ))}
+                    <Text
+                      style={[
+                        s.textoAccion,
+                        accion.principal && s.textoAccionPrincipal,
+                      ]}
+                    >
+                      {accion.etiqueta}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
         );
@@ -257,7 +252,8 @@ const s = StyleSheet.create({
     marginBottom: 14,
     boxShadow: "0 3px 8px rgba(85, 36, 20, 0.08)",
   },
-
+  foto: { flex: 1, borderRadius: 13 },
+  enlaceNombre: { flex: 1, minWidth: 0 },
   filaReceta: {
     flexDirection: "row",
     alignItems: "flex-start",

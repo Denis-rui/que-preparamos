@@ -1,4 +1,5 @@
 import { Mapper } from "@/mappers/mis-recetas.mapper";
+import { DetalleMISRecetas } from "@/types/responses/detalleMisRecetas.response";
 import { MisRecetas } from "@/types/responses/mis-recetas.response";
 import { AxiosError } from "axios";
 import { quePreparamos } from "./cliente";
@@ -40,5 +41,34 @@ export const obtenerMisRecetasApi = async (
     paginaActual: data.meta.current_page,
     ultimapagina: data.meta.last_page,
     total: data.meta.total,
+  };
+};
+
+export const obtenerDetalleMiRecetaApi = async (
+  id: number,
+  signal?: AbortSignal,
+) => {
+  const { data } = await quePreparamos.get<DetalleMISRecetas>(
+    `mis-recetas/${id}`,
+    {
+      autenticar: true,
+      signal,
+    },
+  );
+  const receta = data?.data;
+
+  if (
+    !receta ||
+    receta.id !== id ||
+    (receta.visibilidad !== "privada" && receta.visibilidad !== "publicada") ||
+    !Array.isArray(receta.ingredientes) ||
+    !Array.isArray(receta.pasos)
+  ) {
+    throw new AxiosError("La receta no está disponible", "NO_DATA");
+  }
+
+  return {
+    ...receta,
+    imagen_url: quePreparamos.getUri({ url: `mis-recetas/${id}/imagen` }),
   };
 };

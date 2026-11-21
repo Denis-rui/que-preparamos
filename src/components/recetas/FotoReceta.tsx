@@ -13,6 +13,7 @@ export function FotoReceta({
   cabeceras?: Record<string, string>;
 }) {
   const [urlFallida, setUrlFallida] = useState<string | null>(null);
+  const cachePolicy = cabeceras ? "none" : undefined;
   return (
     <View style={[styles.fondo, style]}>
       {uri && uri !== urlFallida ? (
@@ -29,6 +30,7 @@ export function FotoReceta({
           style={styles.imagenRespaldo}
           contentFit="contain"
           accessibilityLabel="Imagen de la receta no disponible"
+          cachePolicy={cachePolicy}
         />
       )}
     </View>

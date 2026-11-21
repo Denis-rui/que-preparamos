@@ -4,6 +4,7 @@ import useMisRecetas from "@/hooks/useMisRecetas";
 import { obtenerMensajeError } from "@/utils/mensajeError";
 import { Ionicons } from "@expo/vector-icons";
 import { isAxiosError } from "axios";
+import { router } from "expo-router";
 import { type ComponentRef, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -167,6 +168,12 @@ const ListadoMisRecetas = ({ usuarioId }: Props) => {
         cargarMas={cargarMas}
         cargarAutomaticamente={cargarAutomaticamente}
         cabecerasImagen={cabecerasImagen}
+        enAbrir={(id) => {
+          router.push({
+            pathname: "/mis-recetas/[id]",
+            params: { id },
+          });
+        }}
       />
     );
   }

@@ -51,7 +51,8 @@ export default function RootLayout() {
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="recomendaciones" />
                 <Stack.Screen name="receta/[id]" />
-                <Stack.Screen name="mis-recetas/mis-recetas" />
+                <Stack.Screen name="mis-recetas/index" />
+                <Stack.Screen name="mis-recetas/[id]" />
                 <Stack.Screen name="mis-recetas/borrador/[id]" />
               </Stack>
             </ProtectorSalidaProvider>

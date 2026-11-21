@@ -1,10 +1,9 @@
 import { obtenerMisRecetasApi } from "@/api/mis-recetas";
 import { CLAVE_SESION } from "@/config/cliente-query";
-import { obtenerToken } from "@/storage/token";
 import { Perfil } from "@/types/perfil";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { useEffect, useState } from "react";
+import useCabecerasImagenReceta from "./useCabecerasImagenReceta";
 
 const useMisRecetas = (
   usuarioId: number,
@@ -14,46 +13,8 @@ const useMisRecetas = (
 ) => {
   const cliente = useQueryClient();
 
-  const [cabecerasImagen, setCabecerasImagen] = useState<Record<
-    string,
-    string
-  > | null>(null);
-
-  const [errorCabeceraImagen, setErrorCabeceraImagen] = useState<string | null>(
-    null,
-  );
-
-  useEffect(() => {
-    let vigente = true;
-    setCabecerasImagen(null);
-    const prepararCabecera = async () => {
-      try {
-        const token = await obtenerToken();
-        if (!vigente) return;
-        const perfil = cliente.getQueryData<Perfil | null>(CLAVE_SESION);
-        if (!token || perfil?.id !== usuarioId) {
-          throw new Error("No pudimos verificar la sesión.");
-        }
-        const tokenActual = await obtenerToken();
-        if (!vigente) return;
-        if (tokenActual !== token) {
-          throw new Error("La sesión cambió.");
-        }
-        setCabecerasImagen({
-          Authorization: `Bearer ${token}`,
-        });
-      } catch (error) {
-        if (!vigente) return;
-
-        setErrorCabeceraImagen("No pudimos preparar el acceso a las imágenes.");
-      }
-    };
-    void prepararCabecera();
-
-    return () => {
-      vigente = false;
-    };
-  }, [cliente, usuarioId]);
+  const { cabecerasImagen, errorCabeceraImagen } =
+    useCabecerasImagenReceta(usuarioId);
 
   const consultaGuardada = useInfiniteQuery({
     queryKey: ["mis-recetas", usuarioId, filtro, buscar],

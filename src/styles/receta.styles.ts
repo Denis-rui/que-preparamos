@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  guardandoFavorito: { opacity: 0.5 },
   contenedor: {
     flex: 1,
     backgroundColor: "#FFFBF0",
@@ -61,18 +62,18 @@ export const styles = StyleSheet.create({
     marginHorizontal: 7,
     borderRadius: 18,
   },
-  encabezadoFila:{
+  encabezadoFila: {
     flexDirection: "row",
     alignItems: "flex-start",
     marginHorizontal: 6,
     marginTop: 4,
   },
-  encabezadoValoracion:{
+  encabezadoValoracion: {
     flexDirection: "row",
     alignItems: "center",
   },
-  encabezadoTextos:{
-    flex:1,
+  encabezadoTextos: {
+    flex: 1,
   },
   titulo: {
     fontSize: 30,
@@ -156,7 +157,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
   },
-  ingredientesGrid:{
+  ingredientesGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",

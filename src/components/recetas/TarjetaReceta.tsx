@@ -1,11 +1,14 @@
+import { styles as s, estiloAltoTarjeta } from "@/styles/tarjeta-receta.styles";
 import type { RecetaResumen } from "@/types/receta";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { FotoReceta } from "./FotoReceta";
+import { CorazonFavorito } from "./CorazonFavorito";
+import { useFavoritoLocal } from "@/hooks/useFavoritoLocal";
 
-// La tarjeta comparte datos y presentación; cada pantalla decide qué API consultar.
+// Tarjeta compartida entre Inicio y Explorar.
 export function TarjetaReceta({
   receta,
   variante = "horizontal",
@@ -13,30 +16,37 @@ export function TarjetaReceta({
 }: {
   receta: RecetaResumen;
   variante?: "horizontal" | "cuadricula";
-  // Alto mínimo sugerido por Explorar; el contenido puede aumentar la tarjeta.
+  // Altura mínima; crece si el contenido lo necesita.
   alto?: number;
 }) {
   const horizontal = variante === "horizontal";
+  const favorito = useFavoritoLocal(String(receta.id));
   return (
     <Pressable 
       onPress={()=> router.push(`/receta/${receta.id}`)}
       style={({pressed}) =>[
         s.tarjeta,
         horizontal ? s.horizontal : s.cuadricula,
-        horizontal && alto !== undefined && { minHeight: alto, marginBottom: 0 },
-        pressed && {opacity: 0.85},
+        horizontal && alto !== undefined && estiloAltoTarjeta(alto),
+        pressed && s.presionado,
       ]}
     >
       <View style={horizontal ? s.fotoHorizontal : s.fotoCuadricula}>
         <FotoReceta uri={receta.imagen_url} style={s.foto} />
-        {/* Favorito y flecha son adornos por ahora, sin eventos ni estado local. */}
-        <View style={s.corazon} accessible={false}>
-          <Ionicons
-            name="heart-outline"
-            size={horizontal ? 17 : 24}
-            color="#633A2D"
-          />
-        </View>
+        <Pressable
+          style={[s.corazon, favorito.ocupado && s.guardando]}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={`${favorito.esFavorito ? "Quitar de favoritos" : "Guardar en favoritos y descargar"}: ${receta.nombre}`}
+          accessibilityState={{ selected: favorito.esFavorito, disabled: favorito.ocupado || !favorito.preparado, busy: favorito.ocupado }}
+          disabled={favorito.ocupado || !favorito.preparado}
+          onPress={(event) => {
+            event.stopPropagation();
+            void favorito.alternar();
+          }}
+        >
+          <CorazonFavorito seleccionado={favorito.esFavorito} size={horizontal ? 17 : 24} />
+        </Pressable>
         {!horizontal && (
           <View style={s.tiempoFlotante}>
             <Text style={s.tiempo}>⏱ {receta.tiempo_preparacion} min</Text>
@@ -44,6 +54,7 @@ export function TarjetaReceta({
         )}
       </View>
       <View style={horizontal ? s.contenido : s.contenidoCuadricula}>
+        {favorito.error ? <Text accessibilityRole="alert" style={s.error}>{favorito.error}</Text> : null}
         <Text style={s.nombre} numberOfLines={2}>
           {receta.nombre}
         </Text>
@@ -68,8 +79,7 @@ export function TarjetaReceta({
               <Text style={s.tiempo}>{receta.tiempo_preparacion} min</Text>
             </View>
             <View style={s.pie}>
-              {/* Muestra visual de 4/5: no es una puntuación real de esta receta.
-                  La conexión con las valoraciones se implementará después. */}
+              {/* Valoración de muestra; falta conectar el dato real. */}
               <View
                 style={s.valoracion}
                 accessible
@@ -97,99 +107,3 @@ export function TarjetaReceta({
     </Pressable>
   );
 }
-const s = StyleSheet.create({
-  // Tamaño de cada SVG de valoración; conserva los colores originales del archivo.
-  sombrerito: { width: 18, height: 18 },
-  tarjeta: {
-    backgroundColor: "white",
-    borderRadius: 20,
-    marginBottom: 14,
-    boxShadow: "0px 5px 14px rgba(64,38,16,0.06)",
-  },
-  horizontal: { flexDirection: "row", padding: 10, gap: 12 },
-  cuadricula: { width: "48%", borderRadius: 15, paddingBottom: 15 },
-  fotoHorizontal: {
-    // Tamaño de la fotografía en Explorar. Cambia estos dos valores para ajustarla.
-    width: "32%",
-    maxWidth: 110,
-    aspectRatio: 1,
-    flexShrink: 0,
-    alignSelf: "center",
-    borderRadius: 13,
-    overflow: "hidden",
-  },
-  fotoCuadricula: {
-    // Altura de la fotografía en Inicio; el ancho lo define la tarjeta.
-    height: 120,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-    overflow: "hidden",
-  },
-  // Rellena el contenedor sin intervenir en el cálculo de altura de la tarjeta.
-  foto: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0 },
-  corazon: {
-    position: "absolute",
-    top: 7,
-    right: 7,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 4,
-  },
-  tiempoFlotante: {
-    position: "absolute",
-    bottom: 10,
-    left: 10,
-    backgroundColor: "white",
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  contenido: {
-    flex: 1,
-    minWidth: 0,
-    justifyContent: "center",
-    gap: 4,
-    paddingVertical: 3,
-  },
-  contenidoCuadricula: { paddingHorizontal: 10, paddingTop: 10, gap: 5 },
-  nombre: { fontFamily: "Inter_800ExtraBold", fontSize: 14, color: "#512013" },
-  descripcion: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 11,
-    lineHeight: 15,
-    color: "#918983",
-  },
-  ingredientes: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
-  etiqueta: {
-    maxWidth: "100%",
-    fontSize: 10,
-    color: "#7C736C",
-    backgroundColor: "#E9E5E1",
-    borderRadius: 7,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-  },
-  fila: { flexDirection: "row", alignItems: "center", gap: 2 },
-  tiempo: { fontSize: 10, color: "#918983" },
-  pie: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 4,
-    marginTop: 3,
-  },
-  valoracion: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-  },
-  flecha: {
-    backgroundColor: "#FF5008",
-    borderRadius: 12,
-    width: 21,
-    height: 21,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

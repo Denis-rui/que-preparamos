@@ -3,9 +3,15 @@ import type { DatosLogin } from "@/types/auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-// El token es secreto y se guarda en SecureStore.
-import { guardarToken, obtenerToken, recordarPerfil } from "@/storage/token";
+// Guardamos el token en SecureStore.
 import { CLAVE_SESION } from "@/config/cliente-query";
+import { trasladarFavoritosInvitado } from "@/storage/favoritos";
+import {
+  eliminarToken,
+  guardarToken,
+  obtenerToken,
+  recordarPerfil,
+} from "@/storage/token";
 import { Perfil } from "@/types/perfil";
 
 export type LoginCredentials = Pick<DatosLogin, "email" | "password">;
@@ -32,14 +38,14 @@ export function useLogin(cuentaGuardada = false) {
         throw new Error("Ingresa un correo electrónico válido.");
       }
 
-      //el backend verifica las credenciales y devuelve el token
+      // Validamos el acceso con el servidor.
 
       const respuesta = await iniciarSesion({
         email: email.trim(),
         password,
       });
 
-      // Comprobamos si recibimos un token antes de guardar
+      // Revisamos el token recibido.
       if (typeof respuesta.token !== "string" || !respuesta.token.trim()) {
         throw new Error("No se recibio un token válido.");
       }
@@ -55,14 +61,33 @@ export function useLogin(cuentaGuardada = false) {
         throw new Error("El servidor no devolvió una cuenta válida.");
       }
 
-      // Guardamos el token de forma segura
+      // Guardamos la sesión.
       await guardarToken(respuesta.token);
       await recordarPerfil(usuario, respuesta.token);
       if ((await obtenerToken()) !== respuesta.token) {
         throw new Error("La sesión cambió. Inténtalo nuevamente.");
       }
 
+      try {
+        await trasladarFavoritosInvitado(usuario.id, respuesta.token);
+      } catch {
+        if ((await obtenerToken()) === respuesta.token) await eliminarToken();
+        await clienteQuery.invalidateQueries({
+          queryKey: ["favoritos-locales"],
+        });
+        throw new Error(
+          "No pudimos trasladar tus favoritos a la cuenta. Tus recetas se conservan; vuelve a iniciar sesión para reintentar.",
+        );
+      }
+      if ((await obtenerToken()) !== respuesta.token) {
+        throw new Error("La sesión cambió. Inténtalo nuevamente.");
+      }
+
       clienteQuery.setQueryData<Perfil | null>(CLAVE_SESION, usuario);
+      await Promise.all([
+        clienteQuery.invalidateQueries({ queryKey: ["favoritos-locales"] }),
+        clienteQuery.invalidateQueries({ queryKey: ["perfil-dispositivo"] }),
+      ]);
       return respuesta;
     } catch (err: unknown) {
       const mensaje = err instanceof Error ? err.message : "";
@@ -94,7 +119,7 @@ export function useLogin(cuentaGuardada = false) {
     mutationFn: ejecutarLogin,
     retry: false,
     networkMode: "always",
-    // No conservamos las credenciales ni la respuesta de acceso en la caché.
+    // Evitamos guardar las credenciales en caché.
     gcTime: 0,
   });
 

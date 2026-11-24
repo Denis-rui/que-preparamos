@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { InvitarInicioSesion } from "@/components/auth/InvitarInicioSesion";
 import { BotonLecturaReceta } from "@/components/recetas/BotonLecturaReceta";
 import { ContenidoReceta } from "@/components/recetas/ContenidoReceta";
+import { CorazonFavorito } from "@/components/recetas/CorazonFavorito";
 import {
   BloqueValoracionReceta,
   DatosReceta,
@@ -61,11 +62,11 @@ export default function DetalleReceta() {
   const alPresionarCalificar = async () => {
     const token = await obtenerToken();
     if (token) {
-      reiniciar(); // limpia el resultado de una calificación anterior
+      reiniciar(); // Limpiamos la valoración anterior.
       setEditando(miPuntuacion != null);
-      setModalVisible(true); // con sesión: abre la calificación
+      setModalVisible(true); // Abrimos la valoración.
     } else {
-      setInvitacionVisible(true); // invitado: lo invita a iniciar sesión
+      setInvitacionVisible(true); // Pedimos iniciar sesión.
     }
   };
 
@@ -141,13 +142,12 @@ export default function DetalleReceta() {
             disabled: favorito.ocupado || !favorito.preparado,
             selected: favorito.esFavorito,
           }}
-          style={[styles.botonCircular, favorito.ocupado && { opacity: 0.5 }]}
+          style={[
+            styles.botonCircular,
+            favorito.ocupado && styles.guardandoFavorito,
+          ]}
         >
-          <MaterialCommunityIcons
-            name={favorito.esFavorito ? "heart" : "heart-outline"}
-            size={24}
-            color="#552414"
-          />
+          <CorazonFavorito seleccionado={favorito.esFavorito} />
         </Pressable>
       </View>
 
@@ -184,7 +184,7 @@ export default function DetalleReceta() {
             <Text style={styles.descripcion}>{receta.descripcion}</Text>
           </View>
 
-          {/* El sombrerito va al lado del nombre, dentro del encabezado. */}
+          {/* Valoración junto al nombre. */}
           <BloqueValoracionReceta
             total={receta.cantidad_valoraciones}
             promedio={receta.valoracion_promedio}
@@ -195,7 +195,7 @@ export default function DetalleReceta() {
 
         <DatosReceta receta={receta} />
 
-        {/* Ingredientes, pasos, tips*/}
+        {/* Ingredientes, pasos y consejos. */}
         <ContenidoReceta
           receta={receta}
           accionPreparacion={<BotonLecturaReceta pasos={receta.pasos} />}

@@ -41,7 +41,11 @@ export async function leerFavoritos(
   lista: ListaFavoritos,
 ): Promise<FavoritoLocal[]> {
   await comprobarLista(lista);
-  const json = await AsyncStorage.getItem(lista.clave);
+  return leerLista(lista.clave);
+}
+
+async function leerLista(clave: string): Promise<FavoritoLocal[]> {
+  const json = await AsyncStorage.getItem(clave);
   if (!json) return [];
   const datos: unknown = JSON.parse(json);
   if (!Array.isArray(datos))
@@ -49,12 +53,74 @@ export async function leerFavoritos(
   return datos;
 }
 
-// Serializamos las escrituras para que dos recetas guardadas juntas no se sobrescriban.
+// Guardamos de una en una para no perder cambios.
 let pendiente: Promise<unknown> = Promise.resolve();
 function escribir<T>(operacion: () => Promise<T>): Promise<T> {
   const siguiente = pendiente.then(operacion, operacion);
   pendiente = siguiente.catch(() => undefined);
   return siguiente;
+}
+
+// Conservamos las fotos que todavía usa otra lista.
+async function borrarImagenSinReferencias(uri: string) {
+  await borrarImagenesSinReferencias([uri]);
+}
+
+async function borrarImagenesSinReferencias(imagenes: Iterable<string>) {
+  const pendientes = new Set(imagenes);
+  if (!pendientes.size) return;
+  const claves = (await AsyncStorage.getAllKeys()).filter((clave) =>
+    clave.startsWith("favoritos:v1:"),
+  );
+  for (const clave of claves) {
+    for (const item of await leerLista(clave)) {
+      if (item.receta?.imagen_url) pendientes.delete(item.receta.imagen_url);
+    }
+  }
+  for (const uri of pendientes) {
+    await borrarImagenFavorito(uri).catch(() => undefined);
+  }
+}
+
+export function trasladarFavoritosInvitado(usuarioId: number, token: string) {
+  return escribir(async () => {
+    if (!Number.isSafeInteger(usuarioId) || usuarioId <= 0 || !token) {
+      throw new Error("No se pudo identificar la cuenta de destino.");
+    }
+    const lista = { clave: `favoritos:v1:cuenta:${usuarioId}`, token };
+    await comprobarLista(lista);
+    const invitados = await leerLista("favoritos:v1:invitado");
+    if (!invitados.length) return;
+    const actuales = await leerFavoritos(lista);
+    const fusionados = new Map(actuales.map((item) => [item.id, item]));
+    for (const item of invitados) {
+      const existente = fusionados.get(item.id);
+      // Si la receta fue eliminada, conservamos el aviso.
+      if (!existente || (!item.receta && existente.receta)) {
+        fusionados.set(item.id, item);
+      }
+    }
+    await comprobarLista(lista);
+    await AsyncStorage.setItem(
+      lista.clave,
+      JSON.stringify([...fusionados.values()]),
+    );
+    await comprobarLista(lista);
+    // Vaciamos el invitado después de guardar en la cuenta.
+    await AsyncStorage.removeItem("favoritos:v1:invitado");
+    const imagenes = new Set(
+      [...invitados, ...actuales]
+        .map((item) => item.receta?.imagen_url)
+        .filter((uri): uri is string => !!uri),
+    );
+    const conservadas = new Set(
+      [...fusionados.values()].map((item) => item.receta?.imagen_url),
+    );
+    for (const uri of imagenes) {
+      if (!conservadas.has(uri))
+        await borrarImagenSinReferencias(uri).catch(() => undefined);
+    }
+  });
 }
 
 export function guardarFavorito(lista: ListaFavoritos, receta: RecetaDetalle) {
@@ -64,7 +130,7 @@ export function guardarFavorito(lista: ListaFavoritos, receta: RecetaDetalle) {
     if (favoritos.some((item) => item.id === receta.id)) return;
     let imagen: string | null = null;
     try {
-      // Solo confirmamos el guardado cuando también se descargó la foto existente.
+      // Descargamos la foto antes de confirmar el guardado.
       imagen = receta.imagen_url
         ? await descargarImagenFavorito(receta.imagen_url)
         : null;
@@ -84,23 +150,43 @@ export function guardarFavorito(lista: ListaFavoritos, receta: RecetaDetalle) {
 }
 
 export function quitarFavorito(lista: ListaFavoritos, id: number) {
+  return quitarFavoritos(lista, [id]);
+}
+
+export function quitarFavoritos(lista: ListaFavoritos, ids: readonly number[]) {
+  return eliminarFavoritos(lista, ids);
+}
+
+export function vaciarFavoritos(lista: ListaFavoritos) {
+  return eliminarFavoritos(lista, null);
+}
+
+function eliminarFavoritos(
+  lista: ListaFavoritos,
+  ids: readonly number[] | null,
+) {
   return escribir(async () => {
     const favoritos = await leerFavoritos(lista);
-    const anterior = favoritos.find((item) => item.id === id);
-    await comprobarLista(lista);
-    await AsyncStorage.setItem(
-      lista.clave,
-      JSON.stringify(favoritos.filter((item) => item.id !== id)),
+    const seleccion = ids === null ? null : new Set(ids);
+    const eliminados = favoritos.filter(
+      (item) => seleccion === null || seleccion.has(item.id),
     );
-    if (anterior?.receta?.imagen_url) {
-      await borrarImagenFavorito(anterior.receta.imagen_url).catch(
-        () => undefined,
-      );
-    }
+    const restantes = favoritos.filter(
+      (item) => seleccion !== null && !seleccion.has(item.id),
+    );
+    if (!eliminados.length) return restantes;
+    await comprobarLista(lista);
+    // Quitamos toda la selección en un solo guardado.
+    await AsyncStorage.setItem(lista.clave, JSON.stringify(restantes));
+    const imagenes = eliminados
+      .map((item) => item.receta?.imagen_url)
+      .filter((uri): uri is string => !!uri);
+    await borrarImagenesSinReferencias(imagenes).catch(() => undefined);
+    return restantes;
   });
 }
 
-// Un fallo de red o un 404 no demuestra eliminación. Solo usamos estados explícitos.
+// Solo retiramos recetas cuya eliminación esté confirmada.
 export async function verificarFavoritos(lista: ListaFavoritos) {
   const favoritos = await leerFavoritos(lista);
   for (let inicio = 0; inicio < favoritos.length; inicio += 50) {
@@ -130,10 +216,11 @@ export async function verificarFavoritos(lista: ListaFavoritos) {
           resultado.estado === "eliminada_autor"
             ? "Esta receta fue eliminada por su autor."
             : "Esta receta fue eliminada.";
-        // Persistimos la retirada antes de borrar la imagen.
+        // Guardamos el aviso antes de borrar la foto.
         await comprobarLista(lista);
         await AsyncStorage.setItem(lista.clave, JSON.stringify(actuales));
-        if (imagen) await borrarImagenFavorito(imagen).catch(() => undefined);
+        if (imagen)
+          await borrarImagenSinReferencias(imagen).catch(() => undefined);
       }
     });
   }
